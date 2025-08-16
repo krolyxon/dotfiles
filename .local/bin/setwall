@@ -1,0 +1,52 @@
+#!/bin/bash
+WALL_DIR="$HOME/pix/wallpapers/onedarkwallpapers/"
+MODE="random"
+CUSTOM_PATH=""
+
+# Parse options
+while getopts ":mp:" opt; do
+    case $opt in
+        m) MODE="menu" ;;
+        p) MODE="path"; CUSTOM_PATH="$OPTARG" ;;
+        \?) echo "Usage: $0 [-m] [-p /path/to/image]" >&2; exit 1 ;;
+        :) echo "Option -$OPTARG requires an argument." >&2; exit 1 ;;
+    esac
+done
+
+# Choose wallpaper
+case $MODE in
+    random)
+        NEW_WALL=$(find "$WALL_DIR" -type f | shuf -n 1)
+        ;;
+    path)
+        if [[ -f "$CUSTOM_PATH" ]]; then
+            NEW_WALL="$CUSTOM_PATH"
+        else
+            echo "Error: File not found -> $CUSTOM_PATH" >&2
+            exit 1
+        fi
+        ;;
+    menu)
+        WALLPAPER_LIST=$(find "$WALL_DIR" -type f | sort | sed "s|$WALL_DIR||")
+        CHOSEN=$(echo "$WALLPAPER_LIST" | rofi -dmenu -i -p "Choose wallpaper:")
+        if [[ -z "$CHOSEN" ]]; then
+            NEW_WALL=$(find "$WALL_DIR" -type f | shuf -n 1)
+        else
+            NEW_WALL="$WALL_DIR$CHOSEN"
+        fi
+        ;;
+esac
+
+# Apply wallpaper
+if ! pgrep -x hyprpaper >/dev/null; then
+    # Hyprpaper not running → start with chosen wallpaper
+    cat > ~/.config/hypr/hyprpaper.conf <<EOF
+preload = $NEW_WALL
+wallpaper = ,$NEW_WALL
+EOF
+    hyprpaper &
+else
+    # Hyprpaper is running → change it live
+    hyprctl hyprpaper preload "$NEW_WALL"
+    hyprctl hyprpaper wallpaper ",$NEW_WALL"
+fi

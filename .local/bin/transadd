@@ -1,0 +1,14 @@
+#!/bin/sh
+
+# Starting transmission-daemon if not already running
+# transmission-daemon sometimes fails to take remote requests in its first moments, hence the sleep.
+pidof transmission-daemon >/dev/null || (transmission-daemon && notify-send "Starting transmission daemon...")
+sleep 3
+
+# adding the Torrent
+if [ -z "$*" ]; then
+   magnetlink="$(wl-paste)"
+   transmission-remote -a "$magnetlink" && notify-send "🔽 Torrent added."
+else
+   transmission-remote -a "$@" && notify-send "🔽 Torrent added."
+fi

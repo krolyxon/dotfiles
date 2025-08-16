@@ -1,0 +1,23 @@
+#!/bin/sh
+
+madd() {
+    queue="$(mpc playlist)"
+    if [ -z "$queue" ]; then
+        mpc insert "$filename"
+        mpc play
+    else
+        mpc insert "$filename"
+        mpc next
+    fi
+}
+
+if [ -t 0 ]; then
+    filename=$(mpc listall | fzf)
+else
+    filename=$(mpc listall | rofi -dmenu -l 30 -case-smart)
+fi
+
+if [ -n "$filename" ]; then
+    madd
+fi
+

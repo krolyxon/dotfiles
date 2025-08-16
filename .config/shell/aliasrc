@@ -1,0 +1,61 @@
+#!/bin/sh
+
+# Use neovim for vim if present
+[ -x "$(command -v nvim)" ] && alias vim="nvim" vimdiff="nvim -d"
+
+alias \
+    ls='ls -hN --group-directories-first --color=auto' \
+    lsa='ls -lAhN --group-directories-first --color=auto' \
+    dots='/usr/bin/git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME' \
+    lf="yazi" \
+    nb="newsboat" \
+    sxiv="nsxiv" \
+    hst="history 1 -1 | cut -c 8- | sort | uniq | fzf | tr -d '\n' | wl-copy" \
+
+# Verbosity and settings that you pretty much just always are going to want.
+alias \
+        cp="cp -iv" \
+        mv="mv -iv" \
+        rm="rm -vI" \
+        yt="yt-dlp --embed-metadata -i -o '%(title)s.%(ext)s'" \
+        yta="yt -x -f bestaudio/best" \
+        ytbdl="yt-dlp -f bestvideo+bestaudio -o '%(title)s.%(ext)s' --external-downloader=aria2c" \
+        ytdl="yt-dlp -f best -o '%(title)s.%(ext)s' --external-downloader=aria2c" \
+        tsm="transmission-remote" \
+        tsmd="transmission-daemon"
+
+        # yt="yt-dlp --embed-metadata -i -o '%(title)s.%(ext)s' --external-downloader=aria2c"   \
+
+alias on="tmux new-session -s notes -c ~/dox/brain 'nvim .'"
+alias todo="nvim ~/dox/brain/Todo.md"
+
+# Colorize commands when possible.
+alias \
+	grep="grep --color=auto" \
+	diff="diff --color=auto" \
+	ip="ip -color=auto"
+
+
+# git aliases
+alias \
+      ga='git add' \
+      gc='git commit' \
+      gp='git push' \
+      gC='git clone'
+
+ec() {find  ~/.config -type f | fzf | xargs -r $EDITOR ;}
+es() { cd ~/.local/bin; $EDITOR $(fzf) ;}
+ef() {fzf | xargs -r -I % $EDITOR % ;}
+of() {fzf | xargs -r -I % xdg-open % ; }
+colors() {
+    for COLOR in {1..255}; do
+        echo -en "\e[38;5;${COLOR}m"
+        echo -n "${COLOR} "
+    done
+    echo
+}
+# movie() {
+#     filename="$(find ~/movies/ -type f -regex ".*\.\(mkv\|mp4\|mpeg\|avi\|mov\|webm\)" -printf "%f\n" | fzf)"
+#     filepath="$(find ~/movies/ -type f -regex ".*\.\(mkv\|mp4\|mpeg\|avi\|mov\|webm\)")"
+#     mpv "$(grep "$filename" <<< "$filepath")"
+# }

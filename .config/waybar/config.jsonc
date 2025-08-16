@@ -1,0 +1,157 @@
+{
+    // "layer": "top", // Waybar at top layer
+    "position": "top", // Waybar position (top|bottom|left|right)
+    "height": 0, // Waybar height (to be removed for auto height)
+    "width": 0, // Waybar width (0 == auto)
+    "spacing": 0, // Gaps between modules
+    // "output": ["HDMI-A-1", "DP-2", "eDP-1"],
+    // Choose the order of the modules
+    "modules-left": [
+        "hyprland/workspaces"
+        // "hyprland/window",
+    ],
+    "modules-center" : [
+        "hyprland/window"
+    ],
+    "modules-right": [
+        "custom/gpumode",
+        "tray",
+        "pulseaudio",
+        "battery",
+        "backlight",
+        "cpu",
+        "memory",
+        // "network",
+        "custom/date",
+        "clock",
+    ],
+    // Modules configuration
+    "hyprland/workspaces": {
+        "format": "{icon}",
+        "format-icons": {
+            "1": "",
+            "2": "",
+            "3": "",
+            "4": "",
+            "5": "",
+            "6": "",
+            "7": "",
+            "8": "",
+            "9": "",
+            "10": "",
+            "11": "",
+            "12": "",
+            "13": "",
+            "14": "",
+            "15": "",
+            "16": "",
+            "17": "",
+            "18": "",
+            "19": "",
+            "20": "",
+            "urgent": "",
+            // "active": "", // focused workspace on current monitor
+            // "visible": "", // focused workspace on other monitors
+            // "default": "",
+            // "default": "", // focused workspace on current monitor
+            // "empty": "" // persistent
+        },
+        "on-scroll-up": "hyprctl dispatch workspace r-1",
+        "on-scroll-down": "hyprctl dispatch workspace r+1",
+        "all-outputs": false,
+        "show-special": false
+    },
+    "hyprland/window": {
+        "format": "󰣇 {}",
+        "max-length": 50
+    },
+    "tray": {
+        "icon-size": 13,
+        "spacing": 10
+    },
+    "clock": {
+        "timezone": "Asia/Kolkata",
+        "tooltip-format": "<tt><big>{calendar}</big></tt>",
+        "format": "󰥔 {:%H:%M}",
+        "interval": 5
+    },
+    "custom/date": {
+        "timezone": "Asia/Kolkata",
+        "exec": "date +'%a %d %b %Y'",
+        "format": "󰃭 {}",
+        "interval": 1,
+        "tooltip": false
+    },
+    "custom/gpumode": {
+        "exec": "~/.config/waybar/scripts/gpu_mode.sh",
+        "format": "{}",
+        "interval": "once",
+        "on-click": "~/.config/waybar/scripts/envyswitch.sh",
+    },
+    "cpu": {
+        "format": " {usage:2}%",
+        "interval": 1,
+        "on-click": "$TERMINAL -e htop",
+    },
+    "memory": {
+        "format": " {used:0.1f}G",
+        "interval": 1,
+        "on-click": "$TERMINAL -e htop",
+    },
+    "network": {
+        "interval": 5,
+        "format-wifi": "  {essid} ({signalStrength}%)", // Icon: wifi
+        "format-ethernet": "  {ifname}: {ipaddr}/{cidr}", // Icon: ethernet
+        "format-disconnected": "⚠  Disconnected",
+        "tooltip-format": "{ifname}: {ipaddr}"
+    },
+    "battery": {
+        "states": {
+            "good": 90,
+            "warning": 30,
+            "critical": 15
+        },
+        "format": "{icon} {capacity:3}%",
+        "format-charging": "󰂄 {capacity:3}%",
+        "format-plugged": " {capacity:3}%",
+        "format-alt": "{icon} ",
+        "format-good": "{icon} {capacity:3}%",
+        "format-full": "{icon} {capacity:3}%",
+        "format-icons": [
+            "",
+            "",
+            "",
+            "",
+            ""
+        ]
+    },
+    "backlight": {
+        // "device": "intel_backlight",
+        "format": "{icon} {percent}%",
+        "format-icons": ["󰃞", "󰃟", "󰃠"],
+        "on-scroll-up": "brightnessctl set 1%+",
+        "on-scroll-down": "brightnessctl set 1%-",
+        "min-length": 6
+    },
+    "pulseaudio": {
+        "scroll-step": 1, // %, can be a float
+        "format": "{volume:2}% {icon} {format_source}",
+        "format-muted": "{volume:2}% 󰝟 {format_source}",
+        "format-bluetooth": "{volume:2}% {icon}  {format_source}",
+        "format-source": "",
+        "format-source-muted": "",
+        "format-icons": {
+            "analog": "",
+            "hdmi": "󰓃",
+            "headphone": "",
+            "headset": "󰋎",
+            "default": [
+                "", // 0  - 25
+                "", // 25 - 50
+                "", // 50 - 75
+                "" // 75 - 100
+            ]
+        },
+        "on-click": "pavucontrol",
+    },
+}

@@ -1,0 +1,23 @@
+#!/bin/sh
+
+export WM="Hyprland"
+case "$(readlink -f /sbin/init)" in
+    *systemd*) ctl='systemctl' ;;
+    *) ctl='loginctl' ;;
+esac
+
+wmpid(){ # Get Hyprland process PID
+    pgrep -o hyprland
+}
+
+case "$(printf " lock\n󰠚 leave $WM\n renew $WM\n󱣻 hibernate\n reboot\n shutdown\n sleep\n display off" | rofi -dmenu -i -l 15 -p 'Action: ')" in
+    ' lock') hyprlock ;;
+    "󰠚 leave $WM") kill -TERM "$(wmpid)" ;;
+    " renew $WM") hyprctl reload ;;
+    '󱣻 hibernate') $ctl hibernate -i ;;
+    ' sleep') $ctl suspend -i ;;
+    ' reboot') $ctl reboot -i ;;
+    ' shutdown') $ctl poweroff -i ;;
+    ' display off') hyprctl dispatch dpms off ;;
+    *) exit 1 ;;
+esac

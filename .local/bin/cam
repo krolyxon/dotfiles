@@ -1,0 +1,2 @@
+#!/bin/sh
+mpv --untimed --no-cache --no-osc --no-input-default-bindings --profile=low-latency --input-conf=/dev/null --title=webcam  /dev/video0

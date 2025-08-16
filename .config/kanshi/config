@@ -1,0 +1,22 @@
+profile laptop-only {
+    output eDP-1 {
+        enable
+        mode 1920x1080
+        scale 1
+        position 0,0
+    }
+}
+
+profile docked {
+    output eDP-1 {
+        mode 1920x1080
+        scale 1
+        position 0,0
+    }
+
+    output HDMI-A-1 {
+        mode 1920x1080
+        scale 1
+        position 1920,0
+    }
+}

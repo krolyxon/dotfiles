@@ -1,0 +1,22 @@
+#!/bin/sh
+
+# A rofi -dmenu prompt to unmount drives.
+# Provides you with mounted partitions, select one to unmount.
+# Drives mounted at /, /boot and /home will not be options to unmount.
+
+unmountusb() {
+	[ -z "$drives" ] && exit
+	chosen="$(echo "$drives" | rofi -dmenu -i -p "Unmount which drive?")" || exit 1
+	chosen="$(echo "$chosen" | awk '{print $1}')"
+	[ -z "$chosen" ] && exit
+	sudo -A umount "$chosen" && notify-send "💻 USB unmounting" "$chosen unmounted."
+	}
+
+drives=$(lsblk -nrpo "name,type,size,mountpoint,label" | awk -F':' '{gsub(/ /,":")}$4!~/\/boot|\/efi|\/home$|SWAP/&&length($4)>1{printf "%s (%s) %s\n",$4,$3,$5}')
+
+if [ -z "$drives" ]; then
+        echo "No drives to unmount." &&  exit
+else
+	echo "Unmountable USB drive detected."
+	     unmountusb
+fi
