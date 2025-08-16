@@ -1,0 +1,11 @@
+#!/bin/sh
+
+while read file
+do
+  case "$1" in
+  "d")
+	[ "$(printf "No\\nYes" | dmenu -i -p "Really delete $file?")" = "Yes" ] && rm "$file" && notify-send "$file deleted." ;;
+  "w") setwall -p $file;;
+  "c") cat "$file" | xclip -sel c -t image/png && notify-send "$file Copied ";;
+  esac
+done
