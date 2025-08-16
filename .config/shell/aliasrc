@@ -6,7 +6,6 @@
 alias \
     ls='ls -hN --group-directories-first --color=auto' \
     lsa='ls -lAhN --group-directories-first --color=auto' \
-    dots='/usr/bin/git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME' \
     lf="yazi" \
     nb="newsboat" \
     sxiv="nsxiv" \
@@ -43,7 +42,7 @@ alias \
       gp='git push' \
       gC='git clone'
 
-ec() {find  ~/.config -type f | fzf | xargs -r $EDITOR ;}
+ec() {find ~/.config \( -type f -o -type l \) | fzf | xargs -r $EDITOR}
 es() { cd ~/.local/bin; $EDITOR $(fzf) ;}
 ef() {fzf | xargs -r -I % $EDITOR % ;}
 of() {fzf | xargs -r -I % xdg-open % ; }
