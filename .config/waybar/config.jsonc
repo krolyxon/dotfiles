@@ -77,7 +77,7 @@
     },
     "custom/date": {
         "timezone": "Asia/Kolkata",
-        "exec": "date +'%a %d %b %Y'",
+        "exec": "date +'%d %b %Y'",
         "format": "󰃭 {}",
         "interval": 1,
         "tooltip": false
