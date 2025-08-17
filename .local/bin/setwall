@@ -1,5 +1,5 @@
 #!/bin/bash
-WALL_DIR="$HOME/pix/wallpapers/onedarkwallpapers/"
+WALL_DIR="$HOME/pix/wallpapers/catppuccin/"
 MODE="random"
 CUSTOM_PATH=""
 
@@ -27,13 +27,7 @@ case $MODE in
         fi
         ;;
     menu)
-        WALLPAPER_LIST=$(find "$WALL_DIR" -type f | sort | sed "s|$WALL_DIR||")
-        CHOSEN=$(echo "$WALLPAPER_LIST" | rofi -dmenu -i -p "Choose wallpaper:")
-        if [[ -z "$CHOSEN" ]]; then
-            NEW_WALL=$(find "$WALL_DIR" -type f | shuf -n 1)
-        else
-            NEW_WALL="$WALL_DIR$CHOSEN"
-        fi
+        NEW_WALL=$(nsxiv -tfpo $WALL_DIR)
         ;;
 esac
 
