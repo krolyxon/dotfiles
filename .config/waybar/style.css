@@ -185,7 +185,7 @@ window#waybar.hidden {
 }
 
 #clock {
-    color: #eceff4;
+    color: @text;
     box-shadow: inset 0 -1px #eceff4;
 }
 
