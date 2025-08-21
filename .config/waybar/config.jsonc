@@ -29,27 +29,27 @@
     "hyprland/workspaces": {
         "format": "{icon}",
         "format-icons": {
-            "1": "",
-            "2": "",
-            "3": "",
-            "4": "",
-            "5": "",
-            "6": "",
-            "7": "",
-            "8": "",
-            "9": "",
-            "10": "",
-            "11": "",
-            "12": "",
-            "13": "",
-            "14": "",
-            "15": "",
-            "16": "",
-            "17": "",
-            "18": "",
-            "19": "",
-            "20": "",
-            "urgent": "",
+        "1": "",  // Browser → research, online study
+        "2": "",  // Code → programming, assignments
+        "3": "",  // Book → textbooks, notes, reading
+        "4": "",  // Cog → system/tools for productivity
+        "5": "",  // Chatting
+        "6": "",  // Scroll/file → reports, writing, docs
+        "7": "",  // Folder → file manager, documents
+        "8": "",  // Terminal → dev tools, CLI
+        "9": "",  // Flask (Science) → labs, simulations, experiments
+        "10": "", // Media viewer (optional, for diagrams/images)
+        "11": "",
+        "12": "",
+        "13": "",
+        "14": "",
+        "15": "",
+        "16": "",
+        "17": "",
+        "18": "",
+        "19": "",
+        "20": "",
+        "urgent": "",
             // "active": "", // focused workspace on current monitor
             // "visible": "", // focused workspace on other monitors
             // "default": "",
