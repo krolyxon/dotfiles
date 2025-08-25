@@ -1,12 +1,12 @@
 #!/bin/sh
 
-# A rofi -dmenu prompt to unmount drives.
+# A dmenu prompt to unmount drives.
 # Provides you with mounted partitions, select one to unmount.
 # Drives mounted at /, /boot and /home will not be options to unmount.
 
 unmountusb() {
 	[ -z "$drives" ] && exit
-	chosen="$(echo "$drives" | rofi -dmenu -i -p "Unmount which drive?")" || exit 1
+	chosen="$(echo "$drives" | fuzzel -d -i -p "Unmount which drive?")" || exit 1
 	chosen="$(echo "$chosen" | awk '{print $1}')"
 	[ -z "$chosen" ] && exit
 	sudo -A umount "$chosen" && notify-send "💻 USB unmounting" "$chosen unmounted."

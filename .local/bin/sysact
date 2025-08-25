@@ -10,7 +10,7 @@ wmpid(){ # Get Hyprland process PID
     pgrep -o hyprland
 }
 
-case "$(printf " lock\n󰠚 leave $WM\n renew $WM\n󱣻 hibernate\n reboot\n shutdown\n sleep\n display off" | rofi -dmenu -i -l 15 -p 'Action: ')" in
+case "$(printf " lock\n󰠚 leave $WM\n renew $WM\n󱣻 hibernate\n reboot\n shutdown\n sleep\n display off" | fuzzel -d -i -l 15 -p 'Action: ')" in
     ' lock') hyprlock ;;
     "󰠚 leave $WM") kill -TERM "$(wmpid)" ;;
     " renew $WM") hyprctl reload ;;

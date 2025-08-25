@@ -1,6 +1,6 @@
 #!/bin/env bash
 
-mode="$(printf "Integrated\nHybrid\nNvidia" | rofi -dmenu -case-smart -matching "fuzzy" -p "Select the graphics mode:")"
+mode="$(printf "Integrated\nHybrid\nNvidia" | fuzzel --dmenu  -p "Select the graphics mode:")"
 
 # Exit if no selection was made
 [ -z "$mode" ] && exit 1

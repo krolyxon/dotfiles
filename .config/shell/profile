@@ -32,7 +32,7 @@ export MYSQL_HISTFILE="$XDG_CACHE_HOME/.mariadb_history"
 export CUDA_CACHE_PATH="$XDG_CACHE_HOME/nv"
 
 # Other program settings
-export SUDO_ASKPASS="$HOME/.local/bin/rofipass"
+export SUDO_ASKPASS="$HOME/.local/bin/askpass-fuzzel"
 export FZF_DEFAULT_OPTS="--layout=reverse --height 40%"
 export ANDROID_SDK_HOME="${XDG_CONFIG_HOME:-$HOME/.config}/android"
 export ANDROID_HOME="$HOME/Android/Sdk/"

@@ -1,0 +1,12 @@
+#!/bin/bash
+
+prompt="${1:-Password:}"
+
+password=$(fuzzel --dmenu --password --prompt="" --placeholder="$prompt" --width=60 --lines=0 --keyboard-focus=on-demand --no-exit-on-keyboard-focus-loss)
+
+if [ $? -eq 0 ]; then
+  echo "$password"
+  exit 0
+else
+  exit 1
+fi
