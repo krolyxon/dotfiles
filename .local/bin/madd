@@ -18,6 +18,6 @@ else
 fi
 
 if [ -n "$filename" ]; then
-    madd
+    madd && notify-send "Playing $filename"
 fi
 
