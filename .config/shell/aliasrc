@@ -6,7 +6,6 @@
 alias \
     ls='ls -hN --group-directories-first --color=auto' \
     lsa='ls -lAhN --group-directories-first --color=auto' \
-    lf="yazi" \
     nb="newsboat" \
     sxiv="nsxiv" \
     hst="history 1 -1 | cut -c 8- | sort | uniq | fzf | tr -d '\n' | wl-copy" \
