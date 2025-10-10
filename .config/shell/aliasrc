@@ -3,9 +3,11 @@
 # Use neovim for vim if present
 [ -x "$(command -v nvim)" ] && alias vim="nvim" vimdiff="nvim -d"
 
+    # lsa='ls -lAhN --group-directories-first --color=auto' \
+    # ls='ls -hN --group-directories-first --color=auto' \
 alias \
-    ls='ls -hN --group-directories-first --color=auto' \
-    lsa='ls -lAhN --group-directories-first --color=auto' \
+    ls='eza -x' \
+    lsa='eza -la' \
     nb="newsboat" \
     sxiv="nsxiv" \
     hst="history 1 -1 | cut -c 8- | sort | uniq | fzf | tr -d '\n' | wl-copy" \
@@ -26,6 +28,7 @@ alias \
 
 alias on="tmux new-session -s notes -c ~/dox/brain 'nvim .'"
 alias todo="nvim ~/dox/brain/Todo.md"
+alias dots="cd ~/.dotfiles/"
 
 # Colorize commands when possible.
 alias \
