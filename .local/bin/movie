@@ -2,11 +2,11 @@
 
 
 if [ -t 0 ]; then
-    filename="$(find ~/media/movies/ -type f -regex ".*\.\(mkv\|mp4\|mpeg\|avi\|mov\|webm\)" -printf "%f\n" | sort | fzf)"
+    filename="$(find ~/remote/movies/ -type f -regex ".*\.\(mkv\|mp4\|mpeg\|avi\|mov\|webm\)" -printf "%f\n" | sort | fzf)"
 else
-    filename="$(find ~/media/movies/ -type f -regex ".*\.\(mkv\|mp4\|mpeg\|avi\|mov\|webm\)" -printf "%f\n" | sort | fuzzel  -d -l 25)"
+    filename="$(find ~/remote/movies/ -type f -regex ".*\.\(mkv\|mp4\|mpeg\|avi\|mov\|webm\)" -printf "%f\n" | sort | fuzzel  -d -l 25)"
 fi
 
-filepath="$(find ~/media/movies/ -type f -regex ".*\.\(mkv\|mp4\|mpeg\|avi\|mov\|webm\)")"
+filepath="$(find ~/remote/movies/ -type f -regex ".*\.\(mkv\|mp4\|mpeg\|avi\|mov\|webm\)")"
 mpv "$(grep "$filename" <<< "$filepath")"
 
