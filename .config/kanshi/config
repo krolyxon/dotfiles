@@ -7,15 +7,6 @@ profile laptop-only {
     }
 }
 
-profile external-only {
-    output eDP-1 disable
-    output HDMI-A-1 {
-        mode 1920x1080
-        position 0,0
-        scale 1
-    }
-}
-
 profile docked {
     output eDP-1 {
         enable
@@ -30,3 +21,13 @@ profile docked {
         position 1920,0
     }
 }
+
+profile external-only {
+    output eDP-1 disable
+    output HDMI-A-1 {
+        mode 1920x1080
+        position 0,0
+        scale 1
+    }
+}
+
