@@ -1,39 +1,4 @@
-/*
-*
-* Catppuccin Mocha palette
-* Maintainer: rubyowo
-*
-*/
-@define-color base   #1e1e2e;
-@define-color mantle #181825;
-@define-color crust  #11111b;
-
-@define-color text     #cdd6f4;
-@define-color subtext0 #a6adc8;
-@define-color subtext1 #bac2de;
-
-@define-color surface0 #313244;
-@define-color surface1 #45475a;
-@define-color surface2 #585b70;
-
-@define-color overlay0 #6c7086;
-@define-color overlay1 #7f849c;
-@define-color overlay2 #9399b2;
-
-@define-color blue      #89b4fa;
-@define-color lavender  #b4befe;
-@define-color sapphire  #74c7ec;
-@define-color sky       #89dceb;
-@define-color teal      #94e2d5;
-@define-color green     #a6e3a1;
-@define-color yellow    #f9e2af;
-@define-color peach     #fab387;
-@define-color maroon    #eba0ac;
-@define-color red       #f38ba8;
-@define-color mauve     #cba6f7;
-@define-color pink      #f5c2e7;
-@define-color flamingo  #f2cdcd;
-@define-color rosewater #f5e0dc;
+@import url('../../.cache/wal/colors-waybar.css');
 
 * {
 font-family: "Fira Code", "FontAwesome";
@@ -49,7 +14,7 @@ window#waybar {
   transition-property: background-color;
   transition-duration: 0.5s;
   /* background: transparent; */
-  background: @base ;
+  background: @background;
   /*border: 2px solid @overlay0;*/
   /*background: @theme_base_color;*/
   /* border-radius: 10px; */
@@ -77,12 +42,12 @@ window#waybar.hidden {
 
 /* non-empty workspaces */
 #workspaces button {
-    background-color: @base;
+    background-color: @background;
 
     border: none;
     border-radius: 0;
 
-    color: @text;
+    color: @foreground;
     transition: all 0.2s ease;
     text-shadow: none;
 
@@ -91,7 +56,7 @@ window#waybar.hidden {
     padding-right: 10px;
     /* padding-top: 1px; */
 
-    box-shadow: inset 0 -1px #e3e3e3;
+    box-shadow: inset 0 -1px @cursor;
 }
 
 /* the first and last buttons should be rounded */
@@ -106,22 +71,22 @@ window#waybar.hidden {
 
 /* empty persistent workspaces */
 #workspaces button.empty {
-    background-color: @base;
+    background-color: @background;
     box-shadow: none;
 }
 
 #workspaces button:hover {
     /* transition-duration: .3s; */
-    color: @base;
-    background-color: #7da6ff;
-    box-shadow: inset 0 -1px #ffffff;
+    color: @background;
+    background-color: @color7;
+    box-shadow: inset 0 -1px @foreground;
     /* https://github.com/Alexays/Waybar/wiki/FAQ#the-workspace-buttons-have-a-strange-hover-effect */
     text-shadow: inherit;
 }
 
 /* non-empty persistent workspaces */
 #workspaces button.persistent {
-    background-color: #4c566a;
+    background-color: @color1;
 }
 
 
@@ -130,20 +95,20 @@ window#waybar.hidden {
 #workspaces button.active,
 #workspaces button.visible {
     /* background-color: #4c566a; */
-    color: @surface0;
-    background-color: #7da6ff;
+    color: @color0;
+    background-color: @color7;
     /* box-shadow: inset 0 -4px #eceff4; */
 }
 
 #workspaces button.urgent {
-    color: #bf616a;
+    color: @color3;
 }
 
 /**************/
 
 #mode {
-    background-color: #64727D;
-    border-bottom: 3px solid #ffffff;
+    background-color: @color2;
+    border-bottom: 3px solid @foreground;
 }
 
 #clock,
@@ -164,7 +129,7 @@ window#waybar.hidden {
 #window,
 #custom-notification,
 #mpd {
-    background-color: @base;
+    background-color: @background;
     padding: 0 12px 0 12px;
     margin-left: 10px;
 
@@ -181,27 +146,33 @@ window#waybar.hidden {
 }
 
 #window {
-    color: @text
+    color: @foreground
 }
 
 #clock {
-    color: @text;
-    box-shadow: inset 0 -1px #eceff4;
+    color: @foreground;
+    box-shadow: inset 0 -1px @cursor;
 }
 
 #custom-date {
-    color: #b48ead;
-    box-shadow: inset 0 -1px #b48ead;
+    color: @foreground;
+    box-shadow: inset 0 -1px @cursor;
 }
 
+#custom-gpumode{
+    color: @foreground;
+    box-shadow: inset 0 -1px @cursor;
+}
+
+
 #battery {
-    color: #ebcb8b;
-    box-shadow: inset 0 -1px #ebcb8b;
+    color: @foreground;
+    box-shadow: inset 0 -1px @cursor;
 }
 
 #backlight {
-    color: @teal;
-    box-shadow: inset 0 -1px @teal;
+    color: @foreground;
+    box-shadow: inset 0 -1px @cursor;
 }
 
 @keyframes blink {
@@ -212,8 +183,8 @@ window#waybar.hidden {
 }
 
 #battery.critical:not(.charging) {
-    background-color: #bf616a;
-    color: #ffffff;
+    background-color: @color5;
+    color: @foreground;
     animation-name: blink;
     animation-duration: 0.5s;
     animation-timing-function: linear;
@@ -226,13 +197,13 @@ label:focus {
 }
 
 #cpu {
-    color: #bf616a;
-    box-shadow: inset 0 -1px #bf616a;
+    color: @foreground;
+    box-shadow: inset 0 -1px @cursor;
 }
 
 #memory {
-    color: #a3be8c;
-    box-shadow: inset 0 -1px #a3be8c;
+    color: @foreground;
+    box-shadow: inset 0 -1px @cursor;
 }
 
 /* #disk {
@@ -240,33 +211,33 @@ label:focus {
 } */
 
 #network {
-    color: #5e81ac;
+    color: @color13;
 }
 
 #network.disconnected {
-    color: #81a1c1;
+    color: @color13;
 }
 
 #network.linked {
-    color: #bf616a;
+    color: @color10;
 }
 
 #pulseaudio {
-    color: @text;
-    box-shadow: inset 0 -1px @text;
+    color: @foreground;
+    box-shadow: inset 0 -1px @cursor;
 }
 
 
 #temperature {
-    color: #d08770;
+    color: @foreground;
 }
 
 #temperature.critical {
-    color: #bf616a;
+    color: @color2;
 }
 
 #tray {
-    color: @subtext0;
+    color: @color15;
     box-shadow: inset 0 -1px @subtext0;
 
 }

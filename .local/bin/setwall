@@ -38,9 +38,11 @@ if ! pgrep -x hyprpaper >/dev/null; then
 preload = $NEW_WALL
 wallpaper = ,$NEW_WALL
 EOF
+    wal -i $NEW_WALL
     hyprpaper &
 else
     # Hyprpaper is running → change it live
+    wal -i $NEW_WALL
     hyprctl hyprpaper preload "$NEW_WALL"
     hyprctl hyprpaper wallpaper ",$NEW_WALL"
 fi

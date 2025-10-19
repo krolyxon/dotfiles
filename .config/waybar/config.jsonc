@@ -14,8 +14,8 @@
         "hyprland/window"
     ],
     "modules-right": [
-        "custom/gpumode",
         "tray",
+        "custom/gpumode",
         "pulseaudio",
         "battery",
         "backlight",
