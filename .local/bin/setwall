@@ -3,12 +3,36 @@ WALL_DIR="$HOME/pix/wallpapers/catppuccin/"
 MODE="random"
 CUSTOM_PATH=""
 
+apply_wallpaper() {
+    # Apply wallpaper
+    if ! pgrep -x hyprpaper >/dev/null; then
+        # Hyprpaper not running → start with chosen wallpaper
+        cat > ~/.config/hypr/hyprpaper.conf <<EOF
+preload = $NEW_WALL
+wallpaper = ,$NEW_WALL
+EOF
+hyprpaper &
+wal -i $NEW_WALL -n
+else
+    # Hyprpaper is running → change it live
+    cat > ~/.config/hypr/hyprpaper.conf <<EOF
+preload = $NEW_WALL
+wallpaper = ,$NEW_WALL
+EOF
+    hyprctl hyprpaper preload "$NEW_WALL"
+    hyprctl hyprpaper wallpaper ",$NEW_WALL"
+    wal -i $NEW_WALL -n
+    fi
+
+}
+
 # Parse options
-while getopts ":mp:" opt; do
+while getopts ":mnp:" opt; do
     case $opt in
         m) MODE="menu" ;;
-        p) MODE="path"; CUSTOM_PATH="$OPTARG" ;;
-        \?) echo "Usage: $0 [-m] [-p /path/to/image]" >&2; exit 1 ;;
+        p) MODE="path"; CUSTOM_PATH="$(realpath $OPTARG)" ;;
+        n) MODE="nc" ;;
+        \?) echo "Usage: $0 [-m] [-p /path/to/image] [-n]" >&2; exit 1 ;;
         :) echo "Option -$OPTARG requires an argument." >&2; exit 1 ;;
     esac
 done
@@ -17,6 +41,7 @@ done
 case $MODE in
     random)
         NEW_WALL=$(find "$WALL_DIR" -type f | shuf -n 1)
+        apply_wallpaper
         ;;
     path)
         if [[ -f "$CUSTOM_PATH" ]]; then
@@ -25,24 +50,14 @@ case $MODE in
             echo "Error: File not found -> $CUSTOM_PATH" >&2
             exit 1
         fi
+        apply_wallpaper
         ;;
     menu)
         NEW_WALL=$(nsxiv -tfpo $WALL_DIR)
+        apply_wallpaper
+        ;;
+    nc)
+        echo "Not changing anything"
+        pgrep 'hyprpaper' || hyprpaper &
         ;;
 esac
-
-# Apply wallpaper
-if ! pgrep -x hyprpaper >/dev/null; then
-    # Hyprpaper not running → start with chosen wallpaper
-    cat > ~/.config/hypr/hyprpaper.conf <<EOF
-preload = $NEW_WALL
-wallpaper = ,$NEW_WALL
-EOF
-    hyprpaper &
-    wal -i $NEW_WALL -n
-else
-    # Hyprpaper is running → change it live
-    hyprctl hyprpaper preload "$NEW_WALL"
-    hyprctl hyprpaper wallpaper ",$NEW_WALL"
-    wal -i $NEW_WALL -n
-fi
