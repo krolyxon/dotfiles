@@ -4,7 +4,6 @@
 font-family: "Fira Code", "FontAwesome";
 font-weight: bold;
 min-height: 0;
-/* set font-size to 100% if font scaling is set to 1.00 using nwg-look */
 font-size: 96%;
 font-feature-settings: '"zero", "ss01", "ss02", "ss03", "ss04", "ss05", "cv31"';
 /* padding: 0.03125rem; */
@@ -13,11 +12,7 @@ font-feature-settings: '"zero", "ss01", "ss02", "ss03", "ss04", "ss05", "cv31"';
 window#waybar {
   transition-property: background-color;
   transition-duration: 0.5s;
-  /* background: transparent; */
   background: @background;
-  /*border: 2px solid @overlay0;*/
-  /*background: @theme_base_color;*/
-  /* border-radius: 10px; */
 }
 
 window#waybar.hidden {
@@ -34,19 +29,14 @@ window#waybar.hidden {
 /**************/
 
 #workspaces {
-    /* border-radius: 8px; */
-    /* padding: 0 3px 0 8px; */
-    /* margin: 5px 5px 5px 0; */
     transition: all 0.2s ease;
 }
 
 /* non-empty workspaces */
 #workspaces button {
     background-color: @background;
-
     border: none;
     border-radius: 0;
-
     color: @foreground;
     transition: all 0.2s ease;
     text-shadow: none;
@@ -59,15 +49,6 @@ window#waybar.hidden {
     box-shadow: inset 0 -1px @cursor;
 }
 
-/* the first and last buttons should be rounded */
-#workspaces button:first-child {
-    /* border-top-left-radius: 8px; */
-    /* border-bottom-left-radius: 8px; */
-}
-#workspaces button:last-child {
-    /* border-top-right-radius: 8px; */
-    /* border-bottom-right-radius: 8px; */
-}
 
 /* empty persistent workspaces */
 #workspaces button.empty {
@@ -94,10 +75,8 @@ window#waybar.hidden {
 /* active or visible workspaces */
 #workspaces button.active,
 #workspaces button.visible {
-    /* background-color: #4c566a; */
     color: @color0;
     background-color: @color14;
-    /* box-shadow: inset 0 -4px #eceff4; */
 }
 
 #workspaces button.urgent {
@@ -120,7 +99,6 @@ window#waybar.hidden {
 #memory,
 #disk,
 #temperature,
-#network,
 #pulseaudio,
 #wireplumber,
 #mpris,
@@ -151,28 +129,28 @@ window#waybar.hidden {
 
 #clock {
     color: @foreground;
-    box-shadow: inset 0 -1px @cursor;
+    box-shadow: inset 0 -1px @color14;
 }
 
 #custom-date {
     color: @foreground;
-    box-shadow: inset 0 -1px @cursor;
+    box-shadow: inset 0 -1px @color14;
 }
 
 #custom-gpumode{
     color: @foreground;
-    box-shadow: inset 0 -1px @cursor;
+    box-shadow: inset 0 -1px @color14;
 }
 
 
 #battery {
     color: @foreground;
-    box-shadow: inset 0 -1px @cursor;
+    box-shadow: inset 0 -1px @color14;
 }
 
 #backlight {
     color: @foreground;
-    box-shadow: inset 0 -1px @cursor;
+    box-shadow: inset 0 -1px @color14;
 }
 
 @keyframes blink {
@@ -198,43 +176,19 @@ label:focus {
 
 #cpu {
     color: @foreground;
-    box-shadow: inset 0 -1px @cursor;
+    box-shadow: inset 0 -1px @color14;
 }
 
 #memory {
     color: @foreground;
-    box-shadow: inset 0 -1px @cursor;
-}
-
-/* #disk {
-    background-color: #964B00;
-} */
-
-#network {
-    color: @color13;
-}
-
-#network.disconnected {
-    color: @color13;
-}
-
-#network.linked {
-    color: @color10;
+    box-shadow: inset 0 -1px @color14;
 }
 
 #pulseaudio {
     color: @foreground;
-    box-shadow: inset 0 -1px @cursor;
+    box-shadow: inset 0 -1px @color14;
 }
 
-
-#temperature {
-    color: @foreground;
-}
-
-#temperature.critical {
-    color: @color2;
-}
 
 #tray {
     color: @color15;
