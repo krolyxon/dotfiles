@@ -92,7 +92,7 @@ render_timer = false
 size = 12
 
 [font.bold]
-family = "Fira Code"
+family = "JetBrains Mono Nerd Font"
 style = "Bold"
 
 [font.glyph_offset]
@@ -100,11 +100,11 @@ x = 0
 y = 0
 
 [font.italic]
-family = "Fira Code"
+family = "JetBrains Mono Nerd Font"
 style = "Italic"
 
 [font.normal]
-family = "Fira Code"
+family = "JetBrains Mono Nerd Font"
 style = "Regular"
 
 [font.offset]

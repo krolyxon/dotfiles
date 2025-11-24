@@ -1,7 +1,7 @@
 @import url('../../.cache/wal/colors-waybar.css');
 
 * {
-font-family: "Fira Code", "FontAwesome";
+font-family: "Jetbrains Mono Nerd", "FontAwesome";
 font-weight: bold;
 min-height: 0;
 font-size: 96%;
