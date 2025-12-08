@@ -3,6 +3,11 @@ case "$(file -Lb --mime-type -- "$1")" in
   image/*)
     chafa -f sixel -s "$2x$3" --animate off --polite on -t 1 --bg black "$1"
     ;;
+  video/*)
+    CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/lf/thumb.$(stat --printf '%n\0%i\0%F\0%s\0%W\0%Y' -- "$(readlink -f "$1")" | sha256sum | cut -d' ' -f1)"
+	ffmpegthumbnailer -i "$1" -o "$CACHE" -s 0
+    chafa -f sixel -s "$2x$3" --animate off --polite on -t 1 --bg black "$CACHE"
+    ;;
   text/*)
     bat "$1"
     ;;
