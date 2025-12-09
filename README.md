@@ -8,5 +8,5 @@
 $ cd $HOME
 $ git clone https://github.com/krolyxon/dotfiles.git ~/.dotfiles
 $ cd ~/.dotfiles
-$ stow . --no-folding
+$ ./install.sh
 ```
