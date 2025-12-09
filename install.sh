@@ -122,10 +122,7 @@ pkg_aur=(
 
 
 # Install necessary desktop packages
-sudo pacman -S --needed "${pkg_desktop[@]}"
-
-# install packages
-sudo pacman -S --needed "${pkg_utils[@]}"
+sudo pacman -S --needed "${pkg_desktop[@]}" "${pkg_utils[@]}"
 
 # Install dev tools
 read -rp "Do you wish to development tools? [y/n]" install_dev_tools
@@ -162,4 +159,40 @@ if [[ $install_aur_pkg == y ]]; then
     fi
 # Install aur packages
 paru -S --needed  "${pkg_aur[@]}"
+fi
+
+
+# Setup dotfiles
+echo "⚠️  WARNING: This will DELETE any conflicting files and replace them with symlinks from this repo."
+echo "   Make sure your dotfiles repo is the source of truth / already backed up."
+read -rp "Continue with stow (y/N): " confirm
+if [[ "$confirm" =~ ^[Yy]$ ]]; then
+    echo "Detecting conflicts..."
+    conflicts=$(stow . --no-folding -nv 2>&1 | \
+        sed -n 's/.*existing target \(.*\) since neither.*/\1/p')
+
+    if [[ -z "$conflicts" ]]; then
+        echo "No conflicts. Running stow normally..."
+        stow . --no-folding
+        echo "✅ Done."
+    else
+        echo "These paths conflict and will be removed:"
+        printf '  %s\n' $conflicts
+        read -rp "Proceed with deleting these files? (y/N): " ok
+        if [[ ! "$ok" =~ ^[Yy]$ ]]; then
+            echo "Aborted."
+        fi
+
+    # Remove conflicts relative to $HOME
+    for path in $conflicts; do
+        echo "Removing $HOME/$path"
+        rm -rf "$HOME/$path"
+    done
+
+    echo "Running stow..."
+    stow . --no-folding
+    echo "✅ Dotfiles stowed with overwrite."
+    fi
+else
+    echo "Aborted"
 fi
