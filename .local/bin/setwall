@@ -41,6 +41,9 @@ done
 case $MODE in
     random)
         NEW_WALL=$(find "$WALL_DIR" -type f | shuf -n 1)
+        if [[ -z "$NEW_WALL" ]]; then
+            NEW_WALL="$HOME/.config/hypr/default-wallpaper.png"
+        fi
         apply_wallpaper
         ;;
     path)
