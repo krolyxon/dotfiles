@@ -144,7 +144,7 @@ fi
 
 
 # Install aur packages
-read -rp "Do you wish to aur packages? [y/n]" install_aur_pkg
+read -rp "Do you wish to install aur packages? [y/n]" install_aur_pkg
 # Install paru if it isn't already installed
 if [[ $install_aur_pkg == y ]]; then
     if ! command -v paru >/dev/null 2>&1; then
@@ -195,4 +195,26 @@ if [[ "$confirm" =~ ^[Yy]$ ]]; then
     fi
 else
     echo "Aborted"
+fi
+
+# Setup neovim dotfiles
+read -rp "Clone neovim dotfiles as well? (y/N): " confirm
+if [[ "$confirm" =~ ^[Yy]$ ]]; then
+    echo "Taking backup of neovim config (if already exists)"
+    mv ~/.config/nvim{,.bak}
+    mv ~/.local/share/nvim{,.bak}
+    mv ~/.local/state/nvim{,.bak}
+    mv ~/.cache/nvim{,.bak}
+    git clone --depth=1 git@github.com:krolyxon/nvim.git ~/.config/nvim
+fi
+
+# Change default shell to zsh
+if [[ "$SHELL" != "$(which zsh)" ]]; then
+    read -rp "Change default shell to ZSH? (y/N): " confirm
+    if [[ "$confirm" =~ ^[Yy]$ ]]; then
+        echo "Changing default shell to zsh..."
+        chsh -s $(which zsh)
+    fi
+else
+    echo "Skipping: zsh is already the default shell"
 fi
