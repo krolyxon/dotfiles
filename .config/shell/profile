@@ -1,9 +1,9 @@
 #!/bin/sh
 
 export EDITOR="nvim"
-export TERMINAL="foot"
-export TERMINAL_PROG="foot"
-export BROWSER="librewolf"
+export TERMINAL="alacritty"
+export TERMINAL_PROG="alacritty"
+export BROWSER="zen-browser"
 
 export XDG_CONFIG_HOME="$HOME/.config"
 export XDG_DATA_HOME="$HOME/.local/share"

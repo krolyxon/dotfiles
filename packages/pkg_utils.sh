@@ -23,7 +23,6 @@ export pkg_utils=(
     "fastfetch"
     "fd"
     "ffmpegthumbnailer"
-    "foot"
     "fuzzel"
     "fzf"
     "gammastep"
