@@ -5,8 +5,8 @@
 
 ## Usage
 ```bash
-$ cd $HOME
-$ git clone https://github.com/krolyxon/dotfiles.git ~/.dotfiles
-$ cd ~/.dotfiles
-$ ./install.sh
+cd $HOME
+git clone https://github.com/krolyxon/dotfiles.git ~/.dotfiles
+cd ~/.dotfiles
+./install.sh
 ```
