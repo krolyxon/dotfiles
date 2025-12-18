@@ -6,7 +6,7 @@ cd "$currentDir"
 ## Install necessary desktop packages
 source "$currentDir/packages/pkg_desktop.sh"
 source "$currentDir/packages/pkg_utils.sh"
-sudo pacman -S --needed "${pkg_desktop[@]}" "${pkg_utils[@]}"
+sudo pacman -Sy --needed "${pkg_desktop[@]}" "${pkg_utils[@]}"
 
 ## Install dev tools
 read -rp "Do you wish to install development tools? [y/N]" install_dev_tools
