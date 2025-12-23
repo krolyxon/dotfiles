@@ -7,7 +7,7 @@ export pkg_aur=(
     "jmtpfs"
     "keepmenu"
     "keyd-git"
-    "librewolf-bin"
+    "zen-browser-bin"
     "python-pywal16"
     "tokyonight-gtk-theme-git"
     "zsh-fast-syntax-highlighting-git"
