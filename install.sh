@@ -1,23 +1,42 @@
 #!/bin/env bash
 
+log() {
+    local level="$1"
+    shift
+
+    case "$level" in
+        INFO)  color='\033[0;32m' ;;
+        WARN)  color='\033[0;33m' ;;
+        ERROR) color='\033[0;31m' ;;
+        *)     color='\033[0m' ;;
+    esac
+
+    printf '%b[%s] [%s]%b %s\n' \
+        "$color" "$(date '+%H:%M:%S')" "$level" '\033[0m' "$*"
+}
+
 currentDir="$(dirname "$(readlink -f "$0")")"
 cd "$currentDir"
 
 ## Install necessary desktop packages
 source "$currentDir/packages/pkg_desktop.sh"
 source "$currentDir/packages/pkg_utils.sh"
+log INFO "Starting Script"
+log INFO "Installing necessary packages for hyprland"
 sudo pacman -Sy --needed "${pkg_desktop[@]}" "${pkg_utils[@]}"
 
 ## Install dev tools
 read -rp "Do you wish to install development tools? [y/N]" install_dev_tools
-source "$currentDir/packages/pkg_dev_tools.sh"
 if [[ $install_dev_tools == y ]]; then
+    log INFO "Installing development tools"
+    source "$currentDir/packages/pkg_dev_tools.sh"
     sudo pacman -S --needed "${pkg_dev_tools[@]}"
 fi
 
 ## Install optional packages
 read -rp "Do you wish to install optional packages? [y/N]" install_optional_pkg
 if [[ $install_optional_pkg == y ]]; then
+    log INFO "Installing development tools"
     source "$currentDir/packages/pkg_optional.sh"
     sudo pacman -S --needed "${pkg_optional[@]}"
 fi
@@ -25,6 +44,7 @@ fi
 ## Install nvidia drivers
 read -rp "Do you wish to install Nvidia drivers? [y/N]" install_nvidia_drivers
 if [[ $install_nvidia_drivers == y ]]; then
+    log INFO "Installing Nvidia Drivers"
     source "$currentDir/packages/pkg_nvidia.sh"
     sudo pacman -S --needed "${pkg_nvidia[@]}"
 fi
@@ -35,14 +55,14 @@ read -rp "Do you wish to install aur packages? [y/N]" install_aur_pkg
 if [[ $install_aur_pkg == y ]]; then
     ## Install paru if it isn't already installed
     if ! command -v paru >/dev/null 2>&1; then
-        echo "Installing paru..."
+        log INFO "Installing Paru (AUR package manager)"
         git clone https://aur.archlinux.org/paru-bin.git
         cd paru-bin
         makepkg -sri
         cd ..
         rm -rf paru-bin
     else
-        echo "Skipping paru (already in PATH)"
+        log INFO "Skipping paru (already in PATH)"
     fi
     ## Install aur packages
     source "$currentDir/packages/pkg_aur.sh"
@@ -51,20 +71,21 @@ fi
 
 
 ## Setup dotfiles
-echo "⚠️  WARNING: This will DELETE any conflicting files and replace them with symlinks from this repo."
-echo "Make sure you have already backed up all your existing config files (~/.config)"
+log WARN "⚠️ This will DELETE any conflicting files and replace them with symlinks from this repo."
+log WARN "Make sure you have already backed up all your existing config files (~/.config)"
 read -rp "Continue with stow (y/N): " confirm
 if [[ "$confirm" =~ ^[Yy]$ ]]; then
-    echo "Detecting conflicts..."
+    log INFO "Detecting conflicts..."
     conflicts=$(stow . --no-folding -nv 2>&1 | \
         sed -n 's/.*existing target \(.*\) since neither.*/\1/p')
 
     if [[ -z "$conflicts" ]]; then
-        echo "No conflicts. Running stow normally..."
-        stow . --no-folding
-        echo "✅ Done."
+        log INFO "No conflicts. Running stow normally..."
+        stow . --no-folding \
+            && log INFO "Dotfiles stowed successfully" \
+            || log ERROR "Stow failed"
     else
-        echo "These paths conflict and will be removed:"
+        log WARN "These paths conflict and will be removed:"
         printf '  %s\n' $conflicts
         read -rp "Proceed with deleting these files? (y/N): " ok
         if [[ ! "$ok" =~ ^[Yy]$ ]]; then
@@ -73,23 +94,23 @@ if [[ "$confirm" =~ ^[Yy]$ ]]; then
 
     # Remove conflicts relative to $HOME
     for path in $conflicts; do
-        echo "Removing $HOME/$path"
-        rm -rf "$HOME/$path"
+        rm -rf "$HOME/$path" && log INFO "Removed $HOME/$path"
     done
 
-    echo "Running stow..."
-    stow . --no-folding
-    echo "✅ Dotfiles stowed with overwrite."
+    log INFO "Running stow..."
+    stow . --no-folding \
+        && log INFO "✅ Dotfiles stowed with overwrite." \
+        || log ERROR "Stow failed"
     fi
 else
-    echo "Aborted stow"
+    log WARN "Aborted stow, the dotfiles are not synced"
 fi
 
 
 ## Setup neovim dotfiles
 read -rp "Clone neovim dotfiles as well? (y/N): " confirm
 if [[ "$confirm" =~ ^[Yy]$ ]]; then
-    echo "Taking backup of neovim config (if already exists)"
+    log INFO "Taking backup of neovim config (if already exists)"
     mv ~/.config/nvim{,.bak}
     mv ~/.local/share/nvim{,.bak}
     mv ~/.local/state/nvim{,.bak}
@@ -98,17 +119,19 @@ if [[ "$confirm" =~ ^[Yy]$ ]]; then
 fi
 
 ## Change default shell to zsh
+log INFO "Changing the default shell to ZSH"
 if [[ "$SHELL" != "$(which zsh)" ]]; then
     read -rp "Change default shell to ZSH? (y/N): " confirm
     if [[ "$confirm" =~ ^[Yy]$ ]]; then
-        echo "Changing default shell to zsh..."
-        chsh -s $(which zsh)
+        chsh -s $(which zsh) \
+            && log INFO "Default shell successfully set to zsh" \
+            || log ERROR "Default shell could not be set to zsh"
     fi
 else
-    echo "Skipping: zsh is already the default shell"
+    log INFO "Skipping: zsh is already the default shell"
 fi
 
 
 printf '%*s\n' "${COLUMNS:-$(tput cols)}" '' | tr ' ' =
 echo ""
-echo "Done! 😊"
+log INFO "Done! 😊"

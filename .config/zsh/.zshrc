@@ -71,4 +71,4 @@ source /usr/share/zsh/plugins/fast-syntax-highlighting/fast-syntax-highlighting.
 source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
 
 # Load pywal colors
-(cat ~/.cache/wal/sequences &)
+# (cat ~/.cache/wal/sequences &)
