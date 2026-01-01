@@ -57,4 +57,4 @@ export MPD_PORT="6600"
 [ ! -s ~/.config/mpd/pid ] && mpd
 
 # Start graphical server on user's current tty if not already running.
-[ "$(tty)" = "/dev/tty1" ] && ! pidof -s hyprland >/dev/null 2>&1 && exec hyprland
+[ "$(tty)" = "/dev/tty1" ] && ! pidof -s hyprland >/dev/null 2>&1 && exec start-hyprland
