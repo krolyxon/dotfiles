@@ -4,15 +4,17 @@ log() {
     local level="$1"
     shift
 
+    local color reset='\033[0m'
     case "$level" in
-        INFO)  color='\033[0;32m' ;;
-        WARN)  color='\033[0;33m' ;;
-        ERROR) color='\033[0;31m' ;;
-        *)     color='\033[0m' ;;
+        INFO)    color='\033[0;34m' ;; # Blue
+        WARN)    color='\033[0;33m' ;; # Yellow
+        ERROR)   color='\033[0;31m' ;; # Red
+        SUCCESS) color='\033[0;32m' ;; # Green
+        *)       color='\033[0m' ;;
     esac
 
     printf '%b[%s] [%s]%b %s\n' \
-        "$color" "$(date '+%H:%M:%S')" "$level" '\033[0m' "$*"
+        "$color" "$(date '+%H:%M:%S')" "$level" "$reset" "$*" >&2
 }
 
 # Prevent user from running this script as root
@@ -89,7 +91,7 @@ if [[ "$confirm" =~ ^[Yy]$ ]]; then
     if [[ -z "$conflicts" ]]; then
         log INFO "No conflicts. Running stow normally..."
         stow . --no-folding \
-            && log INFO "Dotfiles stowed successfully" \
+            && log SUCCESS "Dotfiles stowed successfully" \
             || log ERROR "Stow failed"
     else
         log WARN "These paths conflict and will be removed:"
@@ -131,7 +133,7 @@ if [[ "$SHELL" != "$(which zsh)" ]]; then
     read -rp "Change default shell to ZSH? (y/N): " confirm
     if [[ "$confirm" =~ ^[Yy]$ ]]; then
         chsh -s $(which zsh) \
-            && log INFO "Default shell successfully set to zsh" \
+            && log SUCCESS "Default shell successfully set to zsh" \
             || log ERROR "Default shell could not be set to zsh"
     fi
 else
@@ -145,7 +147,7 @@ if [[ "$confirm" =~ ^[Yy]$ ]]; then
        log INFO "Copying keyd configuration to /etc/keyd/default.conf"
        sudo cp "$currentDir/system/etc/keyd/default.conf" /etc/keyd/
        sudo systemctl enable --now keyd.service \
-           && log INFO "Successfully enabled keyd.service" \
+           && log SUCCESS "Successfully enabled keyd.service" \
            || log ERROR "Couldn't enable keyd.service"
 fi
 
@@ -153,4 +155,4 @@ fi
 
 printf '%*s\n' "${COLUMNS:-$(tput cols)}" '' | tr ' ' =
 echo ""
-log INFO "Done!"
+log SUCCESS "Done!"
