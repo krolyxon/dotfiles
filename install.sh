@@ -15,6 +15,13 @@ log() {
         "$color" "$(date '+%H:%M:%S')" "$level" '\033[0m' "$*"
 }
 
+# Prevent user from running this script as root
+if [[ "$EUID" -eq 0 ]]; then
+    log ERROR "This script must NOT be run as root."
+    log INFO "If you need elevated privileges, the script will ask for sudo when required."
+    exit 1
+fi
+
 currentDir="$(dirname "$(readlink -f "$0")")"
 cd "$currentDir"
 
