@@ -56,11 +56,11 @@ if [[ $install_aur_pkg == y ]]; then
     ## Install paru if it isn't already installed
     if ! command -v paru >/dev/null 2>&1; then
         log INFO "Installing Paru (AUR package manager)"
-        git clone https://aur.archlinux.org/paru-bin.git
-        cd paru-bin
+        git clone https://aur.archlinux.org/paru.git
+        cd paru
         makepkg -sri
         cd ..
-        rm -rf paru-bin
+        rm -rf paru
     else
         log INFO "Skipping paru (already in PATH)"
     fi
@@ -71,7 +71,7 @@ fi
 
 
 ## Setup dotfiles
-log WARN "⚠️ This will DELETE any conflicting files and replace them with symlinks from this repo."
+log WARN "This will DELETE any conflicting files and replace them with symlinks from this repo."
 log WARN "Make sure you have already backed up all your existing config files (~/.config)"
 read -rp "Continue with stow (y/N): " confirm
 if [[ "$confirm" =~ ^[Yy]$ ]]; then
@@ -108,7 +108,7 @@ fi
 
 
 ## Setup neovim dotfiles
-read -rp "Clone neovim dotfiles as well? (y/N): " confirm
+read -rp "Setup neovim configuration as well? (y/N): " confirm
 if [[ "$confirm" =~ ^[Yy]$ ]]; then
     log INFO "Taking backup of neovim config (if already exists)"
     mv ~/.config/nvim{,.bak}
@@ -132,6 +132,18 @@ else
 fi
 
 
+## Install and setup Keyd
+read -rp "Configure and enable Keyd? (y/N): " confirm
+if [[ "$confirm" =~ ^[Yy]$ ]]; then
+       log INFO "Copying keyd configuration to /etc/keyd/default.conf"
+       sudo cp "$currentDir/system/etc/keyd/default.conf" /etc/keyd/
+       sudo systemctl enable --now keyd.service \
+           && log INFO "Successfully enabled keyd.service" \
+           || log ERROR "Couldn't enable keyd.service"
+fi
+
+
+
 printf '%*s\n' "${COLUMNS:-$(tput cols)}" '' | tr ' ' =
 echo ""
-log INFO "Done! 😊"
+log INFO "Done!"

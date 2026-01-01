@@ -17,8 +17,6 @@ export pkg_utils=(
     "cpio"
     "cryptsetup"
     "ddcutil"
-    "efibootmgr"
-    "envycontrol"
     "eza"
     "fastfetch"
     "fd"
