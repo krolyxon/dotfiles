@@ -6,5 +6,7 @@ export pkg_dev_tools=(
     "platformio-core"
     "tmux"
     "nodejs"
+    "rust-analyzer"
+    "rustup"
     "lazygit"
 )
