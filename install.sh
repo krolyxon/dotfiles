@@ -51,11 +51,11 @@ if [[ $install_optional_pkg == y ]]; then
 fi
 
 ## Install nvidia drivers
-read -rp "Do you wish to install Nvidia drivers? [y/N]" install_nvidia_drivers
-if [[ $install_nvidia_drivers == y ]]; then
-    log INFO "Installing Nvidia Drivers"
-    source "$currentDir/packages/pkg_nvidia.sh"
-    sudo pacman -S --needed "${pkg_nvidia[@]}"
+read -rp "Do you wish to install GPU drivers? (Intel & Nvidia) [y/N]" install_gpu_drivers
+if [[ $install_gpu_drivers == y ]]; then
+    log INFO "Installing GPU Drivers"
+    source "$currentDir/packages/pkg_gpu.sh"
+    sudo pacman -S --needed "${pkg_gpu[@]}"
 fi
 
 
