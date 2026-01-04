@@ -8,6 +8,7 @@ apply_wallpaper() {
     if ! pgrep -x hyprpaper >/dev/null; then
         # Hyprpaper not running → start with chosen wallpaper
         cat > ~/.config/hypr/hyprpaper.conf <<EOF
+splash = false
 wallpaper {
     monitor =
     path = $NEW_WALL
@@ -18,6 +19,7 @@ wal -i $NEW_WALL -n
 else
     # Hyprpaper is running → change it live
     cat > ~/.config/hypr/hyprpaper.conf <<EOF
+splash = false
 wallpaper {
     monitor =
     path = $NEW_WALL
