@@ -124,7 +124,7 @@ if [[ "$confirm" =~ ^[Yy]$ ]]; then
     mv ~/.local/share/nvim{,.bak}
     mv ~/.local/state/nvim{,.bak}
     mv ~/.cache/nvim{,.bak}
-    git clone --depth=1 git@github.com:krolyxon/nvim.git ~/.config/nvim
+    git clone --depth=1 https://github.com/krolyxon/nvim.git ~/.config/nvim
 fi
 
 ## Change default shell to zsh
