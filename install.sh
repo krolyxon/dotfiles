@@ -1,4 +1,17 @@
-#!/bin/env bash
+#!/usr/bin/env bash
+
+trap 'log WARN "Interrupted by user"; exit 130' INT
+
+INSTALL_STATUS="none"   # none | partial | complete | failed
+AUTO_YES=0
+
+for arg in "$@"; do
+    case "$arg" in
+        --yes|--ci|--non-interactive)
+            AUTO_YES=1
+            ;;
+    esac
+done
 
 log() {
     local level="$1"
@@ -51,10 +64,10 @@ choose_packages() {
 }
 
 prompt_style() {
-    gum style --border rounded \
-    --border double \
-    --padding "0 1" \
-    "$1"
+    gum style \
+        --border rounded \
+        --padding "0 1" \
+        "$1"
 }
 
 gum_warn(){
@@ -62,7 +75,22 @@ gum_warn(){
 }
 
 gum_to_array() {
-    mapfile -t "$1"
+    local -n arr="$1"
+    mapfile -t arr
+    local cleaned=()
+    for item in "${arr[@]}"; do
+        [[ -n "$item" ]] && cleaned+=("$item")
+    done
+    arr=("${cleaned[@]}")
+}
+
+confirm() {
+    local msg="$1"
+    if ((AUTO_YES)); then
+        log INFO "[auto] $msg → yes"
+        return 0
+    fi
+    gum confirm --default=false "$msg"
 }
 
 #################
@@ -92,7 +120,7 @@ You are STRONGLY ADVISED to back up:
 Proceed at your OWN RISK."
 )
 
-gum confirm --default=false "$DISCLAIMER
+confirm "$DISCLAIMER
 
 Do you understand the risks and want to continue?" || exit 1
 
@@ -102,7 +130,11 @@ Do you understand the risks and want to continue?" || exit 1
 ###########
 source "$currentDir/packages/pkg_utils.sh"
 prompt_style "Important utilities (Most likely go with defaults)"
-gum_to_array UTILITY_PKGS < <(choose_packages pkg_utils)
+if ((AUTO_YES)); then
+    DEV_PKGS=("${pkg_utils[@]}")
+else
+    gum_to_array UTILITY_PKGS < <(choose_packages pkg_utils)
+fi
 
 
 ###############
@@ -110,7 +142,12 @@ gum_to_array UTILITY_PKGS < <(choose_packages pkg_utils)
 ###############
 source "$currentDir/packages/pkg_dev_tools.sh"
 prompt_style "Select Development Tools"
-gum_to_array DEV_PKGS < <(choose_packages pkg_dev_tools)
+if ((AUTO_YES)); then
+    DEV_PKGS=("${pkg_dev_tools[@]}")
+else
+    gum_to_array DEV_PKGS < <(choose_packages pkg_dev_tools)
+fi
+
 
 
 #######################
@@ -118,7 +155,12 @@ gum_to_array DEV_PKGS < <(choose_packages pkg_dev_tools)
 #######################
 source "$currentDir/packages/pkg_optional.sh"
 prompt_style "Select Optional Desktop Packages"
-gum_to_array OPTIONAL_PKGS < <(choose_packages pkg_optional)
+if ((AUTO_YES)); then
+    OPTIONAL_PKGS=("${pkg_optional[@]}")
+else
+    gum_to_array OPTIONAL_PKGS < <(choose_packages pkg_optional)
+fi
+
 
 
 #################
@@ -126,7 +168,12 @@ gum_to_array OPTIONAL_PKGS < <(choose_packages pkg_optional)
 #################
 source "$currentDir/packages/pkg_gpu.sh"
 prompt_style "Select GPU drivers"
-gum_to_array GPU_PKGS < <(choose_packages pkg_gpu)
+if ((AUTO_YES)); then
+    GPU_PKGS=("${pkg_gpu[@]}")
+else
+    gum_to_array GPU_PKGS < <(choose_packages pkg_gpu)
+fi
+
 
 ##########################
 ## Configure Everything ##
@@ -139,9 +186,9 @@ WARNING=$(gum style \
   "⚠️  This will DELETE any conflicting files and replace them with symlinks from this repo.
 Make sure you have already backed up all your existing config files (~/.config)")
 
-if gum confirm --default=false "$WARNING
+if confirm "$WARNING
 
-Proceed with system configuration (stow, nvim, shell, keyd)?"; then
+Proceed with system configuration (stow, shell)?"; then
     ###################
     ## Stow dotfiles ##
     ###################
@@ -159,12 +206,13 @@ Proceed with system configuration (stow, nvim, shell, keyd)?"; then
         printf '  %s\n' $conflicts
         read -rp "Proceed with deleting these files? (y/N): " ok
         if [[ ! "$ok" =~ ^[Yy]$ ]]; then
-            echo "Aborted."
+            log  WARN "Aborted."
+            exit 1
         fi
 
     # Remove conflicts relative to $HOME
     for path in $conflicts; do
-        rm -rf "$HOME/$path" && log INFO "Removed $HOME/$path"
+        [[ -n "$path" && "$path" != "/" ]] && rm -rf "$HOME/$path" && log INFO "Deleted $path"
     done
 
     log INFO "Running stow..."
@@ -173,22 +221,11 @@ Proceed with system configuration (stow, nvim, shell, keyd)?"; then
         || log ERROR "Stow failed"
     fi
 
-    ###########################
-    ## Setup neovim dotfiles ##
-    ###########################
-    log INFO "Setting up neovim configuration"
-    log INFO "Taking backup of neovim config (if already exists)"
-    mv ~/.config/nvim{,.bak}
-    mv ~/.local/share/nvim{,.bak}
-    mv ~/.local/state/nvim{,.bak}
-    mv ~/.cache/nvim{,.bak}
-    git clone --depth=1 https://github.com/krolyxon/nvim.git ~/.config/nvim
-
     #################################
     ## Change default shell to zsh ##
     #################################
     log INFO "Changing the default shell to ZSH"
-    if [[ "$SHELL" != "$(which zsh)" ]]; then
+    if [[ "$SHELL" != "$(command -v zsh)" ]]; then
         chsh -s $(which zsh) \
             && log SUCCESS "Default shell successfully set to zsh" \
             || log ERROR "Default shell could not be set to zsh"
@@ -205,26 +242,23 @@ fi
 ##################
 source "$currentDir/packages/pkg_aur.sh"
 prompt_style "Select AUR packages"
-gum_to_array AUR_PKGS < <(choose_packages pkg_aur)
-if [[ ${#AUR_PKGS[@]} -eq 0 ]]; then
-    log WARN "No AUR packages selected"
+
+if ((AUTO_YES)); then
+    AUR_PKGS=("${pkg_aur[@]}")
 else
- if ! command -v paru >/dev/null 2>&1; then
+    gum_to_array AUR_PKGS < <(choose_packages pkg_aur)
+fi
+
+if ((${#AUR_PKGS[@]})); then
+    if ! command -v paru >/dev/null 2>&1; then
         log INFO "Installing Paru (AUR package manager)"
         git clone https://aur.archlinux.org/paru.git
-        cd paru
-        makepkg -sri
-        cd ..
+        (cd paru && makepkg -sri)
         rm -rf paru
-    else
-        log INFO "Paru already in PATH, Skipping...."
     fi
-
-    if [[ ${#AUR_PKGS[@]} -eq 0 ]]; then
-        log WARN "No AUR packages selected, Skipping...."
-    else
-        paru -S --needed  "${AUR_PKGS[@]}"
-    fi
+    paru -S --needed "${AUR_PKGS[@]}"
+else
+    log WARN "No AUR packages selected"
 fi
 
 
@@ -232,7 +266,7 @@ fi
 ## Setup Keyd ##
 ############################
 if command -v keyd >/dev/null 2>&1; then
-    if gum confirm --default=false "Configure and enable keyd? "; then
+    if confirm "Configure and enable keyd? "; then
         log INFO "Copying keyd configuration to /etc/keyd/default.conf"
         sudo cp "$currentDir/system/etc/keyd/default.conf" /etc/keyd/
         sudo systemctl enable --now keyd.service \
@@ -253,23 +287,59 @@ ALL_PKGS=(
     "${pkg_desktop[@]}"
 )
 
-if [[ ${#ALL_PKGS[@]} -eq 0 ]]; then
-    log WARN "No packages selected."
-else
-    if gum confirm --default=false "Install all the selected packages?"; then
+if ((${#ALL_PKGS[@]})); then
+    if confirm "Install all the selected packages?"; then
         log INFO "Installing selected packages..."
-        sudo pacman -Sy --needed "${ALL_PKGS[@]}"
+        if sudo pacman -Syu --needed "${ALL_PKGS[@]}"; then
+            INSTALL_STATUS="complete"
+        else
+            INSTALL_STATUS="failed"
+        fi
+    else
+        log WARN "Package installation skipped by user"
+        INSTALL_STATUS="partial"
     fi
+else
+    log WARN "No packages selected"
+    INSTALL_STATUS="partial"
 fi
 
 
-gum style \
-  --border rounded \
-  --padding "1 2" \
-  --bold \
-  --foreground 42 \
-"🎉 Installation Complete!
+case "$INSTALL_STATUS" in
+    complete)
+        gum style \
+          --border rounded \
+          --border-foreground 42 \
+          --padding "1 2" \
+          --bold \
+        "✔ Installation Complete!
 
-Your system has been successfully configured.
-
+All selected packages were installed successfully.
 You may now reboot the system for all the changes to apply."
+        ;;
+    partial)
+        gum style \
+          --border rounded \
+          --border-foreground 220 \
+          --padding "1 2" \
+          --bold \
+        "⚠ Setup Finished (Partial)
+
+Some steps were skipped by user choice.
+Your system was NOT fully configured."
+        ;;
+    failed)
+        gum style \
+          --border rounded \
+          --border-foreground 196 \
+          --padding "1 2" \
+          --bold \
+        "❌ Installation Failed
+
+One or more steps did not complete successfully.
+Check the logs above."
+        ;;
+    *)
+        gum style --bold "Finished."
+        ;;
+esac
