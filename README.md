@@ -8,10 +8,16 @@
 2. Gum (For pretty prompts)
 3. Base arch install
 
+```bash
+sudo pacman -S git gum
+```
+
 ## Usage
 ```bash
 cd $HOME
 git clone https://github.com/krolyxon/dotfiles.git ~/.dotfiles
 cd ~/.dotfiles
 ./install.sh
+# Installation with no confirmation prompts
+./insall.sh --yes
 ```
