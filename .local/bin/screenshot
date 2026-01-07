@@ -12,7 +12,6 @@ case "$(printf "a selected area (copy)\ncurrent window (copy)\nfull screen (copy
     "full screen") hyprshot -m output -o ~/pix/ss -f "pic-full-$(uuidgen | awk -F- '{printf $2}')-$(date '+%y-%m-%d').png" ;;
 
     "a selected area (OCR)") tmpfile=$(mktemp /tmp/ocr-XXXXXX.png) && \
-        hyprshot -m region -o "$(dirname "$tmpfile")" -f "$(basename "$tmpfile")" && \
-        tesseract "$tmpfile" - -l eng | ${ocr_cmd} && rm "$tmpfile" ;;
+        slurp | grim -g - - | tesseract stdin stdout -l eng | wl-copy
 esac
 
