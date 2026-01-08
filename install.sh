@@ -39,18 +39,17 @@ if [[ "$EUID" -eq 0 ]]; then
 fi
 
 
-## Check if gum is installed
-if ! command -v gum >/dev/null 2>&1; then
-    echo "gum is required. Install it first."
-    exit 1
-fi
+check_install() {
+    if ! command -v $1 >/dev/null 2>&1; then
+        echo "$1 is required. Install it first."
+        exit 1
+    fi
+}
 
-## Check if git is installed
-if ! command -v git >/dev/null 2>&1; then
-    echo "git is required. Install it first."
-    exit 1
-fi
-
+## Add checks for prerequisites
+check_install git
+check_install gum
+check_install stow
 
 currentDir="$(dirname "$(readlink -f "$0")")"
 cd "$currentDir"

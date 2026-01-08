@@ -3,9 +3,9 @@
 <img src="https://github.com/krolyxon/dotfiles/blob/master/assets/fullscreen.png">
 <img src="https://github.com/krolyxon/dotfiles/blob/master/assets/fullscreen2.png">
 
-## prerequisites
+## Prerequisites
 ```bash
-sudo pacman -S git gum
+sudo pacman -S git gum stow
 ```
 
 ## Usage
