@@ -174,6 +174,7 @@ else
     gum_to_array GPU_PKGS < <(choose_packages pkg_gpu)
 fi
 
+
 ##################
 ## AUR PACKAGES ##
 ##################
@@ -252,9 +253,6 @@ fi
 
 
 
-########################
-## Install Everything ##
-########################
 source "$currentDir/packages/pkg_desktop.sh"
 ALL_PKGS=(
     "${DEV_PKGS[@]}"
@@ -265,6 +263,9 @@ ALL_PKGS=(
     "${pkg_desktop[@]}"
 )
 
+########################
+## Install Everything ##
+########################
 if ((${#ALL_PKGS[@]})); then
     if confirm "Install all the selected packages?"; then
         log INFO "Installing selected packages..."
@@ -292,20 +293,6 @@ else
 fi
 
 
-##########################
-## Install AUR Packages ##
-##########################
-if ((${#AUR_PKGS[@]})); then
-    if ! command -v paru >/dev/null 2>&1; then
-        log INFO "Installing Paru (AUR package manager)"
-        git clone https://aur.archlinux.org/paru.git
-        (cd paru && makepkg -sri)
-        rm -rf paru
-    fi
-    paru -S --needed "${AUR_PKGS[@]}"
-else
-    log WARN "No AUR packages selected"
-fi
 
 ################
 ## Setup Keyd ##
@@ -321,6 +308,9 @@ if command -v keyd >/dev/null 2>&1; then
 fi
 
 
+####################
+## Final dialogue ##
+####################
 case "$INSTALL_STATUS" in
     complete)
         gum style \
