@@ -174,6 +174,19 @@ else
     gum_to_array GPU_PKGS < <(choose_packages pkg_gpu)
 fi
 
+##################
+## AUR PACKAGES ##
+##################
+source "$currentDir/packages/pkg_aur.sh"
+prompt_style "Select AUR packages"
+
+if ((AUTO_YES)); then
+    AUR_PKGS=("${pkg_aur[@]}")
+else
+    gum_to_array AUR_PKGS < <(choose_packages pkg_aur)
+fi
+
+
 
 ##########################
 ## Configure Everything ##
@@ -237,18 +250,51 @@ else
     exit 1
 fi
 
-##################
-## AUR PACKAGES ##
-##################
-source "$currentDir/packages/pkg_aur.sh"
-prompt_style "Select AUR packages"
 
-if ((AUTO_YES)); then
-    AUR_PKGS=("${pkg_aur[@]}")
+
+########################
+## Install Everything ##
+########################
+source "$currentDir/packages/pkg_desktop.sh"
+ALL_PKGS=(
+    "${DEV_PKGS[@]}"
+    "${OPTIONAL_PKGS[@]}"
+    "${GPU_PKGS[@]}"
+    "${UTILITY_PKGS[@]}"
+    "${AUR_PKGS[@]}"
+    "${pkg_desktop[@]}"
+)
+
+if ((${#ALL_PKGS[@]})); then
+    if confirm "Install all the selected packages?"; then
+        log INFO "Installing selected packages..."
+
+        ## Installing paru if not installed already
+        if ! command -v paru >/dev/null 2>&1; then
+            log INFO "Installing Paru (AUR package manager)"
+            git clone https://aur.archlinux.org/paru.git
+            (cd paru && makepkg -sri)
+            rm -rf paru
+        fi
+
+        if paru -Syu --needed "${ALL_PKGS[@]}"; then
+            INSTALL_STATUS="complete"
+        else
+            INSTALL_STATUS="failed"
+        fi
+    else
+        log WARN "Package installation skipped by user"
+        INSTALL_STATUS="partial"
+    fi
 else
-    gum_to_array AUR_PKGS < <(choose_packages pkg_aur)
+    log WARN "No packages selected"
+    INSTALL_STATUS="partial"
 fi
 
+
+##########################
+## Install AUR Packages ##
+##########################
 if ((${#AUR_PKGS[@]})); then
     if ! command -v paru >/dev/null 2>&1; then
         log INFO "Installing Paru (AUR package manager)"
@@ -261,10 +307,9 @@ else
     log WARN "No AUR packages selected"
 fi
 
-
-############################
+################
 ## Setup Keyd ##
-############################
+################
 if command -v keyd >/dev/null 2>&1; then
     if confirm "Configure and enable keyd? "; then
         log INFO "Copying keyd configuration to /etc/keyd/default.conf"
@@ -273,35 +318,6 @@ if command -v keyd >/dev/null 2>&1; then
             && log SUCCESS "Successfully enabled keyd.service" \
             || log ERROR "Couldn't enable keyd.service"
     fi
-fi
-
-########################
-## Install Everything ##
-########################
-source "$currentDir/packages/pkg_desktop.sh"
-ALL_PKGS=(
-    "${DEV_PKGS[@]}"
-    "${OPTIONAL_PKGS[@]}"
-    "${GPU_PKGS[@]}"
-    "${UTILITY_PKGS[@]}"
-    "${pkg_desktop[@]}"
-)
-
-if ((${#ALL_PKGS[@]})); then
-    if confirm "Install all the selected packages?"; then
-        log INFO "Installing selected packages..."
-        if sudo pacman -Syu --needed "${ALL_PKGS[@]}"; then
-            INSTALL_STATUS="complete"
-        else
-            INSTALL_STATUS="failed"
-        fi
-    else
-        log WARN "Package installation skipped by user"
-        INSTALL_STATUS="partial"
-    fi
-else
-    log WARN "No packages selected"
-    INSTALL_STATUS="partial"
 fi
 
 

@@ -14,6 +14,8 @@ cd $HOME
 git clone https://github.com/krolyxon/dotfiles.git ~/.dotfiles
 cd ~/.dotfiles
 ./install.sh
-# Installation with no confirmation prompts
+
+## OR ##
+## Use auto-yes (you won't be asked to select any packages, everything will be selected by default)
 ./install.sh --yes
 ```
