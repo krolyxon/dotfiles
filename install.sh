@@ -5,6 +5,9 @@ trap 'log WARN "Interrupted by user"; exit 130' INT
 INSTALL_STATUS="none"   # none | partial | complete | failed
 AUTO_YES=0
 
+#######################
+## Arguement Parsing ##
+#######################
 for arg in "$@"; do
     case "$arg" in
         --yes|--ci|--non-interactive)
@@ -45,14 +48,6 @@ check_install() {
         exit 1
     fi
 }
-
-## Add checks for prerequisites
-check_install git
-check_install gum
-check_install stow
-
-currentDir="$(dirname "$(readlink -f "$0")")"
-cd "$currentDir"
 
 
 choose_packages() {
@@ -95,6 +90,15 @@ confirm() {
 #################
 ## GATEKEEPING ##
 #################
+
+## Add checks for prerequisites
+check_install git
+check_install gum
+check_install stow
+
+currentDir="$(dirname "$(readlink -f "$0")")"
+cd "$currentDir"
+
 
 DISCLAIMER=$(gum style \
   --border double \
@@ -230,7 +234,7 @@ Proceed with system configuration (stow, shell)?"; then
 
     log INFO "Running stow..."
     stow . --no-folding \
-        && log INFO "✅ Dotfiles stowed with overwrite." \
+        && log INFO "Dotfiles stowed with overwrite." \
         || log ERROR "Stow failed"
     fi
 
@@ -246,7 +250,7 @@ Proceed with system configuration (stow, shell)?"; then
         log INFO "Skipping: zsh is already the default shell"
     fi
 else
-    log WARN "Aborted configuration, didn't configure anything"
+    log ERROR "Aborted stow, didn't configure or install anything"
     exit 1
 fi
 
