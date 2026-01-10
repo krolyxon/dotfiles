@@ -9,6 +9,6 @@ export pkg_aur=(
     "keyd-git"
     "zen-browser-bin"
     "python-pywal16"
-    "tokyonight-gtk-theme-git"
+    "yaru-icon-theme"
     "zsh-fast-syntax-highlighting-git"
 )
