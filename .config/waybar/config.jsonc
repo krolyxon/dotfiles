@@ -107,6 +107,7 @@
         "format-alt": "{icon} ",
         "format-good": "{icon} {capacity:3}%",
         "format-full": "{icon} {capacity:3}%",
+       "tooltip-format": "{timeTo}\nHealth: {health}%\nPower Draw: {power:.2f} W\nCycles: {cycles}\n\nLMB: Toggle Format\nRMB: Timeout Settings",
         "format-icons": [
             "",
             "",
