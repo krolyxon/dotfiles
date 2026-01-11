@@ -4,6 +4,7 @@
 export pkg_aur=(
     "envycontrol"
     "htop-vim"
+    "hyprshade"
     "jmtpfs"
     "keepmenu"
     "keyd-git"
