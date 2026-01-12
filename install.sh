@@ -88,6 +88,7 @@ install_prerequisites() {
 #################
 
 ## Installs prerequisites
+log INFO "Installing prerequisites: "
 install_prerequisites
 
 currentDir="$(dirname "$(readlink -f "$0")")"

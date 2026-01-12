@@ -27,7 +27,6 @@ export pkg_utils=(
     "ghostscript"
     "gobject-introspection"
     "gparted"
-    "grub"
     "gvfs"
     "gvfs-mtp"
     "imagemagick"
@@ -63,7 +62,6 @@ export pkg_utils=(
     "ripgrep"
     "rsync"
     "sshfs"
-    "stow"
     "tesseract"
     "transmission-cli"
     "noto-fonts"
@@ -72,7 +70,6 @@ export pkg_utils=(
     "ttf-jetbrains-mono-nerd"
     "tree"
     "unzip"
-    "waybar"
     "wget"
     "woff2-font-awesome"
     "wtype"
@@ -83,7 +80,6 @@ export pkg_utils=(
     "zathura-pdf-mupdf"
     "zip"
     "zola"
-    "zsh"
     "zsh-autosuggestions"
 )
 
