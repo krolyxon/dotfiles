@@ -41,15 +41,6 @@ if [[ "$EUID" -eq 0 ]]; then
     exit 1
 fi
 
-
-check_install() {
-    if ! command -v $1 >/dev/null 2>&1; then
-        echo "$1 is required. Install it first."
-        exit 1
-    fi
-}
-
-
 choose_packages() {
     local -n arr=$1
     gum choose --no-limit \
@@ -87,14 +78,17 @@ confirm() {
     gum confirm --default=false "$msg"
 }
 
+install_prerequisites() {
+    sudo pacman -S --needed --noconfirm stow gum git zsh
+}
+
+
 #################
 ## GATEKEEPING ##
 #################
 
-## Add checks for prerequisites
-check_install git
-check_install gum
-check_install stow
+## Installs prerequisites
+install_prerequisites
 
 currentDir="$(dirname "$(readlink -f "$0")")"
 cd "$currentDir"
