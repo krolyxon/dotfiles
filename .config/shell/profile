@@ -53,6 +53,18 @@ export PATH="$PATH:$XDG_DATA_HOME/cargo/bin"
 export MPD_HOST="localhost"
 export MPD_PORT="6600"
 
+
+# Force NVIDIA as primary GPU, if envycontrol mode is set to nvidia
+MODE=$(envycontrol -q)
+if [[ $MODE = "nvidia" ]]; then
+    export __NV_PRIME_RENDER_OFFLOAD=1
+    export __GLX_VENDOR_LIBRARY_NAME=nvidia
+    export __VK_LAYER_NV_optimus=NVIDIA_only
+    export GBM_BACKEND=nvidia-drm
+    export WLR_NO_HARDWARE_CURSORS=1
+    export LIBVA_DRIVER_NAME=nvidia
+fi
+
 # Mpd daemon start
 [ ! -s ~/.config/mpd/pid ] && mpd
 
