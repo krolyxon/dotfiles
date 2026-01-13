@@ -1,8 +1,8 @@
 [user]
 	email = krolyxon@tutanota.com
-	name = krolxon
+	name = krolyxon
 [init]
 	defaultBranch = master
 
 [push]
-        autosetupremote = true
+        ; autosetupremote = true
