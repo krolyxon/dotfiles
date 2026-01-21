@@ -129,7 +129,7 @@ Do you understand the risks and want to continue?" || exit 1
 source "$currentDir/packages/pkg_utils.sh"
 prompt_style "Important utilities (Most likely go with defaults)"
 if ((AUTO_YES)); then
-    DEV_PKGS=("${pkg_utils[@]}")
+    UTILITY_PKGS=("${pkg_utils[@]}")
 else
     gum_to_array UTILITY_PKGS < <(choose_packages pkg_utils)
 fi
