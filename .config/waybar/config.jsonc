@@ -119,8 +119,10 @@
     "backlight": {
         "format": "{icon} {percent}%",
         "format-icons": ["󰃞", "󰃟", "󰃠"],
-        "on-scroll-up": "brightnessctl set 1%+",
-        "on-scroll-down": "brightnessctl set 1%-",
+ //        "on-scroll-up": "brightnessctl set 1%+",
+ //        "on-scroll-down": "brightnessctl set 1%-",
+        "on-scroll-up": "brictl +",
+        "on-scroll-down": "brictl -",
         "min-length": 6
     },
     "pulseaudio": {
