@@ -6,7 +6,6 @@ export pkg_aur=(
     "htop-vim"
     "hyprshade"
     "jmtpfs"
-    "keepmenu"
     "keyd-git"
     "brave-bin"
     "python-pywal16"
