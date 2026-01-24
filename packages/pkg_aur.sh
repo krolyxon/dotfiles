@@ -8,7 +8,7 @@ export pkg_aur=(
     "jmtpfs"
     "keepmenu"
     "keyd-git"
-    "zen-browser-bin"
+    "brave-bin"
     "python-pywal16"
     "yaru-icon-theme"
     "zsh-fast-syntax-highlighting-git"
