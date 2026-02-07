@@ -13,6 +13,7 @@ video/x-matroska=video.desktop
 x-scheme-handler/lbry=lbry.desktop
 inode/directory=file.desktop
 x-scheme-handler/tonsite=org.telegram.desktop.desktop
+x-scheme-handler/mailto=brave-browser.desktop
 
 [Added Associations]
 x-scheme-handler/tonsite=org.telegram.desktop.desktop;
