@@ -1,5 +1,5 @@
 # Basic vars
-set sixel true
+# set sixel true
 set shellopts '-eu'
 set ifs "\n"
 set scrolloff 10
