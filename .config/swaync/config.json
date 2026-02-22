@@ -33,7 +33,7 @@
     "script-fail-notify": true,
     "scripts": {
         "sound-script": {
-            "exec": "bash /home/krolyxon/.config/swaync/notification-sound.sh",
+            "exec": "bash /home/k/.config/swaync/notification-sound.sh",
             "app-name": ".*"
         }
     },
