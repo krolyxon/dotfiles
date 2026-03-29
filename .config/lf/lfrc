@@ -70,7 +70,7 @@ cmd moveto ${{
 	notify-send "🚚 File(s) moved." "File(s) moved to $dest."
 }}
 
-cmd genwall "$1"
+cmd setwall -p "$1"
 
 # Bindings
 map <c-f> $lf -remote "send $id select \"$(fzf)\""
@@ -96,7 +96,7 @@ map I :rename; cmd-home # at the very beginning
 map i :rename # before extension
 map a :rename; cmd-right # after extension
 map br $vimv
-map bg $genwall $f
+map bg $setwall -p $f
 
 map <c-e> down
 map <c-y> up

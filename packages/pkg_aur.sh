@@ -7,7 +7,7 @@ export pkg_aur=(
     "hyprshade"
     "jmtpfs"
     "keyd-git"
-    "brave-bin"
+    "librewolf-bin"
     "python-pywal16"
     "yaru-icon-theme"
     "zsh-fast-syntax-highlighting-git"
