@@ -8,4 +8,5 @@ export pkg_dev_tools=(
     "rust-analyzer"
     "rustup"
     "lazygit"
+    "uv"
 )
