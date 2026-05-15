@@ -1,5 +1,5 @@
 #!/bin/bash
-WALL_DIR="$HOME/pix/wallpapers/catppuccin/"
+WALL_DIR="$HOME/pix/wallpapers/dusky-dark/"
 MODE="random"
 CUSTOM_PATH=""
 

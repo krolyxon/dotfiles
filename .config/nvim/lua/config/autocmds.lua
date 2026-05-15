@@ -102,3 +102,12 @@ end, {})
 vim.api.nvim_create_user_command("Config", function()
     vim.cmd([[cd ~/.config/nvim]])
 end, {})
+
+
+-- Treat Arduino files (.ino) files as .cpp files
+vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
+  pattern = "*.ino",
+  callback = function()
+    vim.bo.filetype = "cpp"
+  end,
+})
