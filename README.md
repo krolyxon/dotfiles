@@ -11,6 +11,6 @@ cd ~/.dotfiles
 ./install.sh
 
 ## OR ##
-## Use auto-yes (you won't be asked to select any packages, everything will be selected by default)
+## Use auto-yes (you won't be asked to select any packages, everything will be pre-selected)
 ./install.sh --yes
 ```
