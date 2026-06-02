@@ -2,12 +2,13 @@
 
 ocr_cmd="wl-copy"
 
-case "$(printf "a selected area (copy)\ncurrent window (copy)\nfull screen (copy)\na selected area\ncurrent window\nfull screen\na selected area (OCR)" | fuzzel -d -l 7 -i -p "Screenshot which area?")" in
+case "$(printf "a selected area (copy)\ncurrent window (copy)\nfull screen (copy)\na selected area\na selected area (tmp dir)\ncurrent window\nfull screen\na selected area (OCR)" | fuzzel -d -l 7 -i -p "Screenshot which area?")" in
     "a selected area (copy)") hyprshot -m region --clipboard-only ;;
     "current window (copy)") hyprshot -m window --clipboard-only ;;
     "full screen (copy)") hyprshot -m output --clipboard-only ;;
 
     "a selected area") hyprshot -m region -o ~/pix/ss -f "pic-selected-$(uuidgen | awk -F- '{printf $2}')-$(date '+%y-%m-%d').png" ;;
+    "a selected area (tmp dir)") hyprshot -m region -o /tmp -f "pic-selected-$(uuidgen | awk -F- '{printf $2}')-$(date '+%y-%m-%d').png" ;;
     "current window") hyprshot -m window -o ~/pix/ss -f "pic-window-$(uuidgen | awk -F- '{printf $2}')-$(date '+%y-%m-%d').png" ;;
     "full screen") hyprshot -m output -o ~/pix/ss -f "pic-full-$(uuidgen | awk -F- '{printf $2}')-$(date '+%y-%m-%d').png" ;;
 
