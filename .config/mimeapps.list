@@ -14,6 +14,10 @@ x-scheme-handler/lbry=lbry.desktop
 inode/directory=file.desktop
 x-scheme-handler/tonsite=org.telegram.desktop.desktop
 x-scheme-handler/tuta=tutanota-desktop.desktop
+x-scheme-handler/http=librewolf.desktop
+x-scheme-handler/https=librewolf.desktop
+text/html=librewolf.desktop
+application/xhtml+xml=librewolf.desktop
 
 [Added Associations]
 x-scheme-handler/tonsite=org.telegram.desktop.desktop;
