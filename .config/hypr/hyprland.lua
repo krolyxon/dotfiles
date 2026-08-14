@@ -11,8 +11,7 @@ HOME = os.getenv("HOME")
 
 
 -- Theme (pywal)
-require(os.getenv("HOME") .. "/.cache/wal/colors.lua")
-
+dofile(HOME .. "/.cache/wal/colors.lua")
 
 -- -----------------------------------------------------
 -- Autostart

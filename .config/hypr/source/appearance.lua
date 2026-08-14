@@ -15,12 +15,13 @@ hl.config({
 
         layout = "master",
 
-        -- Pywal colors
         -- active_border = "$color14 $color14 $color14 $color14 45deg",
         -- inactive_border = "$color0 $color0 $color0 $color0 45deg",
 
-        -- Gradient example
-        -- active_border = "$color14 $color0 $color0 $color14 45deg",
+        ["col.inactive_border"] = color0, -- Border color for inactive windows
+        ["col.active_border"] = color14, -- Border color for the active window
+        ["col.nogroup_border"] = color0 , -- Inactive border color for window that cannot be added to a group
+        ["col.nogroup_border_active"] = color0, -- Active border color for window that cannot be added to a group
     },
 
     --------------------------------------------------

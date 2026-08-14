@@ -118,9 +118,9 @@ hl.bind(
 )
 
 -- Screen Rotate
-hl.bind(mainMod .. " + CTRL + comma", hl.dsp.exec_cmd("hypr_screen_rotate.sh +90"),
+hl.bind(mainMod .. " + CTRL + comma", hl.dsp.exec_cmd("hypr_screen_rotate.py +90"),
     { locked = true, desc = "Rotate Screen Anti-Clockwise" })
-hl.bind(mainMod .. " + CTRL + period", hl.dsp.exec_cmd("hypr_screen_rotate.sh -90"),
+hl.bind(mainMod .. " + CTRL + period", hl.dsp.exec_cmd("hypr_screen_rotate.py -90"),
     { locked = true, desc = "Rotate Screen Clockwise" })
 
 -- --- Hyprshade (Visual Filters) ---
