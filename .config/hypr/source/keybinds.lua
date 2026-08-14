@@ -62,20 +62,14 @@ hl.bind(mainMod .. " + j", hl.dsp.window.resize({ x = 0, y = 30, relative = true
 -- Workspace switching
 -- -----------------------------------------------------
 
-for i = 1, 10 do
-    local key = i % 10 -- 10 maps to key 0
-
-    -- Switch to workspace
-    hl.bind(
-        mainMod .. " + " .. key,
-        hl.dsp.focus({ workspace = i })
-    )
-
-    -- Move active window to workspace
-    hl.bind(
-        mainMod .. " + SHIFT + " .. key,
-        hl.dsp.window.move({ workspace = i, follow = false })
-    )
+local mainMod = "SUPER"
+for i = 1, smw.get_amount_of_workspaces() do
+    local n = tostring(i)
+    if n == "10" then n = "0" end -- Optional if you configured 10 workspaces: bind workspace 10 to SUPER + 0
+    -- Switch to the Nth workspace on the currently focused monitor.
+    hl.bind(mainMod .. " +" .. n, smw.workspace(n))
+    -- Move the active window to the Nth workspace on the currently focused monitor silently (no focus change).
+    hl.bind(mainMod .. " + SHIFT +" .. n, smw.move_to_workspace_silent(n))
 end
 
 -- Example special workspace (scratchpad)

@@ -1,4 +1,3 @@
-
 terminal = "foot"
 menu = "fuzzel"
 browser = "librewolf"
@@ -32,21 +31,11 @@ end)
 -- Plugins
 --------------------------------------------------
 
--- hl.config({
---     plugin = {
---         hyprsplit = {
---             num_workspaces = 10,
---             persistent_workspaces = true,
---         },
---
---         ["split-monitor-workspaces"] = {
---             count = 10,
---             keep_focused = true,
---             enable_notifications = false,
---             enable_persistent_workspaces = true,
---         },
---     },
--- })
+package.path = package.path .. ";./?.lua;./?/init.lua"
+smw = require("plugins.split-monitor-workspaces")
+smw.setup({
+    workspace_count = 10,
+})
 
 -- -----------------------------------------------------
 -- SOURCE FILES

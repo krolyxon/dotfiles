@@ -67,7 +67,7 @@ window#waybar.hidden {
 
 /* non-empty persistent workspaces */
 #workspaces button.persistent {
-    background-color: @color1;
+    background-color: @color0;
 }
 
 

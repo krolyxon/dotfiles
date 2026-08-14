@@ -1,6 +1,5 @@
 #!/bin/env bash
 
-hyprpm update
-hyprpm add https://github.com/Duckonaut/split-monitor-workspaces
-hyprpm enable split-monitor-workspaces
-hyprpm reload
+mkdir -p ~/.config/hypr/plugins
+cd ~/.config/hypr/plugins
+git clone https://github.com/zjeffer/split-monitor-workspaces
