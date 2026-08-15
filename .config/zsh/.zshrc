@@ -67,8 +67,8 @@ bindkey '^e' edit-command-line
 bindkey '^R' history-incremental-pattern-search-backward
 
 #loeading syntax highlighter and autosgguestions plugin. should be last.
-source /usr/share/zsh/plugins/fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh 2>/dev/null
 source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
+source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
 # Load pywal colors
 # (cat ~/.cache/wal/sequences &)
