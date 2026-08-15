@@ -7,7 +7,6 @@ export pkg_aur=(
     "hyprshade"
     "jmtpfs"
     "keyd-git"
-    "zen-browser-bin"
     "python-pywal16"
     "yaru-icon-theme"
     "zsh-fast-syntax-highlighting-git"
