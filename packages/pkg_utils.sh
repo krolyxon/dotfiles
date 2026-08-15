@@ -33,6 +33,7 @@ export pkg_utils=(
     "imlib2"
     "jq"
     "kanshi"
+    "keyd"
     "lf"
     "libnotify"
     "lua"
@@ -81,5 +82,6 @@ export pkg_utils=(
     "zip"
     "zola"
     "zsh-autosuggestions"
+    "zsh-syntax-highlighting"
 )
 

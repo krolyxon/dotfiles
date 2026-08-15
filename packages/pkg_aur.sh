@@ -6,8 +6,6 @@ export pkg_aur=(
     "htop-vim"
     "hyprshade"
     "jmtpfs"
-    "keyd-git"
     "python-pywal16"
     "yaru-icon-theme"
-    "zsh-fast-syntax-highlighting-git"
 )
