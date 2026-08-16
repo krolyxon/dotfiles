@@ -1,5 +1,4 @@
--- source/appearance.lua
-
+local wal = dofile(os.getenv("HOME") .. "/.cache/wal/hyprland-colors.lua")
 
 hl.config({
     --------------------------------------------------
@@ -15,13 +14,15 @@ hl.config({
 
         layout = "master",
 
-        -- active_border = "$color14 $color14 $color14 $color14 45deg",
-        -- inactive_border = "$color0 $color0 $color0 $color0 45deg",
+        ["col.active_border"] = {
+            colors = { wal.colors.color14, wal.colors.color12 },
+            angle = 45,
+        },
 
-        ["col.inactive_border"] = color0, -- Border color for inactive windows
-        ["col.active_border"] = color14, -- Border color for the active window
-        ["col.nogroup_border"] = color0 , -- Inactive border color for window that cannot be added to a group
-        ["col.nogroup_border_active"] = color0, -- Active border color for window that cannot be added to a group
+        ["col.inactive_border"] = {
+            colors = { wal.colors.color0, wal.colors.color0 },
+            angle = 45,
+        },
     },
 
     --------------------------------------------------
@@ -49,17 +50,17 @@ hl.config({
         bezier = {
             {
                 name = "myBezier",
-                points = {0.05, 0.9, 0.1, 1.05},
+                points = { 0.05, 0.9, 0.1, 1.05 },
             },
         },
 
         animation = {
-            {"windows",     1, 2,  "myBezier"},
-            {"windowsOut",  1, 2,  "default", "popin 80%"},
-            {"border",      1, 10, "default"},
-            {"borderangle", 1, 8,  "default"},
-            {"fade",        1, 7,  "default"},
-            {"workspaces",  1, 1,  "default"},
+            { "windows", 1, 2, "myBezier" },
+            { "windowsOut", 1, 2, "default", "popin 80%" },
+            { "border", 1, 10, "default" },
+            { "borderangle", 1, 8, "default" },
+            { "fade", 1, 7, "default" },
+            { "workspaces", 1, 1, "default" },
         },
     },
 
