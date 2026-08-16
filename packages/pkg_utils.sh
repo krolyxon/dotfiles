@@ -13,6 +13,7 @@ export pkg_utils=(
     "brightnessctl"
     "chafa"
     "clang"
+    "cliphist"
     "cmake"
     "cpio"
     "cryptsetup"

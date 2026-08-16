@@ -57,6 +57,8 @@ hl.bind(mainMod .. " + l", hl.dsp.window.resize({ x = 30, y = 0, relative = true
 hl.bind(mainMod .. " + k", hl.dsp.window.resize({ x = 0, y = -30, relative = true }), { repeating = true })
 hl.bind(mainMod .. " + j", hl.dsp.window.resize({ x = 0, y = 30, relative = true }), { repeating = true })
 
+-- Clipboard menu (cliphist)
+hl.bind(mainMod .. " + v", hl.dsp.exec_cmd("sh -c \"cliphist list | fuzzel --dmenu --with-nth 2 | cliphist decode | wl-copy\""))
 
 -- -----------------------------------------------------
 -- Workspace switching

@@ -10,13 +10,14 @@ HOME = os.getenv("HOME")
 
 
 -- Theme (pywal)
-dofile(HOME .. "/.cache/wal/colors.lua")
+dofile(HOME .. "/.cache/wal/hyprland-colors.lua")
 
 -- -----------------------------------------------------
 -- Autostart
 -- -----------------------------------------------------
-
 hl.on("hyprland.start", function()
+    hl.exec_cmd("wl-paste --type text --watch cliphist store")
+    hl.exec_cmd("wl-paste --type image --watch cliphist store")
     hl.exec_cmd("hyprpm reload -n")
     hl.exec_cmd("kanshi")
     hl.exec_cmd("waybar")
@@ -30,7 +31,6 @@ end)
 --------------------------------------------------
 -- Plugins
 --------------------------------------------------
-
 package.path = package.path .. ";./?.lua;./?/init.lua"
 smw = require("plugins.split-monitor-workspaces")
 smw.setup({
@@ -50,7 +50,6 @@ require("source.keybinds")
 --------------------------------------------------
 -- Window rules
 --------------------------------------------------
-
 hl.window_rule({
     name = "suppress-maximize-events",
 
