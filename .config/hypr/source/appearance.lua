@@ -1,5 +1,3 @@
-local wal = dofile(os.getenv("HOME") .. "/.cache/wal/hyprland-colors.lua")
-
 hl.config({
     --------------------------------------------------
     -- General
