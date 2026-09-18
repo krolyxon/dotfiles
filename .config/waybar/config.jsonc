@@ -5,7 +5,8 @@
     "width": 0, // Waybar width (0 == auto)
     "spacing": 0, // Gaps between modules
     "modules-left": [
-        "hyprland/workspaces"
+        "hyprland/workspaces",
+        "custom/cpucat"
     ],
     "modules-center" : [
         "hyprland/window"
@@ -85,6 +86,9 @@
         "format": "{}",
         "interval": "once",
         "on-click": "~/.local/bin/envyswitch",
+    },
+    "custom/cpucat": {
+        "exec":"~/.config/waybar/scripts/catloop.sh",
     },
     "cpu": {
         "format": " {usage:2}%",

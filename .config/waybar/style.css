@@ -113,6 +113,14 @@ window#waybar.hidden {
 
 }
 
+#custom-cpucat {
+  font-family: "Waycat", monospace;
+  font-size: 14px;
+  font-weight: bold;
+  color: @foreground;
+  padding: 0 12px 0 12px;
+}
+
 /* If workspaces is the leftmost module, omit left margin */
 .modules-left>widget:first-child>#workspaces {
     margin-left: 0;
