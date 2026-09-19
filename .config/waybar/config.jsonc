@@ -14,6 +14,7 @@
     "modules-right": [
         "tray",
         "custom/gpumode",
+        "custom/headset-battery",
         "pulseaudio",
         "battery",
         "backlight",
@@ -86,6 +87,13 @@
         "format": "{}",
         "interval": "once",
         "on-click": "~/.local/bin/envyswitch",
+    },
+    "custom/headset-battery": {
+    "exec": "~/.config/waybar/scripts/bluetooth-battery.sh",
+    "format": "󰋋 {}",
+    "return-type": "json",
+    "interval": 15,
+    "hide-empty-text": true
     },
     "custom/cpucat": {
         "exec":"~/.config/waybar/scripts/catloop.sh",
