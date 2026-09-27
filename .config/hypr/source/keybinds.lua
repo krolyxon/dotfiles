@@ -29,7 +29,6 @@ hl.bind(
 
 hl.bind(mainMod .. " + R", hl.dsp.exec_cmd(menu))
 -- bind = $mainMod SHIFT, P, pseudo, # dwindle
--- (left commented out to mirror the original file)
 hl.bind(mainMod .. " + Tab", hl.dsp.window.cycle_next({ next = false }), { repeating = true })
 hl.bind(mainMod .. " + b", hl.dsp.exec_cmd("killall waybar || waybar"))
 hl.bind(mainMod .. " + grave", hl.dsp.exec_cmd("fuzzelunicode"))

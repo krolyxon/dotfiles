@@ -1,24 +1,51 @@
 #!/bin/bash
 
-#bcn, Bluetooth Connect
+# bcn, Bluetooth Connect
 
+mapfile -t devices < <(bluetoothctl devices)
 
-device_amount=$(bluetoothctl devices | wc -l)
-
-if [[ $device_amount = 1 ]]; then
-	MAC=$(bluetoothctl devices | awk {'print $2'})
-		[ -z $MAC ] && MAC=NoDeviceFound # Prevents accidental disconnect error
-else
-	select=$(bluetoothctl devices | awk {'print $3'} | fuzzel --dmenu -l 10 -fn Monospace-15)
-	MAC=$(bluetoothctl devices | grep $select | awk {'print $2'})
-		[ -z $MAC ] && MAC=NoDeviceFound # Prevents accidental disconnect error
+if [[ ${#devices[@]} -eq 0 ]]; then
+    notify-send "Bluetooth" "No devices found"
+    exit 1
 fi
 
-connect=$(bluetoothctl info $MAC | grep Connected: | awk '{print $2}')
-if [[ $connect = no ]]; then
-	notify-send "Attempting to connect to $select"
-	bluetoothctl connect $MAC || notify-send "Failed to Connect"
-elif [[ $connect = yes ]]; then
-	notify-send "Attempting to disconnect $select"
-	bluetoothctl disconnect $MAC
+if [[ ${#devices[@]} -eq 1 ]]; then
+    line="${devices[0]}"
+else
+    names=$(printf '%s\n' "${devices[@]}" | sed 's/^Device [^ ]* //')
+
+    selected=$(printf '%s\n' "$names" |
+        fuzzel --dmenu -l 10 -fn Monospace-15)
+
+    [[ -z "$selected" ]] && exit 0
+
+    # Find MAC corresponding to selected full name
+    for device in "${devices[@]}"; do
+        name=$(echo "$device" | cut -d' ' -f3-)
+
+        if [[ "$name" == "$selected" ]]; then
+            line="$device"
+            break
+        fi
+    done
+fi
+
+MAC=$(echo "$line" | awk '{print $2}')
+NAME=$(echo "$line" | cut -d' ' -f3-)
+
+connect=$(bluetoothctl info "$MAC" |
+    awk '/Connected:/ {print $2}')
+
+if [[ "$connect" == "no" ]]; then
+    notify-send "Bluetooth" "Connecting to $NAME..."
+
+    if bluetoothctl connect "$MAC"; then
+        notify-send "Bluetooth" "Connected to $NAME"
+    else
+        notify-send "Bluetooth" "Failed to connect to $NAME"
+    fi
+
+elif [[ "$connect" == "yes" ]]; then
+    notify-send "Bluetooth" "Disconnecting from $NAME..."
+    bluetoothctl disconnect "$MAC"
 fi
