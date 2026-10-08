@@ -1,0 +1,15 @@
+#!/bin/bash
+
+URL=$(curl -s -D - -o /dev/null http://neverssl.com 2>/dev/null \
+    | grep -i '^location:' \
+    | head -n1 \
+    | sed 's/^[Ll]ocation:[[:space:]]*//' \
+    | tr -d '\r')
+
+if [[ -z "$URL" ]]; then
+    echo "Already authenticated or no captive portal detected."
+    exit 0
+fi
+
+echo "Opening captive portal: $URL"
+"$BROWSER" "$URL"
