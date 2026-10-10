@@ -1,0 +1,12 @@
+[Unit]
+Description=pywal-themed Quickshell control center
+After=graphical-session.target
+PartOf=graphical-session.target
+
+[Service]
+ExecStart=/usr/bin/quickshell -p %h/.config/quickshell/wal-control
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=graphical-session.target
