@@ -60,6 +60,7 @@ export pkg_utils=(
     "python-pip"
     "python-virtualenv"
     "qpdf"
+    "quickshell"
     "reflector"
     "ripgrep"
     "rsync"
