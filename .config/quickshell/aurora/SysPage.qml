@@ -99,39 +99,39 @@ Flickable {
             }
         }
 
-        ColumnLayout {
-            visible: PowerProfiles.hasPerformanceProfile !== undefined
-            Layout.fillWidth: true
-            Layout.topMargin: 6
-            spacing: 8
-            SectionLabel { text: "power profile" }
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: 6
-                IconBtn {
-                    Layout.fillWidth: true
-                    icon: Theme.iLeaf
-                    label: "saver"
-                    active: PowerProfiles.profile === PowerProfile.PowerSaver
-                    onClicked: PowerProfiles.profile = PowerProfile.PowerSaver
-                }
-                IconBtn {
-                    Layout.fillWidth: true
-                    icon: Theme.iBalance
-                    label: "balanced"
-                    active: PowerProfiles.profile === PowerProfile.Balanced
-                    onClicked: PowerProfiles.profile = PowerProfile.Balanced
-                }
-                IconBtn {
-                    Layout.fillWidth: true
-                    visible: PowerProfiles.hasPerformanceProfile
-                    icon: Theme.iSpeed
-                    label: "perf"
-                    active: PowerProfiles.profile === PowerProfile.Performance
-                    onClicked: PowerProfiles.profile = PowerProfile.Performance
-                }
-            }
-        }
+        // ColumnLayout {
+        //     visible: PowerProfiles.hasPerformanceProfile !== undefined
+        //     Layout.fillWidth: true
+        //     Layout.topMargin: 6
+        //     spacing: 8
+        //     SectionLabel { text: "power profile" }
+        //     RowLayout {
+        //         Layout.fillWidth: true
+        //         spacing: 6
+        //         IconBtn {
+        //             Layout.fillWidth: true
+        //             icon: Theme.iLeaf
+        //             label: "saver"
+        //             active: PowerProfiles.profile === PowerProfile.PowerSaver
+        //             onClicked: PowerProfiles.profile = PowerProfile.PowerSaver
+        //         }
+        //         IconBtn {
+        //             Layout.fillWidth: true
+        //             icon: Theme.iBalance
+        //             label: "balanced"
+        //             active: PowerProfiles.profile === PowerProfile.Balanced
+        //             onClicked: PowerProfiles.profile = PowerProfile.Balanced
+        //         }
+        //         IconBtn {
+        //             Layout.fillWidth: true
+        //             visible: PowerProfiles.hasPerformanceProfile
+        //             icon: Theme.iSpeed
+        //             label: "perf"
+        //             active: PowerProfiles.profile === PowerProfile.Performance
+        //             onClicked: PowerProfiles.profile = PowerProfile.Performance
+        //         }
+        //     }
+        // }
 
         ColumnLayout {
             visible: Gpu.mode !== ""

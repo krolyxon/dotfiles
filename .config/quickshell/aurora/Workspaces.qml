@@ -31,7 +31,7 @@ Row {
             readonly property bool urgent: obj !== null && obj.urgent
             readonly property bool lit: active || m.containsMouse
 
-            width: 30
+            width: 32
             height: ws.height
 
             Rectangle {
@@ -52,7 +52,7 @@ Row {
                 color: b.lit ? Theme.bg : (b.urgent ? Theme.err : Theme.fg)
                 opacity: (b.occupied || b.lit || b.urgent) ? 1 : 0.4
                 font.family: Theme.font
-                font.pixelSize: Theme.fontSize + 1
+                font.pixelSize: Theme.fontSize
             }
             MouseArea {
                 id: m
