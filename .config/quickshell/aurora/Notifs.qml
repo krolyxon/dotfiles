@@ -8,6 +8,11 @@ import Quickshell.Services.Notifications
 Singleton {
     id: root
     property bool dnd: false
+
+    // sound played on every toast (silenced by do-not-disturb, except critical ones)
+    property bool soundEnabled: true
+    property string soundFile: Quickshell.env("HOME") + "/.config/quickshell/aurora/sounds/Blow.aiff"
+    property real soundVolume: 0.7
     property var popups: []              // [{n, until}]
     readonly property var model: server.trackedNotifications
     readonly property int count: server.trackedNotifications.values.length
@@ -26,7 +31,14 @@ Singleton {
     function dropPopup(n) {
         popups = popups.filter(function (p) { return p.n !== n })
     }
+    function playSound() {
+        if (!soundEnabled) return
+        Quickshell.execDetached(["sh", "-c",
+            '[ -f "$1" ] || exit 0; pw-play --volume="$2" "$1" 2>/dev/null || paplay "$1" 2>/dev/null',
+            "sh", soundFile, String(soundVolume)])
+    }
     function push(n) {
+        playSound()
         var ms = n.urgency === NotificationUrgency.Critical ? 12000
                : (n.expireTimeout > 0 ? n.expireTimeout * 1000 : 5000)
         var next = popups.concat([{ n: n, until: Date.now() + ms }])
