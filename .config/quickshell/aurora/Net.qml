@@ -7,7 +7,8 @@ import Quickshell.Io
 Singleton {
     id: root
 
-    property bool active: false          // NetPage sets this while visible
+    property bool active: false          // NetPage sets this while visible (faster polling + rescan)
+    property bool wired: false
     property bool wifiEnabled: true
     property string wifiDevice: ""
     property var raw: []                 // [{inUse, ssid, signal, security}]
@@ -21,6 +22,10 @@ Singleton {
     property bool lastWasNew: false
 
     readonly property var networks: build(raw, savedNames)
+    readonly property int activeSignal: {
+        for (var i = 0; i < raw.length; i++) if (raw[i].inUse) return raw[i].signal
+        return 0
+    }
     readonly property string connected: {
         for (var i = 0; i < raw.length; i++) if (raw[i].inUse) return raw[i].ssid
         return ""
@@ -123,10 +128,12 @@ Singleton {
     function setWifi(on) { run(["radio", "wifi", on ? "on" : "off"]) }
 
     // ---- processes ----------------------------------------------------
+    // always on (the bar shows wifi state); quicker while the Net tab is open
     Timer {
-        interval: 10000
-        running: root.active
+        interval: root.active ? 10000 : 30000
+        running: true
         repeat: true
+        triggeredOnStart: true
         onTriggered: root.refresh()
     }
 
@@ -152,11 +159,14 @@ Singleton {
         command: ["nmcli", "-t", "-f", "DEVICE,TYPE,STATE", "device"]
         stdout: StdioCollector {
             onStreamFinished: {
-                var lines = text.split("\n")
+                var lines = text.split("\n"), wired = false
                 for (var i = 0; i < lines.length; i++) {
                     var f = root.parseTerse(lines[i])
-                    if (f.length >= 2 && f[1] === "wifi") { root.wifiDevice = f[0]; return }
+                    if (f.length < 3) continue
+                    if (f[1] === "wifi") root.wifiDevice = f[0]
+                    if (f[1] === "ethernet" && f[2] === "connected") wired = true
                 }
+                root.wired = wired
             }
         }
     }

@@ -1,0 +1,153 @@
+import QtQuick
+import Quickshell
+import Quickshell.Wayland
+import Quickshell.Bluetooth
+import Quickshell.Services.Pipewire
+import Quickshell.Services.UPower
+
+PanelWindow {
+    id: bar
+    required property var modelData
+    screen: modelData
+    signal togglePanel(string name)
+
+    anchors { top: true; left: true; right: true }
+    implicitHeight: Theme.barHeight
+    color: Theme.barBg
+    WlrLayershell.namespace: "aurora-bar"
+
+    SystemClock { id: clock; precision: SystemClock.Minutes }
+
+    // ---- state ----
+    readonly property var audio: Pipewire.defaultAudioSink ? Pipewire.defaultAudioSink.audio : null
+    readonly property var mic: Pipewire.defaultAudioSource ? Pipewire.defaultAudioSource.audio : null
+    readonly property var bat: UPower.displayDevice
+    readonly property bool hasBat: bat !== null && bat.isPresent
+    readonly property real batPct: hasBat ? (bat.percentage > 1 ? bat.percentage / 100 : bat.percentage) : 0
+    readonly property bool charging: hasBat && bat.state === UPowerDeviceState.Charging
+    readonly property bool plugged: hasBat && bat.state === UPowerDeviceState.FullyCharged
+    readonly property bool batLow: hasBat && batPct <= 0.15 && !charging
+    readonly property var adapter: Bluetooth.defaultAdapter
+
+    function findHeadset() {
+        var l = Bluetooth.devices.values
+        for (var i = 0; i < l.length; i++) {
+            var d = l[i]
+            if (!d.connected || !d.batteryAvailable) continue
+            var ic = String(d.icon)
+            if (ic.indexOf("head") >= 0 || ic.indexOf("audio") >= 0) return d
+        }
+        return null
+    }
+    function btConnected() {
+        var l = Bluetooth.devices.values
+        for (var i = 0; i < l.length; i++) if (l[i].connected) return true
+        return false
+    }
+    readonly property var headset: findHeadset()
+    readonly property bool btOn: adapter !== null && adapter.enabled
+    readonly property bool btLink: btOn && btConnected()
+
+    Item {
+        anchors.fill: parent
+
+        // ---------------- left ----------------
+        Row {
+            anchors.left: parent.left
+            height: parent.height
+            spacing: 10
+            Workspaces { height: parent.height }
+            CatLoop { height: parent.height }
+        }
+
+        // ---------------- center ----------------
+        Text {
+            anchors.centerIn: parent
+            width: Math.min(implicitWidth, parent.width * 0.32)
+            elide: Text.ElideRight
+            horizontalAlignment: Text.AlignHCenter
+            readonly property string title: ToplevelManager.activeToplevel ? ToplevelManager.activeToplevel.title : ""
+            visible: title !== ""
+            text: Theme.iArch + " " + title
+            color: Theme.fg
+            font.family: Theme.font
+            font.pixelSize: Theme.fontSize
+            font.bold: true
+        }
+
+        // ---------------- right ----------------
+        Row {
+            anchors.right: parent.right
+            height: parent.height
+            spacing: 10
+
+            Tray {}
+
+            BarPill {
+                visible: bar.headset !== null
+                icon: Theme.iHeadphones
+                text: bar.headset ? Math.round(bar.headset.battery * 100) + "%" : ""
+                onActivated: bar.togglePanel("bt")
+            }
+
+            BarPill {
+                visible: bar.audio !== null
+                icon: Theme.volIcon(bar.audio ? bar.audio.volume : 0, bar.audio ? bar.audio.muted : true)
+                text: (bar.audio ? Math.round(bar.audio.volume * 100) : 0) + "%"
+                      + (bar.mic && bar.mic.muted ? "  " + Theme.iMicOff : "")
+                onActivated: button => {
+                    if (button === Qt.RightButton && bar.audio) bar.audio.muted = !bar.audio.muted
+                    else if (button === Qt.MiddleButton && bar.mic) bar.mic.muted = !bar.mic.muted
+                    else bar.togglePanel("audio")
+                }
+                onScrolled: dir => {
+                    if (bar.audio) bar.audio.volume = Math.max(0, Math.min(1, bar.audio.volume + dir * 0.02))
+                }
+            }
+
+            BarPill {
+                icon: Net.wired && !(Net.wifiEnabled && Net.connected !== "") ? Theme.iEthernet
+                      : (Net.wifiEnabled ? Theme.wifiIcon(Net.connected !== "" ? Net.activeSignal : 0) : Theme.iWifiOff)
+                tint: (Net.wired || (Net.wifiEnabled && Net.connected !== "")) ? Theme.fg : Theme.dim
+                onActivated: bar.togglePanel("net")
+            }
+
+            BarPill {
+                visible: bar.adapter !== null
+                icon: !bar.btOn ? Theme.iBtOff : (bar.btLink ? Theme.iBtConn : Theme.iBt)
+                tint: bar.btLink ? Theme.fg : Theme.dim
+                onActivated: bar.togglePanel("bt")
+            }
+
+            BarPill {
+                visible: bar.hasBat
+                icon: Theme.batIcon(bar.batPct, bar.charging, bar.plugged)
+                text: Math.round(bar.batPct * 100) + "%"
+                tint: bar.batLow ? Theme.err : Theme.fg
+                underline: bar.batLow ? Theme.err : Theme.accent
+                onActivated: bar.togglePanel("sys")
+            }
+
+            BarPill {
+                icon: Notifs.dnd ? Theme.iBellOff : Theme.iBell
+                text: Notifs.count > 0 ? String(Notifs.count) : ""
+                tint: Notifs.dnd ? Theme.dim : Theme.fg
+                onActivated: button => {
+                    if (button === Qt.RightButton) Notifs.dnd = !Notifs.dnd
+                    else bar.togglePanel("notif")
+                }
+            }
+
+            BarPill {
+                icon: Theme.iCal
+                text: Qt.formatDateTime(clock.date, "dd MMM yyyy")
+                onActivated: bar.togglePanel("home")
+            }
+            BarPill {
+                icon: Theme.iClock
+                text: Qt.formatDateTime(clock.date, "HH:mm")
+                onActivated: bar.togglePanel("home")
+            }
+        }
+    }
+}

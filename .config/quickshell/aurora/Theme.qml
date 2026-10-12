@@ -3,7 +3,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-// Reads ~/.cache/wal/colors.json (pywal16) and hot-reloads whenever `wal` runs.
+// pywal16 colours (~/.cache/wal/colors.json), hot-reloaded whenever `wal` runs.
 Singleton {
     id: root
 
@@ -11,8 +11,11 @@ Singleton {
     property string font: "JetBrainsMono Nerd Font"   // any Nerd Font mono
     property int fontSize: 12
     property real panelAlpha: 0.88
-    // -1 = auto-pick the most vivid of color1..color6, or force 0..15
-    property int accentIndex: -1
+    // your waybar uses @color14 for underlines/active workspace, so that is the default.
+    // set -1 to auto-pick the most vivid of color1..color6 instead
+    property int accentIndex: 14
+    property int barHeight: 18
+    property real barAlpha: 1.0
 
     readonly property string walFile: Quickshell.env("HOME") + "/.cache/wal/colors.json"
 
@@ -79,6 +82,8 @@ Singleton {
     readonly property color line: mix(bg, accent, 0.35)
     readonly property color dim: mix(bg, fg, 0.55)
     readonly property color err: Qt.color(pal[1])
+    readonly property color barBg: Qt.rgba(bg.r, bg.g, bg.b, barAlpha)
+    readonly property color cursorC: wal.special.cursor
     readonly property color bgA: Qt.rgba(bg.r, bg.g, bg.b, panelAlpha)
 
     // ---- Nerd Font (Material Design) glyphs ---------------------------
@@ -120,6 +125,47 @@ Singleton {
     readonly property string iPhone: cp(0xF011C)
     readonly property string iGamepad: cp(0xF0297)
     readonly property string iSearch: cp(0xF0349)
+
+    readonly property string iHeadset: cp(0xF02CE)
+    readonly property string iBell: cp(0xF009A)
+    readonly property string iBellOff: cp(0xF009B)
+    readonly property string iChip: cp(0xF061A)
+    readonly property string iMem: cp(0xF035B)
+    readonly property string iDisk: cp(0xF02CA)
+    readonly property string iGpu: cp(0xF08AE)
+    readonly property string iLeaf: cp(0xF032A)
+    readonly property string iBalance: cp(0xF05D1)
+    readonly property string iSpeed: cp(0xF04C5)
+    readonly property string iCal: cp(0xF00ED)
+    readonly property string iClock: cp(0xF0954)
+    readonly property string iArch: cp(0xF08C7)
+    readonly property string iEthernet: cp(0xF0200)
+    readonly property string iPlug: cp(0xF06A5)
+    readonly property string iBatCharge: cp(0xF0084)
+
+    // workspace icons: the exact Font Awesome glyphs from your waybar config.
+    // 1 browser, 2 code, 3 book, 4 cog, 5 chat, 6 file, 7 folder, 8 terminal, 9 flask, 10 image
+    // 11-20 repeat the same ten, like your waybar format-icons did
+    readonly property var wsIcons: [
+        String.fromCharCode(0xf269), String.fromCharCode(0xf121), String.fromCharCode(0xf02d),
+        String.fromCharCode(0xf085), String.fromCharCode(0xf086), String.fromCharCode(0xf1c9),
+        String.fromCharCode(0xf07c), String.fromCharCode(0xf120), String.fromCharCode(0xf0c3),
+        String.fromCharCode(0xf03e)
+    ]
+    function wsIcon(id) { return (id >= 1 && id <= 20) ? wsIcons[(id - 1) % 10] : String(id) }
+
+    readonly property var batLevels: [0xF007A, 0xF007B, 0xF007C, 0xF007D, 0xF007E,
+                                      0xF007F, 0xF0080, 0xF0081, 0xF0082, 0xF0079]
+    function batIcon(p, charging, plugged) {
+        if (charging) return iBatCharge
+        if (plugged) return iPlug
+        return cp(batLevels[Math.max(0, Math.min(9, Math.floor(p * 10)))])
+    }
+    function fmtTime(s) {
+        if (!s || s <= 0) return "-"
+        var h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60)
+        return h > 0 ? h + "h " + m + "m" : m + "m"
+    }
 
     function volIcon(v, muted) {
         if (muted || v <= 0) return iVolOff

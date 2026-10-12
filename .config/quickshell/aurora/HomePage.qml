@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
+import Quickshell.Bluetooth
 import Quickshell.Services.Pipewire
 
 ColumnLayout {
@@ -11,10 +12,10 @@ ColumnLayout {
     property string armed: ""
     Timer { id: disarm; interval: 3000; onTriggered: page.armed = "" }
 
-    function act(name, cmd, confirm) {
+    function act(name, fn, confirm) {
         if (confirm && armed !== name) { armed = name; disarm.restart(); return }
         armed = ""
-        Quickshell.execDetached(cmd)
+        fn()
         closeRequested()
     }
 
@@ -38,7 +39,6 @@ ColumnLayout {
         onMoved: v => { if (audio) audio.volume = v }
         onIconClicked: if (audio) audio.muted = !audio.muted
     }
-
     SliderRow {
         Layout.fillWidth: true
         readonly property var audio: Pipewire.defaultAudioSource ? Pipewire.defaultAudioSource.audio : null
@@ -48,7 +48,6 @@ ColumnLayout {
         onMoved: v => { if (audio) audio.volume = v }
         onIconClicked: if (audio) audio.muted = !audio.muted
     }
-
     SliderRow {
         Layout.fillWidth: true
         visible: Bright.available
@@ -56,6 +55,44 @@ ColumnLayout {
         value: Bright.percent / 100
         valueText: Bright.percent + "%"
         onMoved: v => Bright.setPercent(Math.max(0.01, v) * 100)
+    }
+
+    SectionLabel { text: "quick toggles" }
+
+    RowLayout {
+        Layout.fillWidth: true
+        spacing: 6
+        IconBtn {
+            Layout.fillWidth: true
+            icon: Net.wifiEnabled ? Theme.iWifi : Theme.iWifiOff
+            label: "wifi"
+            active: Net.wifiEnabled
+            onClicked: Net.setWifi(!Net.wifiEnabled)
+        }
+        IconBtn {
+            Layout.fillWidth: true
+            readonly property var ad: Bluetooth.defaultAdapter
+            visible: ad !== null
+            icon: ad && ad.enabled ? Theme.iBt : Theme.iBtOff
+            label: "bt"
+            active: ad ? ad.enabled : false
+            onClicked: if (ad) ad.enabled = !ad.enabled
+        }
+        IconBtn {
+            Layout.fillWidth: true
+            icon: Notifs.dnd ? Theme.iBellOff : Theme.iBell
+            label: "dnd"
+            active: Notifs.dnd
+            onClicked: Notifs.dnd = !Notifs.dnd
+        }
+        IconBtn {
+            Layout.fillWidth: true
+            readonly property var audio: Pipewire.defaultAudioSource ? Pipewire.defaultAudioSource.audio : null
+            icon: audio && audio.muted ? Theme.iMicOff : Theme.iMic
+            label: "mic"
+            active: audio ? !audio.muted : false
+            onClicked: if (audio) audio.muted = !audio.muted
+        }
     }
 
     Item { Layout.fillHeight: true }
@@ -68,33 +105,33 @@ ColumnLayout {
         IconBtn {
             Layout.fillWidth: true
             icon: Theme.iLock
-            onClicked: page.act("lock", ["loginctl", "lock-session"], false)
+            onClicked: page.act("lock", function () { Quickshell.execDetached(["loginctl", "lock-session"]) }, false)
         }
         IconBtn {
             Layout.fillWidth: true
             icon: Theme.iSleep
-            onClicked: page.act("sleep", ["systemctl", "suspend"], false)
+            onClicked: page.act("sleep", function () { Quickshell.execDetached(["systemctl", "suspend"]) }, false)
         }
         IconBtn {
             Layout.fillWidth: true
             icon: Theme.iLogout
             label: page.armed === "logout" ? "sure?" : ""
             active: page.armed === "logout"
-            onClicked: page.act("logout", ["hyprctl", "dispatch", "exit"], true)
+            onClicked: page.act("logout", function () { Hypr.logout() }, true)
         }
         IconBtn {
             Layout.fillWidth: true
             icon: Theme.iReboot
             label: page.armed === "reboot" ? "sure?" : ""
             active: page.armed === "reboot"
-            onClicked: page.act("reboot", ["systemctl", "reboot"], true)
+            onClicked: page.act("reboot", function () { Quickshell.execDetached(["systemctl", "reboot"]) }, true)
         }
         IconBtn {
             Layout.fillWidth: true
             icon: Theme.iPower
             label: page.armed === "off" ? "sure?" : ""
             active: page.armed === "off"
-            onClicked: page.act("off", ["systemctl", "poweroff"], true)
+            onClicked: page.act("off", function () { Quickshell.execDetached(["systemctl", "poweroff"]) }, true)
         }
     }
 }

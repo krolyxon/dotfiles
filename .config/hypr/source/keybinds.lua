@@ -27,10 +27,15 @@ hl.bind(
 )
 
 
+------------------
+-- Aurora Shell
+-----------------
+hl.bind(mainMod .. " + c",           hl.dsp.exec_cmd("qs -c aurora ipc call shell toggle"))
+hl.bind(mainMod .. " + b", hl.dsp.exec_cmd("systemctl --user restart aurora"))
+
 hl.bind(mainMod .. " + R", hl.dsp.exec_cmd(menu))
 -- bind = $mainMod SHIFT, P, pseudo, # dwindle
 hl.bind(mainMod .. " + Tab", hl.dsp.window.cycle_next({ next = false }), { repeating = true })
-hl.bind(mainMod .. " + b", hl.dsp.exec_cmd("killall waybar || waybar"))
 hl.bind(mainMod .. " + grave", hl.dsp.exec_cmd("fuzzelunicode"))
 hl.bind(mainMod .. " + escape", hl.dsp.exec_cmd("sysact"))
 
@@ -145,5 +150,3 @@ hl.bind("XF86AudioPause", hl.dsp.exec_cmd("playerctl play-pause"), { locked = tr
 hl.bind("XF86AudioPlay", hl.dsp.exec_cmd("playerctl play-pause"), { locked = true })
 hl.bind("XF86AudioPrev", hl.dsp.exec_cmd("playerctl previous"), { locked = true })
 
--- Quichshell
-hl.bind(mainMod .. "+ C", hl.dsp.exec_cmd("qs -p ~/.config/quickshell/wal-control ipc call control toggle"))

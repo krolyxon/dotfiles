@@ -1,10 +1,10 @@
 [Unit]
-Description=pywal-themed Quickshell control center
+Description=aurora: Quickshell bar, control panel and notifications
 After=graphical-session.target
 PartOf=graphical-session.target
 
 [Service]
-ExecStart=/usr/bin/quickshell -p %h/.config/quickshell/wal-control
+ExecStart=/usr/bin/quickshell -p %h/.config/quickshell/aurora
 Restart=on-failure
 RestartSec=2
 
