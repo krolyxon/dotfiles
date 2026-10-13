@@ -7,14 +7,38 @@ ColumnLayout {
     onActiveChanged: Net.active = active
     spacing: 8
 
+    // wired / usb tethering (read-only status, plus a disconnect button)
+    ColumnLayout {
+        visible: Net.wiredDevs.length > 0
+        Layout.fillWidth: true
+        spacing: 2
+        SectionLabel { text: "wired" }
+        Repeater {
+            model: Net.wiredDevs
+            delegate: ListRow {
+                required property var modelData
+                icon: modelData.usb ? Theme.iPhone : Theme.iEthernet
+                title: modelData.name
+                subtitle: modelData.dev + (modelData.ip !== "" ? "  ·  " + modelData.ip : "")
+                trailing: modelData.usb ? "usb" : ""
+                current: true
+                IconBtn {
+                    icon: Theme.iClose
+                    height: 26
+                    onClicked: Net.disconnectDev(modelData.dev)
+                }
+            }
+        }
+    }
+
     RowLayout {
         Layout.fillWidth: true
         spacing: 6
         Text {
             Layout.fillWidth: true
             elide: Text.ElideRight
-            text: !Net.wifiEnabled ? "wi-fi is off"
-                  : (Net.connected !== "" ? "connected  ·  " + Net.connected : "not connected")
+            text: !Net.wifiEnabled ? "wi-fi off"
+                  : (Net.connected !== "" ? "wi-fi  ·  " + Net.connected : "wi-fi not connected")
             color: Net.connected !== "" && Net.wifiEnabled ? Theme.accent : Theme.dim
             font.family: Theme.font
             font.pixelSize: Theme.fontSize

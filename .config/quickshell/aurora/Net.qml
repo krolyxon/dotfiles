@@ -8,7 +8,9 @@ Singleton {
     id: root
 
     property bool active: false          // NetPage sets this while visible (faster polling + rescan)
-    property bool wired: false
+    property var wiredDevs: []           // [{dev, name, ip, usb}] connected ethernet-type devices (incl. USB tethering)
+    readonly property bool wired: wiredDevs.length > 0
+    readonly property string wiredIcon: wiredDevs.length > 0 && wiredDevs[0].usb ? Theme.iPhone : Theme.iEthernet
     property bool wifiEnabled: true
     property string wifiDevice: ""
     property var raw: []                 // [{inUse, ssid, signal, security}]
@@ -44,6 +46,34 @@ Singleton {
         }
         out.push(cur)
         return out
+    }
+
+    // `nmcli device show` output (terse): one block per device, blank line between.
+    // Android USB tethering (and USB ethernet dongles) show up as type "ethernet".
+    function parseShow(text) {
+        var devs = [], cur = null, lines = text.split("\n")
+        for (var i = 0; i < lines.length; i++) {
+            if (lines[i] === "") continue
+            var f = parseTerse(lines[i]), key = f[0], val = f.slice(1).join(":")
+            if (key === "GENERAL.DEVICE") { cur = { dev: val, type: "", state: "", name: "", ip: "" }; devs.push(cur) }
+            else if (cur === null) continue
+            else if (key === "GENERAL.TYPE") cur.type = val
+            else if (key === "GENERAL.STATE") cur.state = val
+            else if (key === "GENERAL.CONNECTION") cur.name = val
+            else if (key.indexOf("IP4.ADDRESS") === 0 && cur.ip === "") cur.ip = val
+        }
+        var wired = []
+        for (var j = 0; j < devs.length; j++) {
+            var d = devs[j]
+            if (d.type === "wifi") wifiDevice = d.dev
+            var up = d.state.indexOf("connected") >= 0 && d.state.indexOf("disconnected") < 0
+            if (d.type === "ethernet" && up)
+                wired.push({
+                    dev: d.dev, name: d.name !== "" ? d.name : d.dev, ip: d.ip,
+                    usb: /^usb|^enx|u\d+(c\d+)?(i\d+)?$/.test(d.dev)
+                })
+        }
+        wiredDevs = wired
     }
 
     function build(list, saved) {
@@ -123,6 +153,7 @@ Singleton {
         }
     }
 
+    function disconnectDev(dev) { run(["device", "disconnect", dev]) }
     function disconnect() { if (wifiDevice !== "") run(["device", "disconnect", wifiDevice]) }
     function forget(ssid) { run(["connection", "delete", "id", ssid]) }
     function setWifi(on) { run(["radio", "wifi", on ? "on" : "off"]) }
@@ -156,19 +187,8 @@ Singleton {
 
     Process {
         id: devProc
-        command: ["nmcli", "-t", "-f", "DEVICE,TYPE,STATE", "device"]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                var lines = text.split("\n"), wired = false
-                for (var i = 0; i < lines.length; i++) {
-                    var f = root.parseTerse(lines[i])
-                    if (f.length < 3) continue
-                    if (f[1] === "wifi") root.wifiDevice = f[0]
-                    if (f[1] === "ethernet" && f[2] === "connected") wired = true
-                }
-                root.wired = wired
-            }
-        }
+        command: ["nmcli", "-t", "-f", "GENERAL.DEVICE,GENERAL.TYPE,GENERAL.STATE,GENERAL.CONNECTION,IP4.ADDRESS", "device", "show"]
+        stdout: StdioCollector { onStreamFinished: root.parseShow(text) }
     }
 
     Process {
