@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Bluetooth
+import Quickshell.Hyprland
 import Quickshell.Services.Pipewire
 import Quickshell.Services.UPower
 
@@ -9,7 +10,7 @@ PanelWindow {
     id: bar
     required property var modelData
     screen: modelData
-    signal togglePanel(string name)
+    signal togglePanel(string name, var scr)
 
     anchors { top: true; left: true; right: true }
     implicitHeight: Theme.barHeight
@@ -28,6 +29,10 @@ PanelWindow {
     readonly property bool plugged: hasBat && bat.state === UPowerDeviceState.FullyCharged
     readonly property bool batLow: hasBat && batPct <= 0.15 && !charging
     readonly property var adapter: Bluetooth.defaultAdapter
+
+    // which Hyprland monitor this bar belongs to, and whether it has focus
+    readonly property var hmon: Hyprland.monitorFor(modelData)
+    readonly property bool monFocused: hmon !== null && hmon.focused
 
     function findHeadset() {
         var l = Bluetooth.devices.values
@@ -56,7 +61,7 @@ PanelWindow {
             anchors.left: parent.left
             height: parent.height
             spacing: 10
-            Workspaces { height: parent.height }
+            Workspaces { height: parent.height; monitor: bar.hmon }
             CatLoop { height: parent.height }
         }
 
@@ -67,7 +72,7 @@ PanelWindow {
             elide: Text.ElideRight
             horizontalAlignment: Text.AlignHCenter
             readonly property string title: ToplevelManager.activeToplevel ? ToplevelManager.activeToplevel.title : ""
-            visible: title !== ""
+            visible: bar.monFocused && title !== ""   // active window is global: show it on the focused monitor only
             text: Theme.iArch + " " + title
             color: Theme.fg
             font.family: Theme.font
@@ -81,13 +86,13 @@ PanelWindow {
             height: parent.height
             spacing: 10
 
-            Tray {}
+            Tray { show: bar.monFocused }
 
             BarPill {
                 visible: bar.headset !== null
                 icon: Theme.iHeadphones
                 text: bar.headset ? Math.round(bar.headset.battery * 100) + "%" : ""
-                onActivated: bar.togglePanel("bt")
+                onActivated: bar.togglePanel("bt", bar.modelData)
             }
 
             BarPill {
@@ -98,7 +103,7 @@ PanelWindow {
                 onActivated: button => {
                     if (button === Qt.RightButton && bar.audio) bar.audio.muted = !bar.audio.muted
                     else if (button === Qt.MiddleButton && bar.mic) bar.mic.muted = !bar.mic.muted
-                    else bar.togglePanel("audio")
+                    else bar.togglePanel("audio", bar.modelData)
                 }
                 onScrolled: dir => {
                     if (bar.audio) bar.audio.volume = Math.max(0, Math.min(1, bar.audio.volume + dir * 0.02))
@@ -109,14 +114,14 @@ PanelWindow {
                 icon: Net.wired && !(Net.wifiEnabled && Net.connected !== "") ? Theme.iEthernet
                       : (Net.wifiEnabled ? Theme.wifiIcon(Net.connected !== "" ? Net.activeSignal : 0) : Theme.iWifiOff)
                 tint: (Net.wired || (Net.wifiEnabled && Net.connected !== "")) ? Theme.fg : Theme.dim
-                onActivated: bar.togglePanel("net")
+                onActivated: bar.togglePanel("net", bar.modelData)
             }
 
             BarPill {
                 visible: bar.adapter !== null
                 icon: !bar.btOn ? Theme.iBtOff : (bar.btLink ? Theme.iBtConn : Theme.iBt)
                 tint: bar.btLink ? Theme.fg : Theme.dim
-                onActivated: bar.togglePanel("bt")
+                onActivated: bar.togglePanel("bt", bar.modelData)
             }
 
             BarPill {
@@ -125,7 +130,7 @@ PanelWindow {
                 text: Math.round(bar.batPct * 100) + "%"
                 tint: bar.batLow ? Theme.err : Theme.fg
                 underline: bar.batLow ? Theme.err : Theme.accent
-                onActivated: bar.togglePanel("sys")
+                onActivated: bar.togglePanel("sys", bar.modelData)
             }
 
             BarPill {
@@ -134,19 +139,19 @@ PanelWindow {
                 tint: Notifs.dnd ? Theme.dim : Theme.fg
                 onActivated: button => {
                     if (button === Qt.RightButton) Notifs.dnd = !Notifs.dnd
-                    else bar.togglePanel("notif")
+                    else bar.togglePanel("notif", bar.modelData)
                 }
             }
 
             BarPill {
                 icon: Theme.iCal
                 text: Qt.formatDateTime(clock.date, "dd MMM yyyy")
-                onActivated: bar.togglePanel("home")
+                onActivated: bar.togglePanel("home", bar.modelData)
             }
             BarPill {
                 icon: Theme.iClock
                 text: Qt.formatDateTime(clock.date, "HH:mm")
-                onActivated: bar.togglePanel("home")
+                onActivated: bar.togglePanel("home", bar.modelData)
             }
         }
     }

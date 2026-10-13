@@ -6,7 +6,7 @@ import Quickshell.Services.Pipewire
 
 ColumnLayout {
     id: page
-    spacing: 12
+    spacing: 10
     signal closeRequested()
 
     property string armed: ""
@@ -92,6 +92,44 @@ ColumnLayout {
             label: "mic"
             active: audio ? !audio.muted : false
             onClicked: if (audio) audio.muted = !audio.muted
+        }
+    }
+
+    SectionLabel { text: "capture" }
+
+    RowLayout {
+        Layout.fillWidth: true
+        spacing: 6
+        IconBtn {   // where the shot goes: clipboard or ~/pix/ss
+            Layout.fillWidth: true
+            icon: Shot.save ? Theme.iSave : Theme.iClipboard
+            label: Shot.save ? "save" : "copy"
+            active: true
+            onClicked: Shot.save = !Shot.save
+        }
+        IconBtn {
+            Layout.fillWidth: true
+            icon: Theme.iCrop
+            label: "area"
+            onClicked: { page.closeRequested(); Shot.take("region") }
+        }
+        IconBtn {
+            Layout.fillWidth: true
+            icon: Theme.iWindow
+            label: "window"
+            onClicked: { page.closeRequested(); Shot.take("window") }
+        }
+        IconBtn {
+            Layout.fillWidth: true
+            icon: Theme.iMonitor
+            label: "screen"
+            onClicked: { page.closeRequested(); Shot.take("output") }
+        }
+        IconBtn {
+            Layout.fillWidth: true
+            icon: Theme.iSearch
+            label: "ocr"
+            onClicked: { page.closeRequested(); Shot.take("ocr") }
         }
     }
 

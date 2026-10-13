@@ -32,7 +32,11 @@ Flickable {
         default: return "idle"
         }
     }
-    function g(v) { return v.toFixed(1) + "G" }
+    // GiB -> "812G" / "1.8T"
+    function size(v) { return v >= 1000 ? (v / 1024).toFixed(1) + "T" : (v >= 100 ? Math.round(v) : v.toFixed(1)) + "G" }
+
+    // pick up drives plugged in since the last poll
+    onVisibleChanged: if (visible) SysStats.refreshDisks()
 
     ColumnLayout {
         id: col
@@ -54,16 +58,21 @@ Flickable {
             Spark { Layout.fillWidth: true; values: SysStats.history }
         }
 
-        SectionLabel { text: "memory & disk"; Layout.topMargin: 6 }
+        SectionLabel { text: "memory & storage"; Layout.topMargin: 6 }
         StatBar {
             label: "memory"
             frac: SysStats.memTotal > 0 ? SysStats.memUsed / SysStats.memTotal : 0
-            valueText: flick.g(SysStats.memUsed) + " / " + flick.g(SysStats.memTotal)
+            valueText: flick.size(SysStats.memUsed) + " / " + flick.size(SysStats.memTotal)
         }
-        StatBar {
-            label: "disk /"
-            frac: SysStats.diskTotal > 0 ? SysStats.diskUsed / SysStats.diskTotal : 0
-            valueText: Math.round(SysStats.diskUsed) + "G / " + Math.round(SysStats.diskTotal) + "G"
+        Repeater {
+            model: SysStats.disks
+            delegate: StatBar {
+                required property var modelData
+                label: modelData.label
+                frac: modelData.used / modelData.size
+                fill: frac > 0.9 ? Theme.err : Theme.accent
+                valueText: flick.size(modelData.used) + " / " + flick.size(modelData.size)
+            }
         }
 
         ColumnLayout {
@@ -99,39 +108,39 @@ Flickable {
             }
         }
 
-        // ColumnLayout {
-        //     visible: PowerProfiles.hasPerformanceProfile !== undefined
-        //     Layout.fillWidth: true
-        //     Layout.topMargin: 6
-        //     spacing: 8
-        //     SectionLabel { text: "power profile" }
-        //     RowLayout {
-        //         Layout.fillWidth: true
-        //         spacing: 6
-        //         IconBtn {
-        //             Layout.fillWidth: true
-        //             icon: Theme.iLeaf
-        //             label: "saver"
-        //             active: PowerProfiles.profile === PowerProfile.PowerSaver
-        //             onClicked: PowerProfiles.profile = PowerProfile.PowerSaver
-        //         }
-        //         IconBtn {
-        //             Layout.fillWidth: true
-        //             icon: Theme.iBalance
-        //             label: "balanced"
-        //             active: PowerProfiles.profile === PowerProfile.Balanced
-        //             onClicked: PowerProfiles.profile = PowerProfile.Balanced
-        //         }
-        //         IconBtn {
-        //             Layout.fillWidth: true
-        //             visible: PowerProfiles.hasPerformanceProfile
-        //             icon: Theme.iSpeed
-        //             label: "perf"
-        //             active: PowerProfiles.profile === PowerProfile.Performance
-        //             onClicked: PowerProfiles.profile = PowerProfile.Performance
-        //         }
-        //     }
-        // }
+        ColumnLayout {
+            visible: PowerProfiles.hasPerformanceProfile !== undefined
+            Layout.fillWidth: true
+            Layout.topMargin: 6
+            spacing: 8
+            SectionLabel { text: "power profile" }
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 6
+                IconBtn {
+                    Layout.fillWidth: true
+                    icon: Theme.iLeaf
+                    label: "saver"
+                    active: PowerProfiles.profile === PowerProfile.PowerSaver
+                    onClicked: PowerProfiles.profile = PowerProfile.PowerSaver
+                }
+                IconBtn {
+                    Layout.fillWidth: true
+                    icon: Theme.iBalance
+                    label: "balanced"
+                    active: PowerProfiles.profile === PowerProfile.Balanced
+                    onClicked: PowerProfiles.profile = PowerProfile.Balanced
+                }
+                IconBtn {
+                    Layout.fillWidth: true
+                    visible: PowerProfiles.hasPerformanceProfile
+                    icon: Theme.iSpeed
+                    label: "perf"
+                    active: PowerProfiles.profile === PowerProfile.Performance
+                    onClicked: PowerProfiles.profile = PowerProfile.Performance
+                }
+            }
+        }
 
         ColumnLayout {
             visible: Gpu.mode !== ""

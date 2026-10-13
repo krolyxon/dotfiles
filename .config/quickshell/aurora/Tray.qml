@@ -4,7 +4,8 @@ import Quickshell.Services.SystemTray
 
 Item {
     id: tray
-    visible: SystemTray.items.values.length > 0
+    property bool show: true
+    visible: show && SystemTray.items.values.length > 0
     implicitWidth: row.implicitWidth + 24
     implicitHeight: parent ? parent.height : Theme.barHeight
 

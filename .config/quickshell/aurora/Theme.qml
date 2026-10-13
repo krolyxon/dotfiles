@@ -10,11 +10,12 @@ Singleton {
     // ---- knobs --------------------------------------------------------
     property string font: "JetBrainsMono Nerd Font"   // any Nerd Font mono
     property int fontSize: 12
+    property int wsFontSize: 11          // workspace icons only; everything else uses fontSize
     property real panelAlpha: 0.88
     // your waybar uses @color14 for underlines/active workspace, so that is the default.
     // set -1 to auto-pick the most vivid of color1..color6 instead
     property int accentIndex: 14
-    property int barHeight: 18
+    property int barHeight: 22
     property real barAlpha: 1.0
 
     readonly property string walFile: Quickshell.env("HOME") + "/.cache/wal/colors.json"
@@ -127,6 +128,12 @@ Singleton {
     readonly property string iSearch: cp(0xF0349)
 
     readonly property string iHeadset: cp(0xF02CE)
+    readonly property string iCamera: cp(0xF0100)
+    readonly property string iCrop: cp(0xF019E)
+    readonly property string iWindow: cp(0xF05B0)
+    readonly property string iMonitor: cp(0xF0379)
+    readonly property string iSave: cp(0xF0193)
+    readonly property string iClipboard: cp(0xF0147)
     readonly property string iBell: cp(0xF009A)
     readonly property string iBellOff: cp(0xF009B)
     readonly property string iChip: cp(0xF061A)
@@ -152,7 +159,7 @@ Singleton {
         String.fromCharCode(0xf07c), String.fromCharCode(0xf120), String.fromCharCode(0xf0c3),
         String.fromCharCode(0xf03e)
     ]
-    function wsIcon(id) { return (id >= 1 && id <= 20) ? wsIcons[(id - 1) % 10] : String(id) }
+    function wsIcon(id) { return id >= 1 ? wsIcons[(id - 1) % 10] : String(id) }
 
     readonly property var batLevels: [0xF007A, 0xF007B, 0xF007C, 0xF007D, 0xF007E,
                                       0xF007F, 0xF0080, 0xF0081, 0xF0082, 0xF0079]

@@ -12,7 +12,8 @@ RowLayout {
 
     Text {
         text: r.label
-        Layout.preferredWidth: 64
+        Layout.preferredWidth: 72
+        elide: Text.ElideRight
         color: Theme.dim
         font.family: Theme.font
         font.pixelSize: Theme.fontSize - 1
