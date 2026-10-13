@@ -9,6 +9,4 @@ export pkg_desktop=(
     "hyprpolkitagent"
     "hyprshot"
     "xdg-desktop-portal-hyprland"
-    "swaync"
-    "waybar"
 )
