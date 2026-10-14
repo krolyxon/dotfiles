@@ -73,6 +73,7 @@ export pkg_utils=(
     "ttf-jetbrains-mono-nerd"
     "tree"
     "unzip"
+    "upower"
     "wget"
     "woff2-font-awesome"
     "wtype"
