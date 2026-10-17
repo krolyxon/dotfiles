@@ -11,6 +11,7 @@ PanelWindow {
     required property var modelData
     screen: modelData
     signal togglePanel(string name, var scr)
+    signal toggleOverlay(string name, var scr)
 
     anchors { top: true; left: true; right: true }
     implicitHeight: Theme.barHeight
@@ -146,12 +147,12 @@ PanelWindow {
             BarPill {
                 icon: Theme.iCal
                 text: Qt.formatDateTime(clock.date, "dd MMM yyyy")
-                onActivated: bar.togglePanel("home", bar.modelData)
+                onActivated: bar.toggleOverlay("cal", bar.modelData)
             }
             BarPill {
                 icon: Theme.iClock
                 text: Qt.formatDateTime(clock.date, "HH:mm")
-                onActivated: bar.togglePanel("home", bar.modelData)
+                onActivated: bar.toggleOverlay("cal", bar.modelData)
             }
         }
     }
