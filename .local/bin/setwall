@@ -15,7 +15,7 @@ wallpaper {
 }
 EOF
 hyprpaper &
-wal -i $NEW_WALL -n
+wal -i "$NEW_WALL" -n
 else
     # Hyprpaper is running → change it live
     cat > ~/.config/hypr/hyprpaper.conf <<EOF
@@ -26,7 +26,7 @@ wallpaper {
 }
 EOF
     hyprctl hyprpaper wallpaper ",$NEW_WALL"
-    wal -i $NEW_WALL -n
+    wal -i "$NEW_WALL" -n
     fi
 
 }
@@ -35,7 +35,7 @@ EOF
 while getopts ":mnp:" opt; do
     case $opt in
         m) MODE="menu" ;;
-        p) MODE="path"; CUSTOM_PATH="$(realpath $OPTARG)" ;;
+        p) MODE="path"; CUSTOM_PATH="$(realpath "$OPTARG")" ;;
         n) MODE="nc" ;;
         \?) echo "Usage: $0 [-m] [-p /path/to/image] [-n]" >&2; exit 1 ;;
         :) echo "Option -$OPTARG requires an argument." >&2; exit 1 ;;
