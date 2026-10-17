@@ -8,8 +8,8 @@ import Quickshell.Services.Mpris
 // playing and something wants it (`wanted`), so it costs nothing when idle. Hidden if cava is missing.
 Singleton {
     id: root
-    property int bars: 64
-    property bool wanted: true               // desktop visualizer enabled
+    readonly property int bars: Math.max(8, Settings.vizBars)
+    readonly property bool wanted: Settings.desktopViz
     property bool available: false
     property var values: []                  // 0..1 per bar
 

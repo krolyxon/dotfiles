@@ -10,7 +10,7 @@ Singleton {
 
     readonly property string home: Quickshell.env("HOME")
     property string rootDir: home + "/pix/wallpapers"
-    property string folder: "dusky-dark"             // same default as setwall's WALL_DIR
+    property string folder: Settings.wallFolder      // default dusky-dark, same as setwall's WALL_DIR
     readonly property string setwall: home + "/.local/bin/setwall"
     readonly property string thumbDir: home + "/.cache/aurora/thumbs"
 
@@ -29,6 +29,7 @@ Singleton {
     }
     function listFolder(name) {
         folder = name
+        Settings.wallFolder = name
         thumbProc.running = false
         listProc.running = false
         loading = true

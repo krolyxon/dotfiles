@@ -18,7 +18,7 @@ ShellRoot {
     // centered overlay windows (wallpaper picker, clipboard, ...): one at a time, on the focused monitor
     property string overlay: ""
     property var overlayScreen: focusedScreen()
-    readonly property var tabNames: ["home", "audio", "net", "bt", "sys", "notif"]
+    readonly property var tabNames: ["home", "audio", "net", "bt", "sys", "notif", "settings"]
 
     // screen of the monitor that currently has focus (falls back to the first screen)
     function focusedScreen() {
@@ -137,6 +137,8 @@ ShellRoot {
         function open(): void { root.openTab(root.tabNames[root.tab]) }
         function close(): void { root.close() }
         function show(name: string): void { root.openTab(name) }
+        // `qs ipc call shell show x` is swallowed by the qs CLI (it has its own `show`), so use this
+        function tab(name: string): void { root.openTab(name) }
         function dnd(): void { Notifs.dnd = !Notifs.dnd }
         function shot(mode: string): void { root.close(); Shot.take(mode) }   // region | window | output | ocr
         function shotsave(): void { Shot.save = !Shot.save }

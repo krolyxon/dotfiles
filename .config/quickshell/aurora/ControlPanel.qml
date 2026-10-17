@@ -36,7 +36,8 @@ PanelWindow {
         { icon: Theme.iWifi, name: "net" },
         { icon: Theme.iBt, name: "bt" },
         { icon: Theme.iChip, name: "system" },
-        { icon: Theme.iBell, name: "notifs" }
+        { icon: Theme.iBell, name: "notifs" },
+        { icon: Theme.iCog, name: "settings" }
     ]
 
     Rectangle {
@@ -113,6 +114,7 @@ PanelWindow {
                 BtPage { active: win.opened && win.tab === 3 }
                 SysPage {}
                 NotifPage {}
+                SettingsPage {}
             }
         }
     }
