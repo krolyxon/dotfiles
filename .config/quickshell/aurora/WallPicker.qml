@@ -4,8 +4,10 @@ import Quickshell
 import Quickshell.Wayland
 import Quickshell.Hyprland
 
-// Wallpaper picker: folder chips, filter, thumbnail grid. Enter / double-click applies (stays open
-// so you can try a few), Esc or click outside closes. Tab / Shift+Tab cycles folders.
+// Wallpaper picker: folder chips, filter, thumbnail grid. Vim-style: the grid has the keyboard
+// (hjkl/arrows move, g/G first/last, ctrl+d/u page), `/` starts searching (enter keeps the filter,
+// esc clears it). Enter / double-click applies (stays open so you can try a few), Esc / q or click
+// outside closes. Tab / Shift+Tab cycles folders.
 PanelWindow {
     id: win
     property bool opened: false
@@ -30,7 +32,19 @@ PanelWindow {
         if (!opened) return
         filter.text = ""
         Wall.refresh()
-        filter.forceActiveFocus()
+        grid.forceActiveFocus()
+    }
+
+    // search mode = the filter box has the keyboard (entered with `/` or by clicking it)
+    readonly property bool searching: filter.activeFocus
+    function search() { filter.forceActiveFocus() }
+    function endSearch(clear) {
+        if (clear) filter.text = ""
+        grid.forceActiveFocus()
+    }
+    function applyCurrent() { if (grid.currentIndex >= 0 && grid.currentIndex < shown.length) Wall.apply(shown[grid.currentIndex]) }
+    function page(d) {
+        grid.currentIndex = Math.max(0, Math.min(shown.length - 1, grid.currentIndex + d * grid.perPage))
     }
 
     readonly property var shown: {
@@ -107,7 +121,18 @@ PanelWindow {
                         anchors.left: parent.left
                         anchors.leftMargin: 10
                         anchors.verticalCenter: parent.verticalCenter
-                        text: Theme.iSearch
+                        text: win.searching ? "/" : Theme.iSearch
+                        color: win.searching ? Theme.accent : Theme.dim
+                        font.family: Theme.font
+                        font.pixelSize: Theme.fontSize
+                        font.bold: win.searching
+                    }
+                    Text {
+                        anchors.left: parent.left
+                        anchors.leftMargin: 32
+                        anchors.verticalCenter: parent.verticalCenter
+                        visible: filter.text === "" && !win.searching
+                        text: "press / to search"
                         color: Theme.dim
                         font.family: Theme.font
                         font.pixelSize: Theme.fontSize
@@ -125,19 +150,14 @@ PanelWindow {
                         font.pixelSize: Theme.fontSize
                         clip: true
                         onTextChanged: grid.currentIndex = 0
-                        Keys.onEscapePressed: win.closeRequested()
-                        Keys.onReturnPressed: if (grid.currentIndex >= 0) Wall.apply(win.shown[grid.currentIndex])
-                        Keys.onEnterPressed: if (grid.currentIndex >= 0) Wall.apply(win.shown[grid.currentIndex])
-                        Keys.onLeftPressed: event => { if (text === "") grid.moveCurrentIndexLeft(); else event.accepted = false }
-                        Keys.onRightPressed: event => { if (text === "") grid.moveCurrentIndexRight(); else event.accepted = false }
+                        // like vim's `/`: enter keeps the filter and goes back to the grid, esc drops it
+                        Keys.onEscapePressed: win.endSearch(true)
+                        Keys.onReturnPressed: win.endSearch(false)
+                        Keys.onEnterPressed: win.endSearch(false)
                         Keys.onUpPressed: grid.moveCurrentIndexUp()
                         Keys.onDownPressed: grid.moveCurrentIndexDown()
                         Keys.onTabPressed: win.cycleFolder(1)
                         Keys.onBacktabPressed: win.cycleFolder(-1)
-                        Keys.onPressed: event => {
-                            if (event.key === Qt.Key_PageDown) { grid.currentIndex = Math.min(win.shown.length - 1, grid.currentIndex + grid.perPage); event.accepted = true }
-                            else if (event.key === Qt.Key_PageUp) { grid.currentIndex = Math.max(0, grid.currentIndex - grid.perPage); event.accepted = true }
-                        }
                     }
                 }
                 Text {
@@ -164,6 +184,31 @@ PanelWindow {
                 boundsBehavior: Flickable.StopAtBounds
                 highlightMoveDuration: 0
                 cacheBuffer: cellHeight * 2
+
+                // normal mode (arrows are handled by GridView itself)
+                Keys.onTabPressed: win.cycleFolder(1)
+                Keys.onBacktabPressed: win.cycleFolder(-1)
+                Keys.onPressed: event => {
+                    var ctrl = event.modifiers & Qt.ControlModifier
+                    event.accepted = true
+                    if (event.key === Qt.Key_Escape) {
+                        if (filter.text !== "") filter.text = ""     // first esc drops an active filter
+                        else win.closeRequested()
+                    }
+                    else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) win.applyCurrent()
+                    else if (event.key === Qt.Key_PageDown || (ctrl && event.key === Qt.Key_D)) win.page(1)
+                    else if (event.key === Qt.Key_PageUp || (ctrl && event.key === Qt.Key_U)) win.page(-1)
+                    else if (ctrl) event.accepted = false
+                    else if (event.text === "/") win.search()
+                    else if (event.text === "h") grid.moveCurrentIndexLeft()
+                    else if (event.text === "j") grid.moveCurrentIndexDown()
+                    else if (event.text === "k") grid.moveCurrentIndexUp()
+                    else if (event.text === "l") grid.moveCurrentIndexRight()
+                    else if (event.text === "g") grid.currentIndex = 0
+                    else if (event.text === "G") grid.currentIndex = win.shown.length - 1
+                    else if (event.text === "q") win.closeRequested()
+                    else event.accepted = false
+                }
 
                 delegate: Item {
                     id: cell
@@ -218,7 +263,7 @@ PanelWindow {
                     MouseArea {
                         anchors.fill: parent
                         cursorShape: Qt.PointingHandCursor
-                        onClicked: grid.currentIndex = cell.index
+                        onClicked: { grid.currentIndex = cell.index; grid.forceActiveFocus() }
                         onDoubleClicked: Wall.apply(cell.modelData)
                     }
                 }
@@ -226,7 +271,9 @@ PanelWindow {
 
             Text {
                 Layout.fillWidth: true
-                text: "enter apply   tab folder   arrows move   esc close   " + Theme.iImage + " " + win.name(Wall.current)
+                text: (win.searching ? "-- SEARCH --   enter done   esc clear   ↑↓ move   "
+                                     : "hjkl move   / search   enter apply   tab folder   g/G first/last   esc close   ")
+                      + Theme.iImage + " " + win.name(Wall.current)
                 elide: Text.ElideRight
                 color: Theme.dim
                 font.family: Theme.font
