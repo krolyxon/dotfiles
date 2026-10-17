@@ -3,8 +3,10 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import Quickshell.Hyprland
+import Quickshell.Services.Pipewire
 
-// Screen recording with wf-recorder (region via slurp, or the focused monitor), saved to ~/vids/rec.
+// Screen recording with wf-recorder (the focused monitor, or a region via slurp), saved to ~/vids/rec.
+// Records desktop audio: the monitor source of the current default output (whatever you hear).
 // Two steps so each can be cancelled: `selecting` (slurp is up) then `running` (wf-recorder records).
 // stop() works in both. Everything is hidden if wf-recorder / slurp aren't installed.
 Singleton {
@@ -36,8 +38,10 @@ Singleton {
         var mon = Hyprland.focusedMonitor
         // exec so the Process pid is wf-recorder itself and SIGINT reaches it.
         // its (very chatty) output must go to a file: left on the Process pipe it dies without writing anything
-        var run = 'mkdir -p "${1%/*}" "${3%/*}"; exec wf-recorder ' + (geometry !== "" ? '-g' : '-o') + ' "$2" -f "$1" >"$3" 2>&1'
-        recProc.command = ["sh", "-c", run, "sh", file, geometry !== "" ? geometry : (mon ? mon.name : ""), log]
+        var sink = Pipewire.defaultAudioSink
+        var audio = sink ? "--audio=" + sink.name + ".monitor" : "--audio"
+        var run = 'mkdir -p "${1%/*}" "${3%/*}"; exec wf-recorder ' + (geometry !== "" ? '-g' : '-o') + ' "$2" "$4" -f "$1" >"$3" 2>&1'
+        recProc.command = ["sh", "-c", run, "sh", file, geometry !== "" ? geometry : (mon ? mon.name : ""), log, audio]
         elapsed = 0
         recProc.running = true
     }
