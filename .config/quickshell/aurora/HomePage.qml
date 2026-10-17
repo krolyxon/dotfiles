@@ -113,6 +113,13 @@ ColumnLayout {
             label: "random"
             onClicked: Wall.random()
         }
+        IconBtn {
+            Layout.fillWidth: true
+            visible: Clip.available
+            icon: Theme.iClipboard
+            label: "clipboard"
+            onClicked: page.overlayRequested("clip")
+        }
     }
 
     SectionLabel { text: "capture" }
