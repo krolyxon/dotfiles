@@ -16,7 +16,7 @@ PanelWindow {
     anchors { top: true; right: true }
     margins { top: 6; right: 8 }          // sits just under the bar (bar's exclusive zone is respected)
     implicitWidth: 440
-    implicitHeight: 640
+    implicitHeight: 720
     exclusiveZone: 0
     color: "transparent"
     WlrLayershell.layer: WlrLayer.Overlay

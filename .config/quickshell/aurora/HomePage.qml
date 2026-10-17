@@ -95,6 +95,39 @@ ColumnLayout {
             onClicked: if (audio) audio.muted = !audio.muted
         }
     }
+    RowLayout {
+        Layout.fillWidth: true
+        spacing: 6
+        IconBtn {
+            Layout.fillWidth: true
+            icon: Theme.iCoffee
+            label: "caffeine"
+            active: Toggles.caffeine
+            onClicked: Toggles.caffeine = !Toggles.caffeine
+        }
+        IconBtn {
+            Layout.fillWidth: true
+            icon: Theme.iPlane
+            label: "airplane"
+            active: Toggles.airplane
+            onClicked: Toggles.setAirplane(!Toggles.airplane)
+        }
+        IconBtn {
+            Layout.fillWidth: true
+            visible: Toggles.hasPicker
+            icon: Theme.iPicker
+            label: "colour"
+            onClicked: { page.closeRequested(); Toggles.pickColour() }
+        }
+        IconBtn {   // click: record a region; while recording: stop
+            Layout.fillWidth: true
+            visible: Rec.available
+            icon: Rec.running ? Theme.iStop : Theme.iRec
+            label: Rec.running ? Theme.fmtClock(Rec.elapsed) : "rec"
+            active: Rec.running
+            onClicked: { if (!Rec.running) page.closeRequested(); Rec.toggle("region") }
+        }
+    }
 
     SectionLabel { text: "desktop" }
 
