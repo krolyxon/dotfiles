@@ -1,23 +1,71 @@
 #!/bin/sh
+# mpd-add: fuzzy-pick a track from the MPD library and play it right away.
+# Works in a terminal (fzf) or launched from a menu (fuzzel).
+#
+# Usage: mpd-add [-q]
+#   -q   queue the track right after the current one, but don't jump to it
 
-madd() {
-    queue="$(mpc playlist)"
-    if [ -z "$queue" ]; then
-        mpc insert "$filename"
-        mpc play
-    else
-        mpc insert "$filename"
-        mpc next
-    fi
+QUEUE_ONLY=0
+[ "${1:-}" = "-q" ] && QUEUE_ONLY=1
+
+# Notifications replace each other instead of stacking (dunst/mako/swaync).
+notify() { # notify [-u urgency] <title> <body>
+    urgency=normal
+    if [ "$1" = "-u" ]; then urgency=$2; shift 2; fi
+    echo "$1: $2" >&2
+    command -v notify-send >/dev/null 2>&1 || return 0
+    notify-send -a mpd-add -u "$urgency" \
+        -h string:x-canonical-private-synchronous:mpd-add \
+        -h string:x-dunst-stack-tag:mpd-add \
+        "$1" "$2"
 }
 
+if ! mpc status >/dev/null 2>&1; then
+    notify -u critical "MPD unreachable" "Is mpd running?"
+    exit 1
+fi
+
+library=$(mpc listall)
+if [ -z "$library" ]; then
+    notify -u critical "MPD library is empty" "Try: mpc update"
+    exit 1
+fi
+
 if [ -t 0 ]; then
-    filename=$(mpc listall | fzf)
+    filename=$(printf '%s\n' "$library" | fzf)
 else
-    filename=$(mpc listall | fuzzel -d -l 30)
+    filename=$(printf '%s\n' "$library" | fuzzel -d -l 30 -p 'play: ')
 fi
 
-if [ -n "$filename" ]; then
-    madd && notify-send "Playing $filename"
+# Cancelled (Esc): nothing to do.
+[ -z "$filename" ] && exit 0
+
+# Position of the current song (1-based); empty if nothing is playing/paused.
+cur=$(mpc -f '%position%' current)
+
+if ! mpc insert "$filename" >/dev/null; then
+    notify -u critical "Couldn't add track" "$filename"
+    exit 1
 fi
 
+if [ "$QUEUE_ONLY" -eq 1 ]; then
+    notify "Queued next" "$filename"
+    exit 0
+fi
+
+# Jump straight to the song we just inserted. It lands right after the current
+# song, or at the end of the queue when nothing is playing. Using an explicit
+# position avoids `mpc next`, which misbehaves when stopped or paused.
+if [ -n "$cur" ]; then
+    target=$((cur + 1))
+else
+    target=$(mpc playlist | wc -l)
+fi
+
+if mpc play $target >/dev/null; then
+    now=$(mpc current)
+    notify "Now playing" "${now:-$filename}"
+else
+    notify -u critical "Couldn't start playback" "$filename"
+    exit 1
+fi
