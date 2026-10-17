@@ -68,6 +68,17 @@ ShellRoot {
 
     NotifPopups { screen: root.focusedScr; suppressed: root.opened }
 
+    Osd { id: osd; screen: root.focusedScr; suppressed: root.opened }
+    Connections {
+        target: Bright
+        // brightnessctl only knows the laptop panel; external monitors go through ddcutil (no readback)
+        function onStepped() {
+            var m = Hyprland.focusedMonitor
+            if (Bright.available && (!m || m.name.indexOf("eDP") === 0))
+                osd.show(Theme.iBright, Bright.percent / 100, false)
+        }
+    }
+
     IpcHandler {
         target: "shell"
         function toggle(): void { if (root.opened) root.close(); else root.openTab(root.tabNames[root.tab]) }
@@ -77,5 +88,6 @@ ShellRoot {
         function dnd(): void { Notifs.dnd = !Notifs.dnd }
         function shot(mode: string): void { root.close(); Shot.take(mode) }   // region | window | output | ocr
         function shotsave(): void { Shot.save = !Shot.save }
+        function bright(dir: string): void { Bright.step(dir === "down" ? -1 : 1) }   // up | down
     }
 }
