@@ -122,10 +122,10 @@ ColumnLayout {
         IconBtn {   // click: record a region; while recording: stop
             Layout.fillWidth: true
             visible: Rec.available
-            icon: Rec.running ? Theme.iStop : Theme.iRec
-            label: Rec.running ? Theme.fmtClock(Rec.elapsed) : "rec"
-            active: Rec.running
-            onClicked: { if (!Rec.running) page.closeRequested(); Rec.toggle("region") }
+            icon: Rec.busy ? Theme.iStop : Theme.iRec
+            label: Rec.running ? Theme.fmtClock(Rec.elapsed) : (Rec.selecting ? "cancel" : "rec")
+            active: Rec.busy
+            onClicked: { if (!Rec.busy) page.closeRequested(); Rec.toggle("region") }
         }
     }
 
