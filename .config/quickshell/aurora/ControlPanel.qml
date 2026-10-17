@@ -10,6 +10,7 @@ PanelWindow {
     property int tab: 0
     signal tabRequested(int index)
     signal closeRequested()
+    signal overlayRequested(string name)
 
     visible: opened
     anchors { top: true; right: true }
@@ -103,7 +104,10 @@ PanelWindow {
                 Layout.fillHeight: true
                 currentIndex: win.tab
 
-                HomePage { onCloseRequested: win.closeRequested() }
+                HomePage {
+                    onCloseRequested: win.closeRequested()
+                    onOverlayRequested: name => win.overlayRequested(name)
+                }
                 AudioPage {}
                 NetPage { active: win.opened && win.tab === 2 }
                 BtPage { active: win.opened && win.tab === 3 }

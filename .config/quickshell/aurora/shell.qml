@@ -15,6 +15,9 @@ ShellRoot {
     property string lastScreen: ""
     property var panelScreen: focusedScreen()
     readonly property var focusedScr: focusedScreen()
+    // centered overlay windows (wallpaper picker, clipboard, ...): one at a time, on the focused monitor
+    property string overlay: ""
+    property var overlayScreen: focusedScreen()
     readonly property var tabNames: ["home", "audio", "net", "bt", "sys", "notif"]
 
     // screen of the monitor that currently has focus (falls back to the first screen)
@@ -30,6 +33,12 @@ ShellRoot {
         closedAt = Date.now()
         lastTab = tabNames[tab]
         lastScreen = panelScreen ? panelScreen.name : ""
+    }
+    function toggleOverlay(name) {
+        if (overlay === name) { overlay = ""; return }
+        close()
+        overlayScreen = focusedScreen()
+        overlay = name
     }
     function openTab(name) {
         var i = tabNames.indexOf(name)
@@ -64,6 +73,13 @@ ShellRoot {
         tab: root.tab
         onTabRequested: i => root.tab = i
         onCloseRequested: root.close()
+        onOverlayRequested: name => { root.close(); root.toggleOverlay(name) }
+    }
+
+    WallPicker {
+        screen: root.overlayScreen
+        opened: root.overlay === "wall"
+        onCloseRequested: root.overlay = ""
     }
 
     NotifPopups { screen: root.focusedScr; suppressed: root.opened }
@@ -88,6 +104,8 @@ ShellRoot {
         function dnd(): void { Notifs.dnd = !Notifs.dnd }
         function shot(mode: string): void { root.close(); Shot.take(mode) }   // region | window | output | ocr
         function shotsave(): void { Shot.save = !Shot.save }
+        function wall(): void { root.toggleOverlay("wall") }
+        function wallrandom(): void { Wall.random() }
         function bright(dir: string): void { Bright.step(dir === "down" ? -1 : 1) }   // up | down
     }
 }
