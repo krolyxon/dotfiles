@@ -94,6 +94,12 @@ ShellRoot {
         onOverlayRequested: name => { root.close(); root.toggleOverlay(name) }
     }
 
+    Overview {
+        screen: root.overlayScreen
+        opened: root.overlay === "overview"
+        onCloseRequested: root.closeOverlay()
+    }
+
     CalPopup {
         screen: root.overlayScreen
         opened: root.overlay === "cal"
@@ -134,6 +140,7 @@ ShellRoot {
         function dnd(): void { Notifs.dnd = !Notifs.dnd }
         function shot(mode: string): void { root.close(); Shot.take(mode) }   // region | window | output | ocr
         function shotsave(): void { Shot.save = !Shot.save }
+        function overview(): void { root.toggleOverlay("overview") }
         function cal(): void { root.toggleOverlay("cal") }
         function clip(): void { root.toggleOverlay("clip") }
         function wall(): void { root.toggleOverlay("wall") }
