@@ -74,6 +74,11 @@ ShellRoot {
 
     Variants {
         model: Quickshell.screens
+        Desktop {}
+    }
+
+    Variants {
+        model: Quickshell.screens
         Bar {
             onTogglePanel: (name, scr) => root.togglePanel(name, scr)
             onToggleOverlay: (name, scr) => root.toggleOverlay(name, scr)
