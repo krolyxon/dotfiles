@@ -149,6 +149,8 @@ Singleton {
     readonly property string iEthernet: cp(0xF0200)
     readonly property string iPlug: cp(0xF06A5)
     readonly property string iBatCharge: cp(0xF0084)
+    readonly property string iShuffle: cp(0xF049D)
+    readonly property string iImage: cp(0xF02E9)
 
     // workspace icons: the exact Font Awesome glyphs from your waybar config.
     // 1 browser, 2 code, 3 book, 4 cog, 5 chat, 6 file, 7 folder, 8 terminal, 9 flask, 10 image

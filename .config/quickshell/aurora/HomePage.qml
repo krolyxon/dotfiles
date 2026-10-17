@@ -8,6 +8,7 @@ ColumnLayout {
     id: page
     spacing: 10
     signal closeRequested()
+    signal overlayRequested(string name)
 
     property string armed: ""
     Timer { id: disarm; interval: 3000; onTriggered: page.armed = "" }
@@ -92,6 +93,25 @@ ColumnLayout {
             label: "mic"
             active: audio ? !audio.muted : false
             onClicked: if (audio) audio.muted = !audio.muted
+        }
+    }
+
+    SectionLabel { text: "desktop" }
+
+    RowLayout {
+        Layout.fillWidth: true
+        spacing: 6
+        IconBtn {
+            Layout.fillWidth: true
+            icon: Theme.iImage
+            label: "wallpaper"
+            onClicked: page.overlayRequested("wall")
+        }
+        IconBtn {
+            Layout.fillWidth: true
+            icon: Theme.iShuffle
+            label: "random"
+            onClicked: Wall.random()
         }
     }
 
