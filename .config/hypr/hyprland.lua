@@ -26,7 +26,7 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("gammastep")
     hl.exec_cmd("hypridle")
     -- hl.exec_cmd("blueman-applet")
-    hl.exec_cmd(os.getenv("HOME") .. "/.local/bin/setwall -n")
+    hl.exec_cmd("hyprpaper")   -- wallpaper is set by aurora (Wall.qml), it reads hyprpaper.conf
     hl.exec_cmd("systemctl --user start hyprpolkitagent")
 end)
 

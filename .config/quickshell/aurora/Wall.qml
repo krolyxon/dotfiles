@@ -3,15 +3,16 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-// Wallpapers: folder listing, cached thumbnails, apply through ~/.local/bin/setwall
-// (setwall writes hyprpaper.conf, switches hyprpaper live and runs `wal -i`; Theme then recolours itself).
+// Wallpapers: folder listing, cached thumbnails, and applying them. aurora owns the wallpaper:
+// apply() writes hyprpaper.conf, switches hyprpaper live and runs `wal -i` (Theme then recolours itself).
+// ~/.local/bin/setwall is only a CLI front-end for the IPC calls (wallrandom / wall / wallset).
 Singleton {
     id: root
 
     readonly property string home: Quickshell.env("HOME")
     property string rootDir: home + "/pix/wallpapers"
-    property string folder: Settings.wallFolder      // default dusky-dark, same as setwall's WALL_DIR
-    readonly property string setwall: home + "/.local/bin/setwall"
+    property string folder: Settings.wallFolder      // default dusky-dark
+    readonly property string conf: home + "/.config/hypr/hyprpaper.conf"
     readonly property string thumbDir: home + "/.cache/aurora/thumbs"
 
     property var folders: []                         // subfolder names; "" = everything under rootDir
@@ -19,6 +20,7 @@ Singleton {
     property var ready: ({})                         // md5(path) -> true once its thumbnail exists
     property string current: ""                      // wallpaper hyprpaper is showing
     property bool loading: false
+    property bool pendingRandom: false               // random() asked before the folder was listed
 
     function dirOf(name) { return name === "" ? rootDir : rootDir + "/" + name }
     function thumbOf(path) { return thumbDir + "/" + Qt.md5(path) + ".jpg" }
@@ -37,15 +39,29 @@ Singleton {
                             "-regextype", "posix-extended", "-iregex", ".*\\.(png|jpe?g|webp)"]
         listProc.running = true
     }
+    // hyprpaper.conf is the source of truth for the current wallpaper (hyprpaper reads it on start).
+    // If hyprpaper isn't running, let Hyprland start it so it doesn't live in aurora's service cgroup.
+    readonly property string applyJob:
+        'p="$1"; c="$2"; ' +
+        'printf "splash = false\\nwallpaper {\\n    monitor =\\n    path = %s\\n}\\n" "$p" > "$c"; ' +
+        'if pgrep -x hyprpaper >/dev/null; then hyprctl hyprpaper wallpaper ",$p"; ' +
+        'else hyprctl dispatch \'hl.dsp.exec_cmd("hyprpaper")\'; fi; ' +
+        'wal -i "$p" -n'
     function apply(path) {
         if (!path) return
         current = path
-        Quickshell.execDetached([setwall, "-p", path])
+        Quickshell.execDetached(["sh", "-c", applyJob, "sh", path, conf])
     }
-    // random from the folder shown last; before the first listing let setwall pick (its own WALL_DIR)
+    // random from the picker's folder (Settings.wallFolder), never the one already shown
     function random() {
-        if (files.length) apply(files[Math.floor(Math.random() * files.length)])
-        else Quickshell.execDetached([setwall])
+        if (!files.length) {
+            pendingRandom = true
+            if (!loading) listFolder(folder)
+            return
+        }
+        var pick = files.filter(f => f !== current)
+        if (!pick.length) pick = files
+        apply(pick[Math.floor(Math.random() * pick.length)])
     }
 
     Process {
@@ -73,6 +89,7 @@ Singleton {
                 out.sort()
                 root.files = out
                 root.loading = false
+                if (root.pendingRandom) { root.pendingRandom = false; if (out.length) root.random() }
                 root.makeThumbs()
             }
         }
@@ -115,11 +132,12 @@ Singleton {
         }
     }
 
-    // current wallpaper, straight from the config setwall writes
+    // current wallpaper, straight from hyprpaper.conf. None yet (fresh install): pick a random one.
     FileView {
-        path: root.home + "/.config/hypr/hyprpaper.conf"
+        path: root.conf
         watchChanges: true
         onFileChanged: reload()
+        onLoadFailed: root.random()
         onLoaded: {
             var m = text().match(/^\s*path\s*=\s*(.+)$/m)
             if (m) root.current = m[1].trim()

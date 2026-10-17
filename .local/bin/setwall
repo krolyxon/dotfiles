@@ -1,71 +1,36 @@
-#!/bin/bash
-WALL_DIR="$HOME/pix/wallpapers/dusky-dark/"
-MODE="random"
-CUSTOM_PATH=""
+#!/bin/sh
+# Set the wallpaper through aurora. aurora owns the wallpaper: it writes hyprpaper.conf,
+# switches hyprpaper live and runs pywal. This is just the CLI front-end for its IPC.
+#
+#   setwall              random wallpaper from the folder selected in aurora's picker
+#   setwall -m           open (toggle) aurora's wallpaper picker
+#   setwall [-p] FILE    set FILE as the wallpaper
 
-apply_wallpaper() {
-    # Apply wallpaper
-    if ! pgrep -x hyprpaper >/dev/null; then
-        # Hyprpaper not running → start with chosen wallpaper
-        cat > ~/.config/hypr/hyprpaper.conf <<EOF
-splash = false
-wallpaper {
-    monitor =
-    path = $NEW_WALL
-}
-EOF
-hyprpaper &
-wal -i "$NEW_WALL" -n
-else
-    # Hyprpaper is running → change it live
-    cat > ~/.config/hypr/hyprpaper.conf <<EOF
-splash = false
-wallpaper {
-    monitor =
-    path = $NEW_WALL
-}
-EOF
-    hyprctl hyprpaper wallpaper ",$NEW_WALL"
-    wal -i "$NEW_WALL" -n
-    fi
-
+usage() {
+    echo "Usage: setwall [-m] [[-p] /path/to/image]" >&2
+    exit 1
 }
 
-# Parse options
-while getopts ":mnp:" opt; do
-    case $opt in
-        m) MODE="menu" ;;
-        p) MODE="path"; CUSTOM_PATH="$(realpath "$OPTARG")" ;;
-        n) MODE="nc" ;;
-        \?) echo "Usage: $0 [-m] [-p /path/to/image] [-n]" >&2; exit 1 ;;
-        :) echo "Option -$OPTARG requires an argument." >&2; exit 1 ;;
-    esac
-done
+# `qs ipc call` exits 0 even when it fails, but void calls print nothing on success
+ipc() {
+    out=$(qs -c aurora ipc call shell "$@" 2>&1) && [ -z "$out" ] && return
+    echo "setwall: aurora: ${out:-not running}" >&2
+    echo "         (is it running? systemctl --user start aurora)" >&2
+    exit 1
+}
 
-# Choose wallpaper
-case $MODE in
-    random)
-        NEW_WALL=$(find "$WALL_DIR" -type f | shuf -n 1)
-        if [[ -z "$NEW_WALL" ]]; then
-            NEW_WALL="$HOME/.config/hypr/default-wallpaper.png"
-        fi
-        apply_wallpaper
-        ;;
-    path)
-        if [[ -f "$CUSTOM_PATH" ]]; then
-            NEW_WALL="$CUSTOM_PATH"
-        else
-            echo "Error: File not found -> $CUSTOM_PATH" >&2
-            exit 1
-        fi
-        apply_wallpaper
-        ;;
-    menu)
-        NEW_WALL=$(nsxiv -tfpo $WALL_DIR)
-        apply_wallpaper
-        ;;
-    nc)
-        echo "Not changing anything"
-        pgrep 'hyprpaper' || hyprpaper &
-        ;;
+case "$1" in
+    "")       ipc wallrandom ;;
+    -m)       ipc wall ;;
+    -p)       [ -n "$2" ] || usage; file="$2" ;;
+    -h|-*)    usage ;;
+    *)        file="$1" ;;
 esac
+
+if [ -n "$file" ]; then
+    if [ ! -f "$file" ]; then
+        echo "setwall: file not found -> $file" >&2
+        exit 1
+    fi
+    ipc wallset "$(realpath "$file")"
+fi
