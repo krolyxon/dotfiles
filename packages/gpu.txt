@@ -1,0 +1,6 @@
+# Intel iGPU + NVIDIA dGPU (hybrid, switched with envycontrol).
+# nvidia-open-dkms because the kernel is linux-zen.
+intel-media-driver
+mesa
+nvidia-open-dkms
+nvidia-utils

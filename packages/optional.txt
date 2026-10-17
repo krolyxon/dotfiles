@@ -1,0 +1,12 @@
+# Desktop apps. A trailing ! means "not pre-selected".
+librewolf
+obsidian
+syncthing
+libreoffice-fresh
+obs-studio
+telegram-desktop
+torbrowser-launcher
+qbittorrent
+tailscale
+blender !
+matugen !

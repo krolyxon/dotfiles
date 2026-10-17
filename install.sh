@@ -1,20 +1,29 @@
 #!/usr/bin/env bash
+#
+# krolyxon's dotfiles installer
+#
+# READ THIS FIRST:
+#   This sets up MY personal desktop (Arch + Hyprland + aurora), built around my own
+#   hardware (Lenovo Legion, Intel + NVIDIA hybrid, linux-zen) and my habits.
+#   It is NOT a general purpose installer and I'm not trying to make it one.
+#
+#   Only run it on a FRESHLY INSTALLED, UNCONFIGURED Arch Linux system.
+#   It installs a lot of packages, moves your existing configs out of the way,
+#   changes your login shell and can enable system services.
+#
+#   If you just want a piece of the setup, copy the files you like instead.
+#
+# Usage:
+#   ./install.sh           interactive
+#   ./install.sh --yes     pre-select everything (still asks the fresh-system question)
+#   ./install.sh --check   compare installed packages with packages/*.txt, changes nothing
 
 trap 'log WARN "Interrupted by user"; exit 130' INT
 
 INSTALL_STATUS="none"   # none | partial | complete | failed
 AUTO_YES=0
-
-#######################
-## Arguement Parsing ##
-#######################
-for arg in "$@"; do
-    case "$arg" in
-        --yes|--ci|--non-interactive)
-            AUTO_YES=1
-            ;;
-    esac
-done
+CHECK_ONLY=0
+BACKUP_DIR=""
 
 log() {
     local level="$1"
@@ -33,6 +42,79 @@ log() {
         "$color" "$(date '+%H:%M:%S')" "$level" "$reset" "$*" >&2
 }
 
+usage() {
+    sed -n '3,19s/^# \{0,1\}//p' "$0"
+}
+
+#######################
+## Arguement Parsing ##
+#######################
+for arg in "$@"; do
+    case "$arg" in
+        --yes|--ci|--non-interactive)
+            AUTO_YES=1
+            ;;
+        --check)
+            CHECK_ONLY=1
+            ;;
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        *)
+            log ERROR "Unknown option: $arg"
+            usage
+            exit 1
+            ;;
+    esac
+done
+
+currentDir="$(dirname "$(readlink -f "$0")")"
+cd "$currentDir" || exit 1
+PKG_DIR="$currentDir/packages"
+
+
+###################
+## Package lists ##
+###################
+# packages/*.txt: one package per line, '#' comments.
+# A trailing '!' (e.g. "blender !") means: listed, but not pre-selected in the picker.
+
+# All packages in a list
+read_list() {
+    sed 's/#.*//' "$PKG_DIR/$1.txt" | awk 'NF { print $1 }'
+}
+
+# Packages of a list that are pre-selected in the picker
+preselected() {
+    sed 's/#.*//' "$PKG_DIR/$1.txt" | awk 'NF && $2 != "!" { print $1 }'
+}
+
+check_packages() {
+    local listed installed aur
+    listed=$(for f in "$PKG_DIR"/*.txt; do read_list "$(basename "$f" .txt)"; done | sort -u)
+    installed=$(pacman -Qqe | sort -u)
+    aur=$(pacman -Qqm | sort -u)
+
+    echo "Installed explicitly, but not in any packages/*.txt:"
+    comm -23 <(echo "$installed") <(echo "$listed") | while read -r p; do
+        if grep -qx "$p" <<< "$aur"; then echo "  $p (aur)"; else echo "  $p"; fi
+    done
+
+    echo
+    echo "Listed, but not installed:"
+    comm -13 <(pacman -Qq | sort -u) <(echo "$listed") | sed 's/^/  /'
+}
+
+if ((CHECK_ONLY)); then
+    check_packages
+    exit 0
+fi
+
+
+#################
+## GATEKEEPING ##
+#################
 
 ## Prevent user from running this script as root
 if [[ "$EUID" -eq 0 ]]; then
@@ -41,11 +123,51 @@ if [[ "$EUID" -eq 0 ]]; then
     exit 1
 fi
 
+if [[ ! -f /etc/arch-release ]]; then
+    log ERROR "This is not Arch Linux. These dotfiles and this script are for Arch only."
+    exit 1
+fi
+
+## Does this look like a system that is already set up?
+## (configs this repo doesn't provide, or another desktop's config)
+check_fresh_system() {
+    local foreign=() desktops=() entry
+    for entry in "$HOME"/.config/*; do
+        [[ -e "$entry" ]] || continue
+        entry="$(basename "$entry")"
+        [[ -e "$currentDir/.config/$entry" ]] || foreign+=("$entry")
+    done
+    for entry in i3 sway niri river awesome bspwm openbox qtile xfce4 \
+                 kdeglobals plasma-org.kde.plasma.desktop-appletsrc gnome-session; do
+        [[ -e "$HOME/.config/$entry" ]] && desktops+=("$entry")
+    done
+
+    ((${#foreign[@]} <= 10 && ${#desktops[@]} == 0)) && return 0
+
+    printf '\033[1;31m'
+    echo "=================================================================="
+    echo " This does NOT look like a fresh Arch install."
+    echo
+    ((${#desktops[@]})) && echo " Found another desktop's config: ${desktops[*]}"
+    ((${#foreign[@]} > 10)) && echo " Found ${#foreign[@]} entries in ~/.config that this repo doesn't provide."
+    echo
+    echo " This installer is meant for a freshly installed, unconfigured"
+    echo " system. On a system you already use it WILL change things you"
+    echo " care about: your configs get moved aside, your shell changes, and"
+    echo " lots of packages get installed."
+    echo "=================================================================="
+    printf '\033[0m'
+    local answer
+    read -rp "Type 'I understand' to continue anyway: " answer
+    [[ "$answer" == "I understand" ]] || { log WARN "Aborted."; exit 1; }
+}
+check_fresh_system
+
 choose_packages() {
-    local -n arr=$1
+    local list="$1"
     gum choose --no-limit \
-        --selected "$(IFS=,; echo "${arr[*]}")" \
-        "${arr[@]}"
+        --selected "$(preselected "$list" | paste -sd,)" \
+        $(read_list "$list")
 }
 
 prompt_style() {
@@ -82,17 +204,9 @@ install_prerequisites() {
     sudo pacman -S --needed --noconfirm stow gum git zsh
 }
 
-
-#################
-## GATEKEEPING ##
-#################
-
 ## Installs prerequisites
 log INFO "Installing prerequisites: "
 install_prerequisites
-
-currentDir="$(dirname "$(readlink -f "$0")")"
-cd "$currentDir"
 
 
 DISCLAIMER=$(gum style \
@@ -102,18 +216,18 @@ DISCLAIMER=$(gum style \
   --bold \
 "⚠️  DISCLAIMER
 
-This script is provided AS IS, WITHOUT ANY WARRANTY.
-There is NO guarantee that it will work on your system.
+These are MY personal dotfiles, built for MY machine
+(Lenovo Legion, Intel + NVIDIA hybrid, linux-zen) and the way I work.
+They are NOT general purpose. They're public as a reference,
+or for people who want exactly the same setup.
 
-It may:
-• Modify system files
-• Overwrite or DELETE existing configuration
-• Potentially break your setup
+Only run this on a FRESHLY INSTALLED, UNCONFIGURED Arch system.
 
-You are STRONGLY ADVISED to back up:
-• ~/.config
-• ~/.local
-• /etc (if modified)
+This script is provided AS IS, WITHOUT ANY WARRANTY. It will:
+• Install a lot of packages (including NVIDIA drivers if selected)
+• Move conflicting files in your \$HOME to ~/.dotfiles-backup/
+• Change your login shell to zsh
+• Optionally write /etc/keyd and enable keyd
 
 Proceed at your OWN RISK."
 )
@@ -123,68 +237,26 @@ confirm "$DISCLAIMER
 Do you understand the risks and want to continue?" || exit 1
 
 
-###########
-## UTILS ##
-###########
-source "$currentDir/packages/pkg_utils.sh"
-prompt_style "Important utilities (Most likely go with defaults)"
-if ((AUTO_YES)); then
-    UTILITY_PKGS=("${pkg_utils[@]}")
-else
-    gum_to_array UTILITY_PKGS < <(choose_packages pkg_utils)
-fi
-
-
-###############
-## DEV TOOLS ##
-###############
-source "$currentDir/packages/pkg_dev_tools.sh"
-prompt_style "Select Development Tools"
-if ((AUTO_YES)); then
-    DEV_PKGS=("${pkg_dev_tools[@]}")
-else
-    gum_to_array DEV_PKGS < <(choose_packages pkg_dev_tools)
-fi
-
-
-
 #######################
-## OPTIONAL PACKAGES ##
+## Package selection ##
 #######################
-source "$currentDir/packages/pkg_optional.sh"
-prompt_style "Select Optional Desktop Packages"
-if ((AUTO_YES)); then
-    OPTIONAL_PKGS=("${pkg_optional[@]}")
-else
-    gum_to_array OPTIONAL_PKGS < <(choose_packages pkg_optional)
-fi
+SELECTED_PKGS=()
+for list in utils dev gpu optional aur; do
+    case "$list" in
+        utils)    prompt_style "Important utilities (Most likely go with defaults)" ;;
+        dev)      prompt_style "Select Development Tools" ;;
+        gpu)      prompt_style "Select GPU drivers" ;;
+        optional) prompt_style "Select Optional Desktop Packages" ;;
+        aur)      prompt_style "Select AUR packages" ;;
+    esac
 
-
-
-#################
-## GPU DRIVERS ##
-#################
-source "$currentDir/packages/pkg_gpu.sh"
-prompt_style "Select GPU drivers"
-if ((AUTO_YES)); then
-    GPU_PKGS=("${pkg_gpu[@]}")
-else
-    gum_to_array GPU_PKGS < <(choose_packages pkg_gpu)
-fi
-
-
-##################
-## AUR PACKAGES ##
-##################
-source "$currentDir/packages/pkg_aur.sh"
-prompt_style "Select AUR packages"
-
-if ((AUTO_YES)); then
-    AUR_PKGS=("${pkg_aur[@]}")
-else
-    gum_to_array AUR_PKGS < <(choose_packages pkg_aur)
-fi
-
+    if ((AUTO_YES)); then
+        mapfile -t picked < <(preselected "$list")
+    else
+        gum_to_array picked < <(choose_packages "$list")
+    fi
+    SELECTED_PKGS+=("${picked[@]}")
+done
 
 
 ##########################
@@ -195,8 +267,8 @@ WARNING=$(gum style \
   --border-foreground 196 \
   --padding "1 2" \
   --bold \
-  "⚠️  This will DELETE any conflicting files and replace them with symlinks from this repo.
-Make sure you have already backed up all your existing config files (~/.config)")
+  "⚠️  Files in your \$HOME that conflict with this repo will be MOVED to
+~/.dotfiles-backup/<date>/ and replaced with symlinks from this repo.")
 
 if confirm "$WARNING
 
@@ -205,40 +277,39 @@ Proceed with system configuration (stow, shell)?"; then
     ## Stow dotfiles ##
     ###################
     log INFO "Detecting conflicts..."
-    conflicts=$(stow . --no-folding -nv 2>&1 | \
+    mapfile -t conflicts < <(stow . --no-folding -nv 2>&1 | \
         sed -n 's/.*existing target \(.*\) since neither.*/\1/p')
 
-    if [[ -z "$conflicts" ]]; then
+    if ((${#conflicts[@]} == 0)); then
         log INFO "No conflicts. Running stow normally..."
-        stow . --no-folding \
-            && log SUCCESS "Dotfiles stowed successfully" \
-            || log ERROR "Stow failed"
     else
-        log WARN "These paths conflict and will be removed:"
-        printf '  %s\n' $conflicts
-        read -rp "Proceed with deleting these files? (y/N): " ok
-        if [[ ! "$ok" =~ ^[Yy]$ ]]; then
-            log  WARN "Aborted."
+        log WARN "These paths conflict and will be moved to a backup:"
+        printf '  %s\n' "${conflicts[@]}"
+        if ! confirm "Move these files to ~/.dotfiles-backup/ ?"; then
+            log WARN "Aborted."
             exit 1
         fi
 
-    # Remove conflicts relative to $HOME
-    for path in $conflicts; do
-        [[ -n "$path" && "$path" != "/" ]] && rm -rf "$HOME/$path" && log INFO "Deleted $path"
-    done
-
-    log INFO "Running stow..."
-    stow . --no-folding \
-        && log INFO "Dotfiles stowed with overwrite." \
-        || log ERROR "Stow failed"
+        # Move conflicts (relative to $HOME) into the backup dir, keeping their paths
+        BACKUP_DIR="$HOME/.dotfiles-backup/$(date '+%Y%m%d-%H%M%S')"
+        for path in "${conflicts[@]}"; do
+            [[ -n "$path" && "$path" != "/" ]] || continue
+            mkdir -p "$BACKUP_DIR/$(dirname "$path")"
+            mv "$HOME/$path" "$BACKUP_DIR/$path" && log INFO "Backed up $path"
+        done
+        log INFO "Backups are in $BACKUP_DIR"
     fi
+
+    stow . --no-folding \
+        && log SUCCESS "Dotfiles stowed successfully" \
+        || log ERROR "Stow failed"
 
     #################################
     ## Change default shell to zsh ##
     #################################
     log INFO "Changing the default shell to ZSH"
     if [[ "$SHELL" != "$(command -v zsh)" ]]; then
-        chsh -s $(which zsh) \
+        chsh -s "$(command -v zsh)" \
             && log SUCCESS "Default shell successfully set to zsh" \
             || log ERROR "Default shell could not be set to zsh"
     else
@@ -250,15 +321,10 @@ else
 fi
 
 
-
-source "$currentDir/packages/pkg_desktop.sh"
+mapfile -t DESKTOP_PKGS < <(read_list desktop)
 ALL_PKGS=(
-    "${DEV_PKGS[@]}"
-    "${OPTIONAL_PKGS[@]}"
-    "${GPU_PKGS[@]}"
-    "${UTILITY_PKGS[@]}"
-    "${AUR_PKGS[@]}"
-    "${pkg_desktop[@]}"
+    "${DESKTOP_PKGS[@]}"
+    "${SELECTED_PKGS[@]}"
 )
 
 ########################
@@ -271,6 +337,7 @@ if ((${#ALL_PKGS[@]})); then
         ## Installing paru if not installed already
         if ! command -v paru >/dev/null 2>&1; then
             log INFO "Installing Paru (AUR package manager)"
+            sudo pacman -S --needed --noconfirm base-devel
             git clone https://aur.archlinux.org/paru.git
             (cd paru && makepkg -sri)
             rm -rf paru
@@ -309,6 +376,12 @@ fi
 ####################
 ## Final dialogue ##
 ####################
+BACKUP_NOTE=""
+[[ -n "$BACKUP_DIR" ]] && BACKUP_NOTE="
+
+Your old conflicting files are in:
+$BACKUP_DIR"
+
 case "$INSTALL_STATUS" in
     complete)
         gum style \
@@ -319,7 +392,7 @@ case "$INSTALL_STATUS" in
         "✔ Installation Complete!
 
 All selected packages were installed successfully.
-You may now reboot the system for all the changes to apply."
+You may now reboot the system for all the changes to apply.$BACKUP_NOTE"
         ;;
     partial)
         gum style \
@@ -330,7 +403,7 @@ You may now reboot the system for all the changes to apply."
         "⚠ Setup Finished (Partial)
 
 Some steps were skipped by user choice.
-Your system was NOT fully configured."
+Your system was NOT fully configured.$BACKUP_NOTE"
         ;;
     failed)
         gum style \
@@ -341,9 +414,9 @@ Your system was NOT fully configured."
         "❌ Installation Failed
 
 One or more steps did not complete successfully.
-Check the logs above."
+Check the logs above.$BACKUP_NOTE"
         ;;
     *)
-        gum style --bold "Finished."
+        gum style --bold "Finished.$BACKUP_NOTE"
         ;;
 esac
