@@ -95,10 +95,10 @@ PanelWindow {
 
             Tray { show: bar.monFocused }
 
-            BarPill {
-                visible: Rec.running
-                icon: Theme.iRec
-                text: Theme.fmtClock(Rec.elapsed)
+            BarPill {   // click to stop recording / cancel the area selection
+                visible: Rec.busy
+                icon: Theme.iStop
+                text: Rec.running ? "rec " + Theme.fmtClock(Rec.elapsed) : "select area"
                 tint: Theme.err
                 underline: Theme.err
                 onActivated: Rec.stop()
