@@ -7,16 +7,16 @@ import Quickshell.Io
 Singleton {
     id: root
 
-    // ---- knobs --------------------------------------------------------
+    // ---- knobs (persisted in ~/.config/aurora/settings.json, edited in the Settings tab) ----
     property string font: "JetBrainsMono Nerd Font"   // any Nerd Font mono
-    property int fontSize: 12
-    property int wsFontSize: 11          // workspace icons only; everything else uses fontSize
-    property real panelAlpha: 0.88
+    readonly property int fontSize: Settings.fontSize
+    readonly property int wsFontSize: Settings.wsFontSize   // workspace icons only; everything else uses fontSize
+    readonly property real panelAlpha: Settings.panelAlpha
     // your waybar uses @color14 for underlines/active workspace, so that is the default.
-    // set -1 to auto-pick the most vivid of color1..color6 instead
-    property int accentIndex: 14
-    property int barHeight: 22
-    property real barAlpha: 1.0
+    // -1 auto-picks the most vivid of color1..color6 instead
+    readonly property int accentIndex: Settings.accentIndex
+    readonly property int barHeight: Settings.barHeight
+    readonly property real barAlpha: Settings.barAlpha
 
     readonly property string walFile: Quickshell.env("HOME") + "/.cache/wal/colors.json"
 
@@ -156,6 +156,8 @@ Singleton {
     readonly property string iPicker: cp(0xF020A)
     readonly property string iRec: cp(0xF044A)
     readonly property string iStop: cp(0xF04DB)
+    readonly property string iDock: cp(0xF10A9)
+    readonly property string iCog: cp(0xF0493)
 
     // workspace icons: the exact Font Awesome glyphs from your waybar config.
     // 1 browser, 2 code, 3 book, 4 cog, 5 chat, 6 file, 7 folder, 8 terminal, 9 flask, 10 image

@@ -36,7 +36,7 @@ PanelWindow {
     WlrLayershell.namespace: "aurora-osd"
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
 
-    Timer { id: hide; interval: 1500; onTriggered: win.shown = false }
+    Timer { id: hide; interval: Settings.osdTimeout; onTriggered: win.shown = false }
 
     // ---- pipewire watchers ----
     // ignore the burst of change signals on startup and when the default device switches

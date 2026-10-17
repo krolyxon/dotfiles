@@ -9,8 +9,8 @@ PanelWindow {
     id: win
     required property var modelData
     screen: modelData
-    property bool showClock: true
-    property bool showViz: true
+    readonly property bool showClock: Settings.desktopClock
+    readonly property bool showViz: Settings.desktopViz
 
     anchors { top: true; bottom: true; left: true; right: true }
     exclusionMode: ExclusionMode.Ignore
