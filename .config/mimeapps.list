@@ -18,6 +18,7 @@ x-scheme-handler/http=librewolf.desktop
 x-scheme-handler/https=librewolf.desktop
 text/html=librewolf.desktop
 application/xhtml+xml=librewolf.desktop
+x-scheme-handler/claude-cli=claude-code-url-handler.desktop
 
 [Added Associations]
 x-scheme-handler/tonsite=org.telegram.desktop.desktop;
