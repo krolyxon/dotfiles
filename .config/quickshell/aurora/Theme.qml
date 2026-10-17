@@ -151,6 +151,11 @@ Singleton {
     readonly property string iBatCharge: cp(0xF0084)
     readonly property string iShuffle: cp(0xF049D)
     readonly property string iImage: cp(0xF02E9)
+    readonly property string iCoffee: cp(0xF0176)
+    readonly property string iPlane: cp(0xF001D)
+    readonly property string iPicker: cp(0xF020A)
+    readonly property string iRec: cp(0xF044A)
+    readonly property string iStop: cp(0xF04DB)
 
     // workspace icons: the exact Font Awesome glyphs from your waybar config.
     // 1 browser, 2 code, 3 book, 4 cog, 5 chat, 6 file, 7 folder, 8 terminal, 9 flask, 10 image
@@ -176,6 +181,10 @@ Singleton {
         return h > 0 ? h + "h " + m + "m" : m + "m"
     }
 
+    function fmtClock(s) {                 // 75 -> "1:15"
+        var m = Math.floor(s / 60), r = s % 60
+        return m + ":" + (r < 10 ? "0" : "") + r
+    }
     function volIcon(v, muted) {
         if (muted || v <= 0) return iVolOff
         return v < 0.34 ? iVolLow : (v < 0.67 ? iVolMed : iVolHigh)

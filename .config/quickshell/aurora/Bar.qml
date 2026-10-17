@@ -20,6 +20,12 @@ PanelWindow {
 
     SystemClock { id: clock; precision: SystemClock.Minutes }
 
+    // caffeine: one inhibitor is enough, keep it on the first screen's bar
+    IdleInhibitor {
+        window: bar
+        enabled: Toggles.caffeine && bar.modelData === Quickshell.screens[0]
+    }
+
     // ---- state ----
     readonly property var audio: Pipewire.defaultAudioSink ? Pipewire.defaultAudioSink.audio : null
     readonly property var mic: Pipewire.defaultAudioSource ? Pipewire.defaultAudioSource.audio : null
@@ -88,6 +94,22 @@ PanelWindow {
             spacing: 10
 
             Tray { show: bar.monFocused }
+
+            BarPill {
+                visible: Rec.running
+                icon: Theme.iRec
+                text: Theme.fmtClock(Rec.elapsed)
+                tint: Theme.err
+                underline: Theme.err
+                onActivated: Rec.stop()
+            }
+
+            BarPill {
+                visible: Toggles.caffeine || Toggles.airplane
+                icon: (Toggles.caffeine ? Theme.iCoffee : "") + (Toggles.caffeine && Toggles.airplane ? " " : "")
+                      + (Toggles.airplane ? Theme.iPlane : "")
+                onActivated: bar.togglePanel("home", bar.modelData)
+            }
 
             BarPill {
                 visible: bar.headset !== null
