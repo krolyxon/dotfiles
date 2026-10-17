@@ -1,0 +1,40 @@
+# Always installed, no picker: the desktop doesn't work without these.
+
+# Hyprland
+hyprland
+hypridle
+hyprlock
+hyprpaper
+hyprpicker
+hyprpolkitagent
+hyprshot
+xdg-desktop-portal-hyprland
+xdg-desktop-portal-gtk
+qt6-wayland
+
+# Shell (aurora) and what it calls
+quickshell
+upower
+power-profiles-daemon
+cava
+wf-recorder
+grim
+slurp
+wl-clipboard
+cliphist
+playerctl
+gnome-keyring
+
+# Audio
+pipewire
+pipewire-pulse
+pipewire-alsa
+wireplumber
+
+# Apps the configs/keybinds assume
+foot
+fuzzel
+kanshi
+nsxiv
+xdg-utils
+curl

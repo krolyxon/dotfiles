@@ -1,0 +1,19 @@
+# Development tools
+neovim
+tmux
+lazygit
+nodejs
+pnpm
+php
+uv
+rustup
+rust-analyzer
+gdb
+nasm
+docker
+docker-compose
+nmap
+# Embedded
+platformio-core
+esptool
+picocom

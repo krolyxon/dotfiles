@@ -1,0 +1,18 @@
+# Reference only: install.sh never installs these.
+# archinstall (or a manual install) sets them up; they're listed so `./install.sh --check`
+# doesn't report them as drift.
+base
+base-devel
+linux
+linux-zen
+linux-zen-headers
+linux-firmware
+grub
+efibootmgr
+os-prober
+networkmanager
+git
+zsh
+stow
+gum
+paru
