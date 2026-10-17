@@ -115,6 +115,12 @@ ColumnLayout {
         }
         IconBtn {
             Layout.fillWidth: true
+            icon: Theme.iWindow
+            label: "overview"
+            onClicked: page.overlayRequested("overview")
+        }
+        IconBtn {
+            Layout.fillWidth: true
             visible: Clip.available
             icon: Theme.iClipboard
             label: "clipboard"
