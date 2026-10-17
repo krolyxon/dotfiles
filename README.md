@@ -64,7 +64,7 @@ The lists live in `packages/*.txt`: one package per line, `#` for comments, and 
 |---|---|
 | WM | Hyprland (Lua config), hypridle, hyprlock, hyprpaper |
 | Shell / bar | aurora (Quickshell) |
-| Theming | pywal16 (`setwall` picks a wallpaper and re-themes everything) |
+| Theming | pywal16: picking a wallpaper in aurora (or `setwall`) re-themes everything |
 | Terminal / shell | foot, zsh |
 | Editor | Neovim (LazyVim) |
 | Launcher / menus | fuzzel |

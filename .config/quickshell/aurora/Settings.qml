@@ -42,6 +42,7 @@ Singleton {
     FileView {
         id: fv
         path: root.file
+        blockLoading: true      // loaded before first use (e.g. Wall.random() right after startup)
         watchChanges: true
         onFileChanged: reload()
         onAdapterUpdated: writeAdapter()
