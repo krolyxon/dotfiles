@@ -76,6 +76,12 @@ ShellRoot {
         onOverlayRequested: name => { root.close(); root.toggleOverlay(name) }
     }
 
+    ClipWindow {
+        screen: root.overlayScreen
+        opened: root.overlay === "clip"
+        onCloseRequested: root.overlay = ""
+    }
+
     WallPicker {
         screen: root.overlayScreen
         opened: root.overlay === "wall"
@@ -104,6 +110,7 @@ ShellRoot {
         function dnd(): void { Notifs.dnd = !Notifs.dnd }
         function shot(mode: string): void { root.close(); Shot.take(mode) }   // region | window | output | ocr
         function shotsave(): void { Shot.save = !Shot.save }
+        function clip(): void { root.toggleOverlay("clip") }
         function wall(): void { root.toggleOverlay("wall") }
         function wallrandom(): void { Wall.random() }
         function bright(dir: string): void { Bright.step(dir === "down" ? -1 : 1) }   // up | down
