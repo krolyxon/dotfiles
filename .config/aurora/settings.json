@@ -1,7 +1,7 @@
 {
     "accentIndex": -1,
     "barAlpha": 1,
-    "barHeight": 22,
+    "barHeight": 18,
     "desktopClock": true,
     "desktopViz": false,
     "dock": false,
@@ -14,7 +14,7 @@
     "fontSize": 12,
     "osdTimeout": 1500,
     "panelAlpha": 0.88,
-    "vizBars": 64,
-    "wallFolder": "john+wick",
+    "vizBars": 44,
+    "wallFolder": "dhrruv-wallpapers",
     "wsFontSize": 11
 }

@@ -45,7 +45,7 @@ hl.bind("PRINT", hl.dsp.exec_cmd("hypr_screenshot.sh"))
 hl.bind(mainMod .. " + SHIFT + P", hl.dsp.exec_cmd("hypr_screenshot.sh"))
 
 -- Music Controls
-hl.bind(mainMod .. " + m", hl.dsp.exec_cmd(terminal .. " -e zsh -i -c \"ncmpcpp\""))
+hl.bind(mainMod .. " + m", hl.dsp.exec_cmd(terminal .. " -e zsh -i -c \"rmptui\""))
 hl.bind(mainMod .. " + p", hl.dsp.exec_cmd("mpc toggle"))
 hl.bind(mainMod .. " + period", hl.dsp.exec_cmd("mpc seek +10"), { repeating = true })
 hl.bind(mainMod .. " + comma", hl.dsp.exec_cmd("mpc seek -10"), { repeating = true })
@@ -62,7 +62,8 @@ hl.bind(mainMod .. " + k", hl.dsp.window.resize({ x = 0, y = -30, relative = tru
 hl.bind(mainMod .. " + j", hl.dsp.window.resize({ x = 0, y = 30, relative = true }), { repeating = true })
 
 -- Clipboard menu (cliphist)
-hl.bind(mainMod .. " + v", hl.dsp.exec_cmd("sh -c \"cliphist list | fuzzel --dmenu --with-nth 2 | cliphist decode | wl-copy\""))
+-- hl.bind(mainMod .. " + v", hl.dsp.exec_cmd("sh -c \"cliphist list | fuzzel --dmenu --with-nth 2 | cliphist decode | wl-copy\""))
+hl.bind(mainMod .. " + v", hl.dsp.exec_cmd("qs -c aurora ipc call shell clip"))
 
 -- -----------------------------------------------------
 -- Workspace switching
@@ -136,13 +137,13 @@ hl.bind(mainMod .. " + mouse_up", hl.dsp.focus({ workspace = "e-1" }))
 hl.bind(mainMod .. " + mouse:272", hl.dsp.window.drag(), { mouse = true })
 hl.bind(mainMod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true })
 
--- Laptop multimedia keys for volume and LCD brightness
+-- Laptop multimedia keys for volume and LCD brightness (brightness goes through aurora for the OSD; it runs ~/.local/bin/brictl)
 hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd("wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+"), { locked = true, repeating = true })
 hl.bind("XF86AudioLowerVolume", hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"), { locked = true, repeating = true })
 hl.bind("XF86AudioMute", hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"), { locked = true, repeating = true })
 hl.bind("XF86AudioMicMute", hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"), { locked = true, repeating = true })
-hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd("~/.local/bin/brictl -"), { locked = true, repeating = true })
-hl.bind("XF86MonBrightnessUp", hl.dsp.exec_cmd("~/.local/bin/brictl +"), { locked = true, repeating = true })
+hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd("qs -c aurora ipc call shell bright down"), { locked = true, repeating = true })
+hl.bind("XF86MonBrightnessUp", hl.dsp.exec_cmd("qs -c aurora ipc call shell bright up"), { locked = true, repeating = true })
 
 -- Requires playerctl
 hl.bind("XF86AudioNext", hl.dsp.exec_cmd("playerctl next"), { locked = true })
