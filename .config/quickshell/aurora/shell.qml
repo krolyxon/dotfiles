@@ -34,10 +34,20 @@ ShellRoot {
         lastTab = tabNames[tab]
         lastScreen = panelScreen ? panelScreen.name : ""
     }
-    function toggleOverlay(name) {
-        if (overlay === name) { overlay = ""; return }
+    property double overlayClosedAt: 0
+    property string lastOverlay: ""
+    function closeOverlay() {
+        if (overlay === "") return
+        lastOverlay = overlay
+        overlayClosedAt = Date.now()
+        overlay = ""
+    }
+    // scr: where to open (defaults to the focused monitor). Same instant re-open guard as togglePanel.
+    function toggleOverlay(name, scr) {
+        if (overlay === name) { closeOverlay(); return }
+        if (lastOverlay === name && Date.now() - overlayClosedAt < 250) return
         close()
-        overlayScreen = focusedScreen()
+        overlayScreen = scr ? scr : focusedScreen()
         overlay = name
     }
     function openTab(name) {
@@ -64,7 +74,10 @@ ShellRoot {
 
     Variants {
         model: Quickshell.screens
-        Bar { onTogglePanel: (name, scr) => root.togglePanel(name, scr) }
+        Bar {
+            onTogglePanel: (name, scr) => root.togglePanel(name, scr)
+            onToggleOverlay: (name, scr) => root.toggleOverlay(name, scr)
+        }
     }
 
     ControlPanel {
@@ -76,16 +89,22 @@ ShellRoot {
         onOverlayRequested: name => { root.close(); root.toggleOverlay(name) }
     }
 
+    CalPopup {
+        screen: root.overlayScreen
+        opened: root.overlay === "cal"
+        onCloseRequested: root.closeOverlay()
+    }
+
     ClipWindow {
         screen: root.overlayScreen
         opened: root.overlay === "clip"
-        onCloseRequested: root.overlay = ""
+        onCloseRequested: root.closeOverlay()
     }
 
     WallPicker {
         screen: root.overlayScreen
         opened: root.overlay === "wall"
-        onCloseRequested: root.overlay = ""
+        onCloseRequested: root.closeOverlay()
     }
 
     NotifPopups { screen: root.focusedScr; suppressed: root.opened }
@@ -110,6 +129,7 @@ ShellRoot {
         function dnd(): void { Notifs.dnd = !Notifs.dnd }
         function shot(mode: string): void { root.close(); Shot.take(mode) }   // region | window | output | ocr
         function shotsave(): void { Shot.save = !Shot.save }
+        function cal(): void { root.toggleOverlay("cal") }
         function clip(): void { root.toggleOverlay("clip") }
         function wall(): void { root.toggleOverlay("wall") }
         function wallrandom(): void { Wall.random() }
