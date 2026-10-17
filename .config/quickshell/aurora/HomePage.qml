@@ -119,13 +119,13 @@ ColumnLayout {
             label: "colour"
             onClicked: { page.closeRequested(); Toggles.pickColour() }
         }
-        IconBtn {   // click: record a region; while recording: stop
+        IconBtn {   // click: record the focused monitor; while recording: stop
             Layout.fillWidth: true
             visible: Rec.available
             icon: Rec.busy ? Theme.iStop : Theme.iRec
-            label: Rec.running ? Theme.fmtClock(Rec.elapsed) : (Rec.selecting ? "cancel" : "rec")
+            label: Rec.running ? Theme.fmtClock(Rec.elapsed) : "rec"
             active: Rec.busy
-            onClicked: { if (!Rec.busy) page.closeRequested(); Rec.toggle("region") }
+            onClicked: { if (!Rec.busy) page.closeRequested(); Rec.toggle("screen") }
         }
     }
 

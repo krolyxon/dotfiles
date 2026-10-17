@@ -152,7 +152,7 @@ ShellRoot {
         function clip(): void { root.toggleOverlay("clip") }
         function wall(): void { root.toggleOverlay("wall") }
         function wallrandom(): void { Wall.random() }
-        function rec(mode: string): void { root.close(); Rec.toggle(mode === "screen" ? "screen" : "region") }   // region | screen
+        function rec(mode: string): void { root.close(); Rec.toggle(mode === "region" ? "region" : "screen") }   // screen (default) | region
         function caffeine(): void { Toggles.caffeine = !Toggles.caffeine }
         function bright(dir: string): void { Bright.step(dir === "down" ? -1 : 1) }   // up | down
     }

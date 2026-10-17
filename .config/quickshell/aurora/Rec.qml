@@ -16,7 +16,7 @@ Singleton {
     property string dir: Quickshell.env("HOME") + "/vids/rec"
     property string file: ""
     readonly property string log: Quickshell.env("HOME") + "/.cache/aurora/rec.log"
-    property string mode: "region"
+    property string mode: "screen"
     property int elapsed: 0                  // seconds
 
     function start(m) {                      // "region" | "screen"
