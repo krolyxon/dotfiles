@@ -1,0 +1,20 @@
+{
+    "accentIndex": -1,
+    "barAlpha": 1,
+    "barHeight": 22,
+    "desktopClock": true,
+    "desktopViz": false,
+    "dock": false,
+    "dockPinned": [
+        "foot",
+        "librewolf",
+        "pcmanfm",
+        "obsidian"
+    ],
+    "fontSize": 12,
+    "osdTimeout": 1500,
+    "panelAlpha": 0.88,
+    "vizBars": 64,
+    "wallFolder": "john+wick",
+    "wsFontSize": 11
+}
