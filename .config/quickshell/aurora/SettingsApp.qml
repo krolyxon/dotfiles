@@ -28,7 +28,11 @@ FloatingWindow {
         { id: "appearance", icon: Theme.iPalette,  name: "appearance", group: "look" },
         { id: "shell",      icon: Theme.iDock,     name: "shell",      group: "look" },
         { id: "windows",    icon: Theme.iWindow,   name: "windows",    group: "hyprland" },
-        { id: "input",      icon: Theme.iKeyboard, name: "input",      group: "hyprland" }
+        { id: "input",      icon: Theme.iMouse,    name: "input",      group: "hyprland" },
+        { id: "keybinds",   icon: Theme.iKeyboard, name: "keybinds",   group: "hyprland" },
+        { id: "display",    icon: Theme.iMonitor,  name: "display",    group: "system" },
+        { id: "power",      icon: Theme.iPower,    name: "power",      group: "system" },
+        { id: "about",      icon: Theme.iArch,     name: "about",      group: "system" }
     ]
     readonly property int index: {
         for (var i = 0; i < sections.length; i++) if (sections[i].id === section) return i
@@ -140,6 +144,10 @@ FloatingWindow {
                         case "shell":      return shellC
                         case "windows":    return windowsC
                         case "input":      return inputC
+                        case "keybinds":   return keysC
+                        case "display":    return displayC
+                        case "power":      return powerC
+                        case "about":      return aboutC
                         default:           return netC
                         }
                     }
@@ -155,4 +163,8 @@ FloatingWindow {
     Component { id: shellC; SetShell {} }
     Component { id: windowsC; SetWindows {} }
     Component { id: inputC; SetInput {} }
+    Component { id: keysC; SetKeys {} }
+    Component { id: displayC; SetDisplay {} }
+    Component { id: powerC; SetPower {} }
+    Component { id: aboutC; SetAbout {} }
 }

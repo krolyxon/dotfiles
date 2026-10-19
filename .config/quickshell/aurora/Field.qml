@@ -8,6 +8,7 @@ RowLayout {
     property string value: ""
     property string placeholder: ""
     signal submitted(string v)
+    signal edited(string v)          // every keystroke (live filters)
     Layout.fillWidth: true
     spacing: 8
     Text {
@@ -37,6 +38,7 @@ RowLayout {
             selectedTextColor: Theme.bg
             font.family: Theme.font
             font.pixelSize: Theme.fontSize
+            onTextEdited: f.edited(text)
             onAccepted: { if (text !== f.value) f.submitted(text); focus = false }
             onActiveFocusChanged: if (!activeFocus && text !== f.value) f.submitted(text)
             Keys.onEscapePressed: e => { text = f.value; focus = false; e.accepted = true }

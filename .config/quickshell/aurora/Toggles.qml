@@ -29,6 +29,21 @@ Singleton {
         airplane = on
     }
 
+    // ---- night light: gammastep (started by Hyprland) toggles on SIGUSR1. It starts enabled, and it
+    // can't be asked, so the state is tracked here; hasNightLight = gammastep was running at startup.
+    property bool hasNightLight: false
+    property bool nightLight: true
+    function setNightLight(on) {
+        if (!hasNightLight || on === nightLight) return
+        Quickshell.execDetached(["pkill", "-USR1", "-x", "gammastep"])
+        nightLight = on
+    }
+    Process {
+        command: ["pgrep", "-x", "gammastep"]
+        running: true
+        onExited: code => root.hasNightLight = code === 0
+    }
+
     // ---- colour picker: hyprpicker copies the hex itself, we just show it as a notification
     property bool hasPicker: false
     function pickColour() { if (!picker.running) picker.running = true }

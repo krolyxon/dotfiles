@@ -9,29 +9,6 @@ Flickable {
     contentHeight: col.implicitHeight
     boundsBehavior: Flickable.StopAtBounds
 
-    readonly property var bat: UPower.displayDevice
-    readonly property bool hasBat: bat !== null && bat.isPresent
-    readonly property real batPct: hasBat ? (bat.percentage > 1 ? bat.percentage / 100 : bat.percentage) : 0
-    readonly property bool charging: hasBat && bat.state === UPowerDeviceState.Charging
-
-    property string armedGpu: ""
-    Timer { id: disarm; interval: 3000; onTriggered: flick.armedGpu = "" }
-
-    function gpuClick(m) {
-        if (Gpu.mode === m || Gpu.busy) return
-        if (armedGpu !== m) { armedGpu = m; disarm.restart(); return }
-        armedGpu = ""
-        Gpu.set(m)
-    }
-    function stateText() {
-        if (!hasBat) return ""
-        switch (bat.state) {
-        case UPowerDeviceState.Charging: return "charging"
-        case UPowerDeviceState.Discharging: return "discharging"
-        case UPowerDeviceState.FullyCharged: return "full"
-        default: return "idle"
-        }
-    }
     // GiB -> "812G" / "1.8T"
     function size(v) { return v >= 1000 ? (v / 1024).toFixed(1) + "T" : (v >= 100 ? Math.round(v) : v.toFixed(1)) + "G" }
 
@@ -75,38 +52,7 @@ Flickable {
             }
         }
 
-        ColumnLayout {
-            visible: flick.hasBat
-            Layout.fillWidth: true
-            Layout.topMargin: 6
-            spacing: 8
-            SectionLabel { text: "battery" }
-            StatBar {
-                label: "charge"
-                frac: flick.batPct
-                fill: flick.batPct <= 0.15 && !flick.charging ? Theme.err : Theme.accent
-                valueText: Math.round(flick.batPct * 100) + "%  " + flick.stateText()
-            }
-            Text {
-                Layout.fillWidth: true
-                wrapMode: Text.Wrap
-                color: Theme.dim
-                font.family: Theme.font
-                font.pixelSize: Theme.fontSize - 1
-                lineHeight: 1.3
-                text: {
-                    if (!flick.hasBat) return ""
-                    var lines = []
-                    var t = flick.charging ? flick.bat.timeToFull : flick.bat.timeToEmpty
-                    lines.push((flick.charging ? "time to full   " : "time left      ") + Theme.fmtTime(t))
-                    if (flick.bat.changeRate !== undefined)
-                        lines.push("power draw     " + Math.abs(flick.bat.changeRate).toFixed(1) + " W")
-                    if (flick.bat.healthSupported)
-                        lines.push("health         " + Math.round(flick.bat.healthPercentage) + "%")
-                    return lines.join("\n")
-                }
-            }
-        }
+        BatteryInfo { Layout.topMargin: 6 }
 
         ColumnLayout {
             visible: PowerProfiles.hasPerformanceProfile !== undefined
@@ -142,38 +88,7 @@ Flickable {
             }
         }
 
-        ColumnLayout {
-            visible: Gpu.mode !== ""
-            Layout.fillWidth: true
-            Layout.topMargin: 6
-            spacing: 8
-            SectionLabel { text: "graphics  ·  envycontrol" }
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: 6
-                Repeater {
-                    model: ["integrated", "hybrid", "nvidia"]
-                    delegate: IconBtn {
-                        required property string modelData
-                        Layout.fillWidth: true
-                        icon: Theme.iGpu
-                        label: flick.armedGpu === modelData ? "sure?" : modelData
-                        active: Gpu.mode === modelData
-                        opacity: Gpu.busy ? 0.5 : 1
-                        onClicked: flick.gpuClick(modelData)
-                    }
-                }
-            }
-            Text {
-                visible: Gpu.pending !== "" || Gpu.message !== "" || Gpu.busy
-                Layout.fillWidth: true
-                wrapMode: Text.Wrap
-                color: Gpu.message !== "" ? Theme.err : Theme.accent
-                font.family: Theme.font
-                font.pixelSize: Theme.fontSize - 2
-                text: Gpu.busy ? "switching…" : (Gpu.message !== "" ? Gpu.message : "queued: " + Gpu.pending + "  ·  reboot to apply")
-            }
-        }
+        GpuSwitch { Layout.topMargin: 6 }
 
         Text {
             Layout.topMargin: 10

@@ -19,6 +19,8 @@ ShellRoot {
     property string overlay: ""
     property bool barShown: true   // `bar` IPC (SUPER+B); not persisted, a restart shows it again
     property var overlayScreen: focusedScreen()
+    // touch singletons that must start with the shell (Idle creates ~/.config/aurora/hypridle.conf)
+    readonly property string idleFile: Idle.file
     readonly property var tabNames: ["home", "audio", "net", "bt", "sys", "notif"]
     // settings app (a normal window): open state + shown section
     property bool settingsOpen: false
