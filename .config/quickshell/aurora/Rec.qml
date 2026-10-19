@@ -15,7 +15,7 @@ Singleton {
     readonly property bool running: recProc.running
     readonly property bool selecting: delay.running || selectProc.running
     readonly property bool busy: running || selecting
-    property string dir: Quickshell.env("HOME") + "/vids/rec"
+    property string dir: Quickshell.env("HOME") + "/vids/recs"
     property string file: ""
     readonly property string log: Quickshell.env("HOME") + "/.cache/aurora/rec.log"
     property string mode: "screen"
