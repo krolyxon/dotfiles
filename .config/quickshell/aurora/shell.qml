@@ -17,6 +17,7 @@ ShellRoot {
     readonly property var focusedScr: focusedScreen()
     // centered overlay windows (wallpaper picker, clipboard, ...): one at a time, on the focused monitor
     property string overlay: ""
+    property bool barShown: true   // `bar` IPC (SUPER+B); not persisted, a restart shows it again
     property var overlayScreen: focusedScreen()
     readonly property var tabNames: ["home", "audio", "net", "bt", "sys", "notif", "settings"]
 
@@ -85,6 +86,7 @@ ShellRoot {
     Variants {
         model: Quickshell.screens
         Bar {
+            visible: root.barShown
             onTogglePanel: (name, scr) => root.togglePanel(name, scr)
             onToggleOverlay: (name, scr) => root.toggleOverlay(name, scr)
         }
@@ -158,6 +160,7 @@ ShellRoot {
         function clip(): void { root.toggleOverlay("clip") }
         function wall(): void { root.toggleOverlay("wall") }
         function power(): void { root.toggleOverlay("power") }
+        function bar(): void { root.barShown = !root.barShown }
         function wallrandom(): void { Wall.random() }
         function wallset(path: string): void { Wall.apply(path) }   // absolute path (setwall resolves it)
         function rec(mode: string): void { root.close(); Rec.toggle(mode === "region" ? "region" : "screen") }   // screen (default) | region
