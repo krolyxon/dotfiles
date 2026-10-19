@@ -89,5 +89,8 @@ hl.config({
         key_press_enables_dpms = true,
 
         vrr = 0,
+
+        -- dwm monocle: focusing another window (super+tab) makes it fullscreen instead of exiting fullscreen
+        on_focus_under_fullscreen = 1,
     },
 })

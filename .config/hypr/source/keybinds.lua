@@ -79,6 +79,29 @@ for i = 1, smw.get_amount_of_workspaces() do
     hl.bind(mainMod .. " + SHIFT +" .. n, smw.move_to_workspace_silent(n))
 end
 
+-- dwm focusmon/tagmon: focus the previous/next monitor, or send the window to its visible workspace (focus stays)
+local function tagmon(dir)
+    return function()
+        local mons = hl.get_monitors()
+        local cur = hl.get_active_monitor()
+        if #mons < 2 or not cur then return end
+        table.sort(mons, function(a, b) return a.id < b.id end)
+        for i, m in ipairs(mons) do
+            if m.id == cur.id then
+                local target = mons[(i - 1 + dir) % #mons + 1]
+                if target.active_workspace then
+                    hl.dispatch(hl.dsp.window.move({ workspace = tostring(target.active_workspace.id), follow = false }))
+                end
+                return
+            end
+        end
+    end
+end
+hl.bind(mainMod .. " + Left", hl.dsp.focus({ monitor = "-1" }))
+hl.bind(mainMod .. " + Right", hl.dsp.focus({ monitor = "+1" }))
+hl.bind(mainMod .. " + SHIFT + Left", tagmon(-1))
+hl.bind(mainMod .. " + SHIFT + Right", tagmon(1))
+
 -- Example special workspace (scratchpad)
 hl.bind(mainMod .. " + S", hl.dsp.workspace.toggle_special("magic"))
 hl.bind(mainMod .. " + SHIFT + S", hl.dsp.window.move({ workspace = "special:magic" }))
@@ -136,6 +159,14 @@ hl.bind(mainMod .. " + mouse_up", hl.dsp.focus({ workspace = "e-1" }))
 -- Move/resize windows with mainMod + LMB/RMB and dragging
 hl.bind(mainMod .. " + mouse:272", hl.dsp.window.drag(), { mouse = true })
 hl.bind(mainMod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true })
+
+-- mainMod + MMB drag: float a tiled window and move it, like dwm
+-- (follow_mouse = 1, so the active window is the one under the cursor)
+hl.bind(mainMod .. " + mouse:274", function()
+    local w = hl.get_active_window()
+    if w and not w.floating then hl.dispatch(hl.dsp.window.float({ action = "set" })) end
+end, { non_consuming = true })
+hl.bind(mainMod .. " + mouse:274", hl.dsp.window.drag(), { mouse = true })
 
 -- Laptop multimedia keys for volume and LCD brightness (brightness goes through aurora for the OSD; it runs ~/.local/bin/brictl)
 hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd("wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+"), { locked = true, repeating = true })
