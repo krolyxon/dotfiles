@@ -37,7 +37,7 @@ hl.bind(mainMod .. " + R", hl.dsp.exec_cmd(menu))
 -- bind = $mainMod SHIFT, P, pseudo, # dwindle
 hl.bind(mainMod .. " + Tab", hl.dsp.window.cycle_next({ next = false }), { repeating = true })
 hl.bind(mainMod .. " + grave", hl.dsp.exec_cmd("fuzzelunicode"))
-hl.bind(mainMod .. " + escape", hl.dsp.exec_cmd("sysact"))
+hl.bind(mainMod .. " + escape", hl.dsp.exec_cmd("qs -c aurora ipc call shell power"))
 
 -- Applications
 hl.bind(mainMod .. " + W", hl.dsp.exec_cmd(browser))

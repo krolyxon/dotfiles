@@ -123,6 +123,12 @@ ShellRoot {
         onCloseRequested: root.closeOverlay()
     }
 
+    PowerMenu {
+        screen: root.overlayScreen
+        opened: root.overlay === "power"
+        onCloseRequested: root.closeOverlay()
+    }
+
     NotifPopups { screen: root.focusedScr; suppressed: root.opened }
 
     Osd { id: osd; screen: root.focusedScr; suppressed: root.opened }
@@ -151,6 +157,7 @@ ShellRoot {
         function cal(): void { root.toggleOverlay("cal") }
         function clip(): void { root.toggleOverlay("clip") }
         function wall(): void { root.toggleOverlay("wall") }
+        function power(): void { root.toggleOverlay("power") }
         function wallrandom(): void { Wall.random() }
         function wallset(path: string): void { Wall.apply(path) }   // absolute path (setwall resolves it)
         function rec(mode: string): void { root.close(); Rec.toggle(mode === "region" ? "region" : "screen") }   // screen (default) | region
