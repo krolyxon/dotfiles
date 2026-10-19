@@ -1,22 +1,59 @@
 #!/bin/sh
+# Menu to unmount drives and phones mounted with mounter (or anything else on a
+# /dev device, except /, /boot, /efi and /home), via udisks and gvfs. LUKS mappers
+# are locked again afterwards: automatically if udisks opened them (luks-<uuid>),
+# else after asking.
 
-# A dmenu prompt to unmount drives.
-# Provides you with mounted partitions, select one to unmount.
-# Drives mounted at /, /boot and /home will not be options to unmount.
+menu() { aurora-run -d -p "$1"; }
+notify() { notify-send -a unmounter "$@"; }
+die() { notify -u critical "💾 Unmount failed" "$1"; exit 1; }
 
-unmountusb() {
-	[ -z "$drives" ] && exit
-	chosen="$(echo "$drives" | aurora-run -d -p "Unmount which drive?")" || exit 1
-	chosen="$(echo "$chosen" | awk '{print $1}')"
-	[ -z "$chosen" ] && exit
-	sudo -A umount "$chosen" && notify-send "💻 USB unmounting" "$chosen unmounted."
-	}
+# kind<TAB>target<TAB>source<TAB>fstype per mount; jq so paths with spaces survive.
+# Phones are gvfs mounts: target = their name, source = mtp:// uri.
+mounts="$(
+	findmnt -Jo TARGET,SOURCE,FSTYPE | jq -r '
+		.. | objects | select(has("target"))
+		| select(.source | startswith("/dev/"))
+		| select(.target | test("^/(boot|efi|home)?$") | not)
+		| ["drive", .target, (.source | sub("\\[.*"; "")), .fstype] | @tsv'
+	gio mount -l 2>/dev/null | sed -n 's/^ *Mount([0-9]*): \(.*\) -> \(mtp:\/\/.*\)$/phone\t\1\t\2\tmtp/p'
+)"
+[ -z "$mounts" ] && { notify "💾 Unmounter" "Nothing to unmount."; exit 0; }
 
-drives=$(lsblk -nrpo "name,type,size,mountpoint,label" | awk -F':' '{gsub(/ /,":")}$4!~/\/boot|\/efi|\/home$|SWAP/&&length($4)>1{printf "%s (%s) %s\n",$4,$3,$5}')
+i="$(echo "$mounts" | while IFS="	" read -r kind target src fstype; do
+	case "$kind" in
+		phone) icon="📱" ;;
+		*) [ "$(lsblk -dno TYPE "$src" 2>/dev/null)" = "crypt" ] && icon="🔒" || icon="💾" ;;
+	esac
+	printf '%s %s  %s (%s)\n' "$icon" "$target" "$src" "$fstype"
+done | aurora-run -d --index -p "Unmount")" || exit 1
+[ "$i" -ge 0 ] 2>/dev/null || exit 1
+IFS="	" read -r kind target src fstype <<EOF
+$(echo "$mounts" | sed -n "$((i + 1))p")
+EOF
 
-if [ -z "$drives" ]; then
-        echo "No drives to unmount." &&  exit
-else
-	echo "Unmountable USB drive detected."
-	     unmountusb
+if [ "$kind" = "phone" ]; then
+	err="$(gio mount -u "$src" 2>&1)" || die "$err"
+	notify "📱 Unmounted" "$target"
+	exit 0
 fi
+
+err="$(udisksctl unmount -b "$src" 2>&1)" || {
+	pids="$(fuser -m "$target" 2>/dev/null)"
+	[ -n "$pids" ] && err="$err
+In use by: $(ps -o comm= -p "$(echo $pids | tr ' ' ',')" | sort -u | tr '\n' ' ')"
+	die "$err"
+}
+notify "💾 Unmounted" "$target"
+
+# Lock the LUKS container behind a mapper, unless it's still mounted somewhere else.
+[ "$(lsblk -dno TYPE "$src" 2>/dev/null)" = "crypt" ] || exit 0
+findmnt -n --source "$src" >/dev/null && exit 0
+luks="$(lsblk -nprso NAME "$src" | sed -n 2p)"
+[ "$(lsblk -dno FSTYPE "$luks")" = "crypto_LUKS" ] || exit 0
+case "$(basename "$src")" in
+	luks-*) ;;
+	*) [ "$(printf 'Yes\nNo' | menu "Also lock $luks ($(basename "$src"))?")" = "Yes" ] || exit 0 ;;
+esac
+err="$(udisksctl lock -b "$luks" 2>&1)" || die "Could not lock $luks: $err"
+notify "🔒 Locked" "$luks"

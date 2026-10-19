@@ -37,3 +37,4 @@ kanshi
 nsxiv
 xdg-utils
 curl
+udisks2

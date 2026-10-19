@@ -1,41 +1,81 @@
 #!/bin/sh
+# Menu to mount drives, LUKS partitions and Android phones, the standard way:
+# udisks mounts drives to /run/media/$USER/<label> (fstab entries to their fstab
+# target) and unlocks LUKS with a passphrase asked in aurora's runner; phones go
+# through gvfs (/run/user/$UID/gvfs/mtp:host=...). Root is asked via polkit. See unmounter.
 
-# Gives a dmenu prompt to mount unmounted drives. If
-# they're in /etc/fstab, they'll be mounted automatically. Otherwise, you'll
-# be prompted to give a mountpoint from already existsing directories. If you
-# input a novel directory, it will prompt you to create that directory.
+menu() { aurora-run -d -p "$1"; }
+notify() { notify-send -a mounter "$@"; }
+# Lock a LUKS device we unlocked if we bail out before mounting it.
+cancel() { [ -n "$unlocked" ] && udisksctl lock -b "$unlocked" >/dev/null 2>&1; exit 1; }
+die() { notify -u critical "💾 Mount failed" "$1"; cancel; }
 
-getmount() { \
-	[ -z "$chosen" ] && exit 1
-        # shellcheck disable=SC2086
-	mp="$(find $1 2>/dev/null | aurora-run -d -p "Type in mount point.")" || exit 1
-	test -z "$mp" && exit 1
-	if [ ! -d "$mp" ]; then
-		mkdiryn=$(printf "No\\nYes" | aurora-run -d -p "$mp does not exist. Create it?") || exit 1
-		[ "$mkdiryn" = "Yes" ] && (mkdir -p "$mp" || sudo -A mkdir -p "$mp")
+# "💾 /dev/sdb1  32G  LABEL (vfat)" per unmounted filesystem; LUKS only while locked
+# (an open one is listed as its mapper). jq instead of parsing lsblk: labels are arbitrary.
+drives() {
+	lsblk -Jpo NAME,TYPE,FSTYPE,SIZE,LABEL,MOUNTPOINT | jq -r '
+		.. | objects | select(has("name"))
+		| select((.type | test("^(part|disk|rom|crypt)$")) and .fstype != null and .mountpoint == null)
+		| select(.fstype | test("^(swap|LVM2_member|linux_raid_member)$") | not)
+		| select(.fstype != "crypto_LUKS" or ((.children // []) | length) == 0)
+		| (if .fstype == "crypto_LUKS" then "🔒" else "💾" end) as $icon
+		| "\($icon) \(.name)  \(.size)  \(if .label then .label + " " else "" end)(\(.fstype | sub("crypto_"; "")))"'
+}
+
+# "📱 mtp://Google_Pixel_7_XXXX/  Pixel 7" per unmounted phone, from gvfs's volume list.
+phones() {
+	mounted="$(gio mount -l 2>/dev/null)"
+	gio mount -li 2>/dev/null | awk '
+		/^ *Volume\([0-9]+\): / { sub(/^ *Volume\([0-9]+\): /, ""); name = $0 }
+		/^ *activation_root=mtp:\/\// { sub(/^ *activation_root=/, ""); print $0 "\t" name }' |
+		while IFS="	" read -r uri name; do
+			printf '%s\n' "$mounted" | grep -qF -- "-> $uri" && continue
+			printf '📱 %s  %s\n' "$uri" "$name"
+		done
+}
+
+mountphone() {
+	uri="$1"
+	err="$(gio mount "$uri" 2>&1)" ||
+		die "$err
+Unlock the phone and set USB to File transfer."
+	notify "📱 Phone mounted" "${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/gvfs/mtp:host=$(echo "$uri" | sed 's|^mtp://||; s|/$||')"
+}
+
+mountdrive() {
+	dev="$1"
+
+	if [ "$(lsblk -dno FSTYPE "$dev")" = "crypto_LUKS" ]; then
+		pass="$(aurora-run -d --password --lines=0 --prompt="🔒" --placeholder="Passphrase for $dev" </dev/null)" || exit 1
+		out="$(printf '%s' "$pass" | udisksctl unlock -b "$dev" --key-file /dev/stdin 2>&1)" ||
+			die "Could not unlock $dev: $out"
+		unset pass
+		unlocked="$dev"
+		# "Unlocked /dev/sda2 as /dev/dm-3."
+		dev="$(echo "$out" | sed -n 's/.* as \(.*\)\.$/\1/p')"
+		udevadm settle 2>/dev/null
+		[ -n "$(lsblk -dno FSTYPE "$dev")" ] || die "$unlocked unlocked, but has no filesystem on it."
 	fi
-	}
 
-mountusb() { \
-	chosen="$(echo "$usbdrives" | aurora-run -d -p "Mount which drive?")" || exit 1
-	chosen="$(echo "$chosen" | awk '{print $1}')"
-	sudo -A mount "$chosen" 2>/dev/null && notify-send "💻 USB mounting" "$chosen mounted." && exit 0
-	alreadymounted=$(lsblk -nrpo "name,type,mountpoint" | awk '$3!~/\/boot|\/home$|SWAP/&&length($3)>1{printf "-not ( -path *%s -prune ) ",$3}')
-	getmount "/mnt /media /mount /home -maxdepth 5 -type d $alreadymounted"
-	partitiontype="$(lsblk -no "fstype" "$chosen")"
-	case "$partitiontype" in
-		"vfat") sudo -A mount -t vfat "$chosen" "$mp" -o rw,umask=0000;;
-		"exfat") sudo -A mount "$chosen" "$mp" -o uid="$(id -u)",gid="$(id -g)";;
-		*) sudo -A mount "$chosen" "$mp"; user="$(whoami)"; ug="$(groups | awk '{print $1}')"; sudo -A chown "$user":"$ug" "$mp";;
-	esac
-	notify-send "💻 USB mounting" "$chosen mounted to $mp."
-	}
+	# "Mounted /dev/sdb1 at /run/media/k/LABEL" (older udisks add a trailing dot)
+	out="$(udisksctl mount -b "$dev" 2>&1)" || die "$out"
+	mp="$(echo "$out" | sed -n 's/^Mounted .* at \(.*\)$/\1/p' | sed 's/\.$//')"
 
-usbdrives="$(lsblk -rpo "name,type,size,mountpoint" | grep 'part\|rom' | awk '$4==""{printf "%s (%s)\n",$1,$3}')"
+	# Linux filesystems keep their owner: offer to take the root dir of the drive.
+	if [ -n "$mp" ] && [ ! -w "$mp" ]; then
+		owner="$(stat -c %U "$mp")"
+		[ "$(printf 'Yes\nNo' | menu "$mp is owned by $owner. Make it yours?")" = "Yes" ] &&
+			pkexec chown "$(id -u):$(id -g)" "$mp"
+	fi
+	notify "💾 Mounted" "$dev → ${mp:-$out}"
+}
 
-if [ -z "$usbdrives" ]; then
-	echo "No USB drive detected" && exit
-else
-		echo "USB drive(s) detected."
-		mountusb
-fi
+list="$(drives; phones)"
+[ -z "$list" ] && { notify "💾 Mounter" "Nothing to mount."; exit 0; }
+
+chosen="$(echo "$list" | menu "Mount")" || exit 1
+target="$(echo "$chosen" | awk '{print $2}')"
+case "$chosen" in
+	"📱"*) mountphone "$target" ;;
+	*) mountdrive "$target" ;;
+esac
