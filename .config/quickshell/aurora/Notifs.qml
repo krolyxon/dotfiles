@@ -39,8 +39,9 @@ Singleton {
     }
     function push(n) {
         playSound()
-        var ms = n.urgency === NotificationUrgency.Critical ? 12000
-               : (n.expireTimeout > 0 ? n.expireTimeout * 1000 : 5000)
+        // expireTimeout is already in ms; apps asking for less than 15s get less, never more
+        var ms = (n.urgency !== NotificationUrgency.Critical && n.expireTimeout > 0)
+               ? Math.min(n.expireTimeout, 15000) : 15000
         var next = popups.concat([{ n: n, until: Date.now() + ms }])
         popups = next.slice(-4)
         n.closed.connect(function () { root.dropPopup(n) })
