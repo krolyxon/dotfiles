@@ -4,10 +4,62 @@
 #   aurora-run -d [opts]    dmenu: lines on stdin, the choice on stdout, exit 1 when cancelled
 # dmenu opts (fuzzel/dmenu spelling): -p/--prompt TEXT, -l/--lines N (0 = input only), --placeholder TEXT,
 # --password, --index (print the line number instead). Other fuzzel flags (-i, --width, -fn, ...) are ignored.
+# Full reference: aurora-run --help
+
+usage() {
+	cat <<'EOF'
+aurora-run: aurora's runner and a fuzzel/dmenu replacement for scripts (needs aurora running)
+
+USAGE
+  aurora-run                     open the app runner (same as SUPER+R; again = close)
+  ... | aurora-run -d [OPTIONS]  dmenu mode: one item per stdin line, prints the choice
+
+DMENU OPTIONS
+  -d, --dmenu              dmenu mode
+  -p, --prompt TEXT        label left of the input (shown in the accent colour)
+  -l, --lines N            visible rows (default 10, capped at 15, shrinks to fit);
+                           0 = no list, just a text box (stdin optional)
+  --placeholder TEXT       dim hint in the empty input
+  --password               mask the input with * (use with --lines=0)
+  --index                  print the 0-based line number instead of the text
+                           (-1 when the typed text was used)
+  -h, --help               this help
+  Both "--opt VALUE" and "--opt=VALUE" work. Other fuzzel flags (-i, -fn, --width,
+  --cache, ...) are accepted and ignored, so fuzzel/dmenu lines can just be renamed.
+
+KEYS
+  type                     fuzzy filter (case-insensitive; prefix > word start > substring)
+  Up/Down, Tab/Shift+Tab,  move the selection
+  Ctrl+N/P, Ctrl+J/K
+  PgUp/PgDn                jump a page
+  Enter                    print the selected line (or the typed text if nothing matches)
+  Ctrl+Enter               print the typed text, ignoring the selection
+  Esc / click outside      cancel
+
+EXIT STATUS
+  0  something was chosen (printed on stdout, one line)
+  1  cancelled: Esc, click outside, another aurora overlay opened, or a newer
+     aurora-run -d request replaced this one
+  2  aurora not running / exited while waiting, or the IPC call failed
+
+RUNNER MODE (no -d)
+  apps (+ their desktop actions), aurora commands (panel tabs, wallpaper, clipboard,
+  overview, power actions, ...) and everything on $PATH, ranked by launch count.
+  =EXPR   calculator, Enter copies the result     >CMD   run CMD with sh
+  Ctrl+Enter runs the selection in foot.
+
+EXAMPLES
+  choice=$(printf 'Integrated\nHybrid\nNvidia\n' | aurora-run -d -p "GPU mode:") || exit
+  query=$(aurora-run -d -l 0 -p "search: ")
+  pass=$(aurora-run -d --password -l 0 --placeholder "Password:")
+  n=$(ls | aurora-run -d --index)
+EOF
+}
 
 dmenu=0 prompt="" placeholder="" lines="" password=0 index=0
 while [ $# -gt 0 ]; do
 	case $1 in
+		-h | --help) usage; exit 0 ;;
 		-d | --dmenu) dmenu=1 ;;
 		-p | --prompt) prompt=$2; shift ;;
 		--prompt=*) prompt=${1#*=} ;;
