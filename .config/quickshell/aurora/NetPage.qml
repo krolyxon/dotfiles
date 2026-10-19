@@ -5,6 +5,9 @@ ColumnLayout {
     id: page
     property bool active: false
     onActiveChanged: Net.active = active
+    // the settings app creates this page already active and destroys it when leaving the section
+    Component.onCompleted: if (active) Net.active = true
+    Component.onDestruction: if (active) Net.active = false
     spacing: 8
 
     // wired / usb tethering (read-only status, plus a disconnect button)

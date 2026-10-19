@@ -39,6 +39,7 @@ hl.bind(mainMod .. " + R", hl.dsp.exec_cmd(menu))
 hl.bind(mainMod .. " + Tab", hl.dsp.window.cycle_next({ next = false }), { repeating = true })
 hl.bind(mainMod .. " + grave", hl.dsp.exec_cmd("aurora-chars"))
 hl.bind(mainMod .. " + escape", hl.dsp.exec_cmd("qs -c aurora ipc call shell power"))
+hl.bind(mainMod .. " + I", hl.dsp.exec_cmd("qs -c aurora ipc call shell settings ''"), { description = "aurora settings" })
 
 -- Applications
 hl.bind(mainMod .. " + W", hl.dsp.exec_cmd(browser))

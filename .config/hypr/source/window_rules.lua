@@ -36,3 +36,17 @@ hl.window_rule({
     move = "20 monitor_h-120",
     float = true,
 })
+
+-- aurora's settings app: a normal window, floating and centred by default
+hl.window_rule({
+    name = "aurora-settings",
+
+    match = {
+        class = "^org.quickshell$",
+        title = "^aurora settings$",
+    },
+
+    float = true,
+    size = "960 680",
+    center = true,
+})

@@ -13,7 +13,8 @@ Singleton {
     readonly property var defaults: ({
         fontSize: 12, wsFontSize: 11, barHeight: 22, barAlpha: 1.0, panelAlpha: 0.88, accentIndex: 14,
         osdTimeout: 1500, desktopClock: true, desktopViz: true, vizBars: 64,
-        dock: true, dockPinned: ["foot", "librewolf", "pcmanfm", "obsidian"], wallFolder: "dusky-dark"
+        dock: true, dockPinned: ["foot", "librewolf", "pcmanfm", "obsidian"], wallFolder: "dusky-dark",
+        notifSound: true, notifVolume: 0.7
     })
 
     property alias fontSize: a.fontSize
@@ -29,6 +30,8 @@ Singleton {
     property alias dock: a.dock
     property alias dockPinned: a.dockPinned
     property alias wallFolder: a.wallFolder
+    property alias notifSound: a.notifSound
+    property alias notifVolume: a.notifVolume
 
     function reset() {
         for (var k in defaults) a[k] = defaults[k]
@@ -66,6 +69,8 @@ Singleton {
             property bool dock: true
             property list<string> dockPinned: ["foot", "librewolf", "pcmanfm", "obsidian"]
             property string wallFolder: "dusky-dark"
+            property bool notifSound: true
+            property real notifVolume: 0.7
         }
     }
     // first run: create the file once the directory exists

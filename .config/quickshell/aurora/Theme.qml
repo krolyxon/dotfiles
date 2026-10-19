@@ -7,7 +7,7 @@ import Quickshell.Io
 Singleton {
     id: root
 
-    // ---- knobs (persisted in ~/.config/aurora/settings.json, edited in the Settings tab) ----
+    // ---- knobs (persisted in ~/.config/aurora/settings.json, edited in the settings app) ----
     property string font: "JetBrainsMono Nerd Font"   // any Nerd Font mono
     readonly property int fontSize: Settings.fontSize
     readonly property int wsFontSize: Settings.wsFontSize   // workspace icons only; everything else uses fontSize
@@ -164,6 +164,7 @@ Singleton {
     readonly property string iConsole: cp(0xF018D)
     readonly property string iShell: cp(0xF07B7)
     readonly property string iCalc: cp(0xF00EC)
+    readonly property string iPalette: cp(0xF03D8)
 
     // workspace icons: the exact Font Awesome glyphs from your waybar config.
     // 1 browser, 2 code, 3 book, 4 cog, 5 chat, 6 file, 7 folder, 8 terminal, 9 flask, 10 image

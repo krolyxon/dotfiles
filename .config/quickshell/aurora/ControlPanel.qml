@@ -11,6 +11,7 @@ PanelWindow {
     signal tabRequested(int index)
     signal closeRequested()
     signal overlayRequested(string name)
+    signal settingsRequested()
 
     visible: opened
     anchors { top: true; right: true }
@@ -36,8 +37,7 @@ PanelWindow {
         { icon: Theme.iWifi, name: "net" },
         { icon: Theme.iBt, name: "bt" },
         { icon: Theme.iChip, name: "system" },
-        { icon: Theme.iBell, name: "notifs" },
-        { icon: Theme.iCog, name: "settings" }
+        { icon: Theme.iBell, name: "notifs" }
     ]
 
     Rectangle {
@@ -98,6 +98,7 @@ PanelWindow {
                     }
                 }
                 Item { Layout.fillWidth: true }
+                IconBtn { icon: Theme.iCog; implicitHeight: 28; onClicked: win.settingsRequested() }
                 IconBtn { icon: Theme.iClose; implicitHeight: 28; onClicked: win.closeRequested() }
             }
 
@@ -117,7 +118,6 @@ PanelWindow {
                 BtPage { active: win.opened && win.tab === 3 }
                 SysPage {}
                 NotifPage {}
-                SettingsPage {}
             }
         }
     }

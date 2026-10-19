@@ -12,6 +12,9 @@ ColumnLayout {
     onActiveChanged: {
         if (adapter) adapter.discovering = active && adapter.enabled
     }
+    // the settings app creates this page already active and destroys it when leaving the section
+    Component.onCompleted: if (active && adapter && adapter.enabled) adapter.discovering = true
+    Component.onDestruction: if (active && adapter) adapter.discovering = false
 
     function paired(d) { return d.bonded === true || d.paired === true }
 

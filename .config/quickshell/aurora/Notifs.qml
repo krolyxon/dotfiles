@@ -10,9 +10,9 @@ Singleton {
     property bool dnd: false
 
     // sound played on every toast (silenced by do-not-disturb, except critical ones)
-    property bool soundEnabled: true
+    property bool soundEnabled: Settings.notifSound
     property string soundFile: Quickshell.env("HOME") + "/.config/quickshell/aurora/sounds/Blow.aiff"
-    property real soundVolume: 0.7
+    property real soundVolume: Settings.notifVolume
     property var popups: []              // [{n, until}]
     readonly property var model: server.trackedNotifications
     readonly property int count: server.trackedNotifications.values.length

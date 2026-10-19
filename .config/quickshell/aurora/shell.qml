@@ -19,7 +19,10 @@ ShellRoot {
     property string overlay: ""
     property bool barShown: true   // `bar` IPC (SUPER+B); not persisted, a restart shows it again
     property var overlayScreen: focusedScreen()
-    readonly property var tabNames: ["home", "audio", "net", "bt", "sys", "notif", "settings"]
+    readonly property var tabNames: ["home", "audio", "net", "bt", "sys", "notif"]
+    // settings app (a normal window): open state + shown section
+    property bool settingsOpen: false
+    property string settingsSection: "network"
 
     // screen of the monitor that currently has focus (falls back to the first screen)
     function focusedScreen() {
@@ -51,7 +54,14 @@ ShellRoot {
         overlayScreen = scr ? scr : focusedScreen()
         overlay = name
     }
+    // section "" = toggle the window on its last section; a name opens (or switches) to it
+    function settings(section) {
+        if (section === "" || section === undefined) { settingsOpen = !settingsOpen; return }
+        settingsSection = section
+        settingsOpen = true
+    }
     function openTab(name) {
+        if (name === "settings") { settings("appearance"); return }   // old panel tab lives in the app now
         var i = tabNames.indexOf(name)
         if (i >= 0) tab = i
         panelScreen = focusedScreen()
@@ -99,6 +109,7 @@ ShellRoot {
         onTabRequested: i => root.tab = i
         onCloseRequested: root.close()
         onOverlayRequested: name => { root.close(); root.toggleOverlay(name) }
+        onSettingsRequested: { root.close(); root.settingsOpen = true }
     }
 
     Overview {
@@ -145,6 +156,14 @@ ShellRoot {
         }
     }
 
+    SettingsApp {
+        opened: root.settingsOpen
+        section: root.settingsSection
+        onCloseRequested: root.settingsOpen = false
+        onSectionRequested: name => root.settingsSection = name
+        onOverlayRequested: name => root.toggleOverlay(name)
+    }
+
     NotifPopups { screen: root.focusedScr; suppressed: root.opened }
 
     Osd { id: osd; screen: root.focusedScr; suppressed: root.opened }
@@ -180,6 +199,7 @@ ShellRoot {
         function wallrandom(): void { Wall.random() }
         function wallset(path: string): void { Wall.apply(path) }   // absolute path (setwall resolves it)
         function rec(mode: string): void { root.close(); Rec.toggle(mode === "region" ? "region" : "screen") }   // screen (default) | region
+        function settings(section: string): void { root.settings(section) }   // "" = toggle
         function caffeine(): void { Toggles.caffeine = !Toggles.caffeine }
         function bright(dir: string): void { Bright.step(dir === "down" ? -1 : 1) }   // up | down
     }
