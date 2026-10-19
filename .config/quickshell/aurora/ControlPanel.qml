@@ -47,6 +47,9 @@ PanelWindow {
         border.color: Theme.accent
         focus: true
         Keys.onEscapePressed: win.closeRequested()
+        // Tab / Shift+Tab cycle through the tabs (wraps around)
+        Keys.onTabPressed: win.tabRequested((win.tab + 1) % win.tabs.length)
+        Keys.onBacktabPressed: win.tabRequested((win.tab + win.tabs.length - 1) % win.tabs.length)
 
         ColumnLayout {
             anchors.fill: parent
