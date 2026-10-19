@@ -49,3 +49,8 @@ require("source.appearance")
 require("source.input")
 require("source.keybinds")
 require("source.window_rules")
+
+-- aurora's settings app: overrides on top of everything above (~/.config/aurora/hypr.lua, generated, not in the repo).
+-- Missing or broken file = the defaults from the files above.
+local ok, overrides = pcall(dofile, HOME .. "/.config/aurora/hypr.lua")
+if ok and type(overrides) == "table" then hl.config(overrides) end

@@ -26,6 +26,7 @@ RowLayout {
             delegate: IconBtn {
                 required property var modelData
                 Layout.fillWidth: true
+                Layout.preferredWidth: 1      // equal widths, whatever the label length
                 implicitHeight: 26
                 label: modelData.label
                 active: c.value === modelData.value

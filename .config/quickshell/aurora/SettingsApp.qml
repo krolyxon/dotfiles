@@ -26,7 +26,9 @@ FloatingWindow {
         { id: "bluetooth",  icon: Theme.iBt,       name: "bluetooth",  group: "connections" },
         { id: "sound",      icon: Theme.iVolHigh,  name: "sound",      group: "connections" },
         { id: "appearance", icon: Theme.iPalette,  name: "appearance", group: "look" },
-        { id: "shell",      icon: Theme.iDock,     name: "shell",      group: "look" }
+        { id: "shell",      icon: Theme.iDock,     name: "shell",      group: "look" },
+        { id: "windows",    icon: Theme.iWindow,   name: "windows",    group: "hyprland" },
+        { id: "input",      icon: Theme.iKeyboard, name: "input",      group: "hyprland" }
     ]
     readonly property int index: {
         for (var i = 0; i < sections.length; i++) if (sections[i].id === section) return i
@@ -136,6 +138,8 @@ FloatingWindow {
                         case "sound":      return soundC
                         case "appearance": return appearanceC
                         case "shell":      return shellC
+                        case "windows":    return windowsC
+                        case "input":      return inputC
                         default:           return netC
                         }
                     }
@@ -149,4 +153,6 @@ FloatingWindow {
     Component { id: soundC; AudioPage {} }
     Component { id: appearanceC; SetAppearance { onOverlayRequested: name => win.overlayRequested(name) } }
     Component { id: shellC; SetShell {} }
+    Component { id: windowsC; SetWindows {} }
+    Component { id: inputC; SetInput {} }
 }
