@@ -1,6 +1,6 @@
 #!/bin/sh
 # mpd-add: fuzzy-pick a track from the MPD library and play it right away.
-# Works in a terminal (fzf) or launched from a menu (fuzzel).
+# Works in a terminal (fzf) or launched from a menu (aurora-run).
 #
 # Usage: mpd-add [-q]
 #   -q   queue the track right after the current one, but don't jump to it
@@ -34,7 +34,7 @@ fi
 if [ -t 0 ]; then
     filename=$(printf '%s\n' "$library" | fzf)
 else
-    filename=$(printf '%s\n' "$library" | fuzzel -d -l 30 -p 'play: ')
+    filename=$(printf '%s\n' "$library" | aurora-run -d -l 30 -p 'play: ')
 fi
 
 # Cancelled (Esc): nothing to do.

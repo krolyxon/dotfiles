@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Check deps
-command -v fuzzel >/dev/null || { echo "fuzzel not found"; exit 1; }
+command -v aurora-run >/dev/null || { echo "aurora-run not found"; exit 1; }
 command -v hyprshade >/dev/null || { echo "hyprshade not found"; exit 1; }
 
 # Get shader list
@@ -11,9 +11,9 @@ mapfile -t SHADERS < <(hyprshade ls)
 # Add "off" at top
 SHADERS=("off" "${SHADERS[@]}")
 
-# Show in fuzzel
+# Show in aurora's runner (|| true: cancelling must not trip set -e)
 CHOICE=$(printf "%s\n" "${SHADERS[@]}" \
-    | fuzzel --dmenu --prompt "Hyprshade > " \
+    | { aurora-run --dmenu --prompt "Hyprshade > " || true; } \
     | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
 
 # User cancelled

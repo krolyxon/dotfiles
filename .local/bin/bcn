@@ -15,7 +15,7 @@ else
     names=$(printf '%s\n' "${devices[@]}" | sed 's/^Device [^ ]* //')
 
     selected=$(printf '%s\n' "$names" |
-        fuzzel --dmenu -l 10 -fn Monospace-15)
+        aurora-run --dmenu -l 10)
 
     [[ -z "$selected" ]] && exit 0
 

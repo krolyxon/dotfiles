@@ -2,7 +2,7 @@
 
 ocr_cmd="wl-copy"
 
-case "$(printf "a selected area (copy)\ncurrent window (copy)\nfull screen (copy)\na selected area\na selected area (tmp dir)\ncurrent window\nfull screen\na selected area (OCR)" | fuzzel -d -l 7 -i -p "Screenshot which area?")" in
+case "$(printf "a selected area (copy)\ncurrent window (copy)\nfull screen (copy)\na selected area\na selected area (tmp dir)\ncurrent window\nfull screen\na selected area (OCR)" | aurora-run -d -l 8 -p "Screenshot which area?")" in
     "a selected area (copy)") hyprshot -m region --clipboard-only ;;
     "current window (copy)") hyprshot -m window --clipboard-only ;;
     "full screen (copy)") hyprshot -m output --clipboard-only ;;

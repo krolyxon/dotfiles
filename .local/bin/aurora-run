@@ -1,0 +1,51 @@
+#!/bin/bash
+# aurora-run: fuzzel-compatible front end for aurora's runner (needs aurora running).
+#   aurora-run              open the app runner (same as SUPER+R)
+#   aurora-run -d [opts]    dmenu: lines on stdin, the choice on stdout, exit 1 when cancelled
+# dmenu opts (fuzzel/dmenu spelling): -p/--prompt TEXT, -l/--lines N (0 = input only), --placeholder TEXT,
+# --password, --index (print the line number instead). Other fuzzel flags (-i, --width, -fn, ...) are ignored.
+
+dmenu=0 prompt="" placeholder="" lines="" password=0 index=0
+while [ $# -gt 0 ]; do
+	case $1 in
+		-d | --dmenu) dmenu=1 ;;
+		-p | --prompt) prompt=$2; shift ;;
+		--prompt=*) prompt=${1#*=} ;;
+		-l | --lines) lines=$2; shift ;;
+		--lines=*) lines=${1#*=} ;;
+		--placeholder) placeholder=$2; shift ;;
+		--placeholder=*) placeholder=${1#*=} ;;
+		--password | --password=*) password=1 ;;
+		--index) index=1 ;;
+		# ignored flags that take a separate value
+		-fn | -f | --font | -w | --width | --cache | --with-nth | --nth-delimiter | -a | --anchor | -o | --output) shift ;;
+		*) ;;
+	esac
+	shift
+done
+
+pid=$(pgrep -nf 'quickshell.*/aurora$|qs -c aurora$')
+[ -n "$pid" ] || { echo "aurora-run: aurora is not running" >&2; exit 2; }
+
+if [ "$dmenu" = 0 ]; then
+	exec qs -c aurora ipc call shell run
+fi
+
+# private dir on tmpfs: items, opts and the reply fifo (a password only ever passes through the fifo)
+dir=$(mktemp -d "${XDG_RUNTIME_DIR:-/tmp}/aurora-run.XXXXXX") || exit 2
+trap 'rm -rf "$dir"' EXIT
+[ -t 0 ] || cat > "$dir/items"
+printf 'prompt=%s\nplaceholder=%s\nlines=%s\npassword=%s\nindex=%s\n' \
+	"${prompt//$'\n'/ }" "${placeholder//$'\n'/ }" "$lines" "$password" "$index" > "$dir/opts"
+mkfifo "$dir/reply"
+exec 3<> "$dir/reply"   # read-write: never blocks aurora's writer, and lets us time out below
+
+err=$(qs -c aurora ipc call shell dmenu "$dir" 2>&1)
+[ -z "$err" ] || { echo "aurora-run: $err" >&2; exit 2; }
+
+# reply is "<0|1>\n<value>\0"; give up if aurora goes away while we wait
+until IFS= read -r -d '' -t 1 -u 3 reply; do
+	kill -0 "$pid" 2>/dev/null || { echo "aurora-run: aurora exited" >&2; exit 2; }
+done
+[ "${reply%%$'\n'*}" = 0 ] || exit 1
+printf '%s\n' "${reply#*$'\n'}"

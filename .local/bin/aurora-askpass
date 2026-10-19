@@ -1,0 +1,13 @@
+#!/bin/bash
+# SUDO_ASKPASS helper: password prompt in aurora's runner.
+
+prompt="${1:-Password:}"
+
+password=$(aurora-run --dmenu --password --prompt="" --placeholder="$prompt" --lines=0)
+
+if [ $? -eq 0 ]; then
+  echo "$password"
+  exit 0
+else
+  exit 1
+fi

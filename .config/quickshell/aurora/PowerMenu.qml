@@ -27,16 +27,7 @@ PanelWindow {
         onCleared: win.closeRequested()
     }
 
-    readonly property var actions: [
-        { id: "lock",      icon: Theme.iLock,      label: "lock",           confirm: false },
-        { id: "leave",     icon: Theme.iLogout,    label: "leave Hyprland", confirm: true },
-        { id: "renew",     icon: Theme.iRefresh,   label: "renew Hyprland", confirm: false },
-        { id: "hibernate", icon: Theme.iHibernate, label: "hibernate",      confirm: true },
-        { id: "reboot",    icon: Theme.iReboot,    label: "reboot",         confirm: true },
-        { id: "shutdown",  icon: Theme.iPower,     label: "shutdown",       confirm: true },
-        { id: "sleep",     icon: Theme.iSleep,     label: "sleep",          confirm: false },
-        { id: "display",   icon: Theme.iMonitor,   label: "display off",    confirm: false }
-    ]
+    readonly property var actions: Session.actions
 
     property int current: 0
     property string armed: ""
@@ -50,27 +41,10 @@ PanelWindow {
         filter.forceActiveFocus()
     }
 
-    // fuzzel-style: query chars must appear in order; prefix > word start > contiguous > scattered
-    function score(label, q) {
-        if (q === "") return 1
-        var s = label.toLowerCase()
-        if (s.indexOf(q) === 0) return 1000
-        var w = s.indexOf(" " + q)
-        if (w >= 0) return 500
-        if (s.indexOf(q) >= 0) return 300
-        var pos = 0, gaps = 0
-        for (var i = 0; i < q.length; i++) {
-            var f = s.indexOf(q[i], pos)
-            if (f < 0) return 0
-            gaps += f - pos
-            pos = f + 1
-        }
-        return 100 - gaps
-    }
     readonly property var shown: {
         var q = filter.text.toLowerCase().trim(), out = []
         for (var i = 0; i < actions.length; i++) {
-            var sc = score(actions[i].label, q)
+            var sc = Fuzzy.score(actions[i].label, q)
             if (sc > 0) out.push({ a: actions[i], sc: sc, i: i })
         }
         out.sort(function (x, y) { return y.sc - x.sc || x.i - y.i })
@@ -86,24 +60,7 @@ PanelWindow {
         if (a.confirm && armed !== a.id) { armed = a.id; disarm.restart(); return }
         armed = ""
         closeRequested()
-        run(a.id)
-    }
-    function run(id) {
-        switch (id) {
-        case "lock":      Quickshell.execDetached(["loginctl", "lock-session"]); break
-        case "leave":     Hypr.logout(); break
-        case "renew":     Quickshell.execDetached(["hyprctl", "reload"]); break
-        case "hibernate": Quickshell.execDetached(["systemctl", "hibernate", "-i"]); break
-        case "reboot":    Quickshell.execDetached(["systemctl", "reboot", "-i"]); break
-        case "shutdown":  Quickshell.execDetached(["systemctl", "poweroff", "-i"]); break
-        case "sleep":     Quickshell.execDetached(["systemctl", "suspend", "-i"]); break
-        case "display":   dpmsDelay.restart(); break   // let the Enter key-up pass first, it would wake the screen
-        }
-    }
-    Timer {
-        id: dpmsDelay
-        interval: 400
-        onTriggered: Quickshell.execDetached(["hyprctl", "dispatch", 'hl.dsp.dpms({action="off"})'])
+        Session.run(a.id)
     }
 
     Rectangle {

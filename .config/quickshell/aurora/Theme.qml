@@ -159,6 +159,11 @@ Singleton {
     readonly property string iStop: cp(0xF04DB)
     readonly property string iDock: cp(0xF10A9)
     readonly property string iCog: cp(0xF0493)
+    readonly property string iApps: cp(0xF003B)
+    readonly property string iApp: cp(0xF08C6)
+    readonly property string iConsole: cp(0xF018D)
+    readonly property string iShell: cp(0xF07B7)
+    readonly property string iCalc: cp(0xF00EC)
 
     // workspace icons: the exact Font Awesome glyphs from your waybar config.
     // 1 browser, 2 code, 3 book, 4 cog, 5 chat, 6 file, 7 folder, 8 terminal, 9 flask, 10 image

@@ -37,7 +37,7 @@ hl.bind(mainMod .. " + SHIFT + b", hl.dsp.exec_cmd("systemctl --user restart aur
 hl.bind(mainMod .. " + R", hl.dsp.exec_cmd(menu))
 -- bind = $mainMod SHIFT, P, pseudo, # dwindle
 hl.bind(mainMod .. " + Tab", hl.dsp.window.cycle_next({ next = false }), { repeating = true })
-hl.bind(mainMod .. " + grave", hl.dsp.exec_cmd("fuzzelunicode"))
+hl.bind(mainMod .. " + grave", hl.dsp.exec_cmd("aurora-chars"))
 hl.bind(mainMod .. " + escape", hl.dsp.exec_cmd("qs -c aurora ipc call shell power"))
 
 -- Applications
@@ -63,7 +63,6 @@ hl.bind(mainMod .. " + k", hl.dsp.window.resize({ x = 0, y = -30, relative = tru
 hl.bind(mainMod .. " + j", hl.dsp.window.resize({ x = 0, y = 30, relative = true }), { repeating = true })
 
 -- Clipboard menu (cliphist)
--- hl.bind(mainMod .. " + v", hl.dsp.exec_cmd("sh -c \"cliphist list | fuzzel --dmenu --with-nth 2 | cliphist decode | wl-copy\""))
 hl.bind(mainMod .. " + v", hl.dsp.exec_cmd("qs -c aurora ipc call shell clip"))
 
 -- -----------------------------------------------------

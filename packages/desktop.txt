@@ -33,7 +33,6 @@ wireplumber
 
 # Apps the configs/keybinds assume
 foot
-fuzzel
 kanshi
 nsxiv
 xdg-utils

@@ -22,7 +22,7 @@ You don't need the installer for that. Browse the repo and copy what you like, f
 - `.config/quickshell/aurora/`: the shell (needs Quickshell; it reads its colours from `~/.cache/wal/colors.json`)
 - `.config/hypr/`: Hyprland in the new Lua config format
 - `.local/bin/`: small scripts (`setwall`, `brictl`, `sysact`, `tms`, ...)
-- `.config/wal/templates/`: pywal16 templates for Hyprland, fuzzel, zathura, cava
+- `.config/wal/templates/`: pywal16 templates for Hyprland, zathura, cava
 
 ## Installing (fresh Arch only)
 ```bash
@@ -67,7 +67,7 @@ The lists live in `packages/*.txt`: one package per line, `#` for comments, and 
 | Theming | pywal16: picking a wallpaper in aurora (or `setwall`) re-themes everything |
 | Terminal / shell | foot, zsh |
 | Editor | Neovim (LazyVim) |
-| Launcher / menus | fuzzel |
+| Launcher / menus | aurora's runner (`aurora-run`, also a dmenu replacement for scripts) |
 | Files | lf, pcmanfm |
 | Music / video | mpd + ncmpcpp, mpv |
 | Font / icons | JetBrainsMono Nerd Font, Yaru |

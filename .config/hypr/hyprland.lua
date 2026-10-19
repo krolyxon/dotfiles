@@ -1,5 +1,5 @@
 terminal = "foot"
-menu = "fuzzel"
+menu = "aurora-run"   -- aurora's runner
 browser = "librewolf"
 mainMod = "SUPER"
 

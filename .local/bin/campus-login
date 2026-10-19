@@ -68,7 +68,7 @@ else
 fi
 
 # --- pick a browser ---------------------------------------------------------
-# $BROWSER is often unset when launched from fuzzel/rofi, so fall back.
+# $BROWSER is often unset when launched from a menu (aurora-run, rofi), so fall back.
 launch=()
 if [[ -n "${BROWSER:-}" ]]; then
     read -ra launch <<< "$BROWSER"

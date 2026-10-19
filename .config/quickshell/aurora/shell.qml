@@ -131,6 +131,20 @@ ShellRoot {
         onCloseRequested: root.closeOverlay()
     }
 
+    Runner {
+        id: runner
+        screen: root.overlayScreen
+        opened: root.overlay === "runner"
+        shell: root
+        onCloseRequested: root.closeOverlay()
+        onOpenRequested: {
+            root.close()
+            if (root.overlay === "runner") return   // already open (run mode): it just switched to the list
+            root.overlayScreen = root.focusedScreen()
+            root.overlay = "runner"
+        }
+    }
+
     NotifPopups { screen: root.focusedScr; suppressed: root.opened }
 
     Osd { id: osd; screen: root.focusedScr; suppressed: root.opened }
@@ -160,6 +174,8 @@ ShellRoot {
         function clip(): void { root.toggleOverlay("clip") }
         function wall(): void { root.toggleOverlay("wall") }
         function power(): void { root.toggleOverlay("power") }
+        function run(): void { root.toggleOverlay("runner") }
+        function dmenu(dir: string): void { runner.startDmenu(dir) }   // used by ~/.local/bin/aurora-run -d
         function bar(): void { root.barShown = !root.barShown }
         function wallrandom(): void { Wall.random() }
         function wallset(path: string): void { Wall.apply(path) }   // absolute path (setwall resolves it)
