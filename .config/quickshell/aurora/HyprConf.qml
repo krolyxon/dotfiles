@@ -53,24 +53,24 @@ Singleton {
         applyTimer.restart()          // coalesces slider drags into one hyprctl call
         saveTimer.restart()
     }
-    function reset(opt) {
-        if (!isSet(opt)) return
-        var o = Object.assign({}, overrides)
-        delete o[opt]
-        overrides = o
-        save()
-        reloadProc.running = true     // config-only reload re-reads the repo files + the new hypr.lua
-    }
-    function resetAll(prefixes) {     // e.g. ["input:"]: reset every override under those sections
-        var o = Object.assign({}, overrides), changed = false
+    function reset(opt) { resetAll([opt]) }
+    // e.g. ["input:", "cursor:"]: drop every override under those sections, then reload Hyprland's config so the
+    // repo values come back. The reload waits for hypr.lua to be written (luaFile.onSaved): reloading right after
+    // setText() raced the async write and Hyprland re-read the old overrides.
+    function resetAll(prefixes) {
+        var o = Object.assign({}, overrides), n = 0
         for (var k in o)
             for (var i = 0; i < prefixes.length; i++)
-                if (k.indexOf(prefixes[i]) === 0) { delete o[k]; changed = true; break }
-        if (!changed) return
+                if (k.indexOf(prefixes[i]) === 0) { delete o[k]; n++; break }
+        pending = {}                  // a slider drag still waiting to be applied would undo the reset
+        applyTimer.stop()
+        saveTimer.stop()
+        if (n === 0) { message = ""; refresh(); return }   // nothing overridden: already the config values
         overrides = o
+        reloadAfterSave = true
         save()
-        reloadProc.running = true
     }
+    property bool reloadAfterSave: false
     function refresh() {
         readProc.command = ["sh", "-c", 'for o; do hyprctl -j getoption "$o" | tr -d "\\n"; echo; done', "sh"]
             .concat(Object.keys(types))
@@ -169,7 +169,14 @@ Singleton {
             try { root.overrides = JSON.parse(text()) || {} } catch (e) { root.overrides = {} }
         }
     }
-    FileView { id: luaFile; path: root.dir + "/hypr.lua"; preload: false; printErrors: false }   // write-only
+    FileView {                    // write-only
+        id: luaFile
+        path: root.dir + "/hypr.lua"
+        preload: false
+        printErrors: false
+        onSaved: if (root.reloadAfterSave) { root.reloadAfterSave = false; reloadProc.running = true }
+        onSaveFailed: err => { root.reloadAfterSave = false; root.message = "could not write hypr.lua (error " + err + ")" }
+    }
 
     Component.onCompleted: refresh()
 }
