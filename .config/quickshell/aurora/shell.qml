@@ -132,6 +132,12 @@ ShellRoot {
         onCloseRequested: root.closeOverlay()
     }
 
+    CharPicker {
+        screen: root.overlayScreen
+        opened: root.overlay === "chars"
+        onCloseRequested: root.closeOverlay()
+    }
+
     WallPicker {
         screen: root.overlayScreen
         opened: root.overlay === "wall"
@@ -193,6 +199,7 @@ ShellRoot {
         function overview(): void { root.toggleOverlay("overview") }
         function cal(): void { root.toggleOverlay("cal") }
         function clip(): void { root.toggleOverlay("clip") }
+        function chars(): void { root.toggleOverlay("chars") }   // glyph picker (SUPER+grave)
         function wall(): void { root.toggleOverlay("wall") }
         function power(): void { root.toggleOverlay("power") }
         function run(): void { root.toggleOverlay("runner") }

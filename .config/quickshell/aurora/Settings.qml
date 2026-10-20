@@ -15,7 +15,7 @@ Singleton {
         osdTimeout: 1500, desktopClock: true, desktopViz: true, vizBars: 64,
         dock: true, dockPinned: ["foot", "librewolf", "pcmanfm", "obsidian"], wallFolder: "dusky-dark",
         notifSound: true, notifVolume: 0.7,
-        idleDim: 150, idleOff: 330, idleLock: 600, idleSuspend: 0
+        idleDim: 150, idleOff: 330, idleLock: 600, idleSuspend: 0, charTone: 0
     })
 
     property alias fontSize: a.fontSize
@@ -37,6 +37,7 @@ Singleton {
     property alias idleOff: a.idleOff
     property alias idleLock: a.idleLock
     property alias idleSuspend: a.idleSuspend
+    property alias charTone: a.charTone
 
     function reset() {
         for (var k in defaults) a[k] = defaults[k]
@@ -80,6 +81,7 @@ Singleton {
             property int idleOff: 330
             property int idleLock: 600
             property int idleSuspend: 0
+            property int charTone: 0           // glyph picker emoji skin tone, 0 = none, 1-5 light..dark
         }
     }
     // first run: create the file once the directory exists

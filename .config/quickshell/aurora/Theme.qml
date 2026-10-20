@@ -127,6 +127,15 @@ Singleton {
     readonly property string iPhone: cp(0xF011C)
     readonly property string iGamepad: cp(0xF0297)
     readonly property string iSearch: cp(0xF0349)
+    // glyph picker sections
+    readonly property string iGrid: cp(0xF11D9)
+    readonly property string iHistory: cp(0xF02DA)
+    readonly property string iEmoji: cp(0xF01F5)
+    readonly property string iFontGlyph: cp(0xF06D6)
+    readonly property string iSigma: cp(0xF04A0)
+    readonly property string iKaomoji: cp(0xF01F3)
+    readonly property string iFancy: cp(0xF0B34)
+    readonly property string iBuffer: cp(0xF1296)
 
     readonly property string iHeadset: cp(0xF02CE)
     readonly property string iCamera: cp(0xF0100)
