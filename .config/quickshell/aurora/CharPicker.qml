@@ -5,7 +5,7 @@ import Quickshell.Wayland
 import Quickshell.Hyprland
 
 // Glyph picker (SUPER+grave, `chars` IPC): emoji, nerd font glyphs, unicode symbols, kaomoji, fancy text.
-// Type to fuzzy search; arrows move, Tab section, Ctrl+Left/Right group, Enter copies, Shift+Enter types it
+// Type to fuzzy search; arrows / Ctrl+HJKL move, Tab section, Ctrl+Left/Right group, Enter copies, Shift+Enter types it
 // into the focused window, Ctrl+Enter collects into a buffer, Alt+Enter copies the codepoint.
 PanelWindow {
     id: win
@@ -205,6 +205,14 @@ PanelWindow {
                         Keys.onEscapePressed: win.closeRequested()
                         Keys.onPressed: event => {
                             var k = event.key, m = event.modifiers
+                            // ctrl+h/j/k/l move through the results like the arrows
+                            var vim = { [Qt.Key_H]: Qt.Key_Left, [Qt.Key_J]: Qt.Key_Down, [Qt.Key_K]: Qt.Key_Up, [Qt.Key_L]: Qt.Key_Right }
+                            if ((m & Qt.ControlModifier) && vim[k] !== undefined) {
+                                win.hovered = null
+                                win.move(vim[k])
+                                event.accepted = true
+                                return
+                            }
                             if (k === Qt.Key_Return || k === Qt.Key_Enter) {
                                 if (debounce.running) { debounce.stop(); win.recompute() }
                                 var it = win.results[win.view.currentIndex]
@@ -580,7 +588,7 @@ PanelWindow {
             Text {
                 Layout.fillWidth: true
                 text: "enter copy   " + (Chars.hasWtype ? "shift+enter type   " : "") + "ctrl+enter collect   alt+enter code   "
-                    + "tab section   ctrl+arrows group   esc close"
+                    + "ctrl+hjkl move   tab section   ctrl+arrows group   esc close"
                 elide: Text.ElideRight
                 color: Theme.dim
                 font.family: Theme.font
