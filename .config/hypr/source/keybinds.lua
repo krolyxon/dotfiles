@@ -37,7 +37,7 @@ hl.bind(mainMod .. " + SHIFT + b", hl.dsp.exec_cmd("systemctl --user restart aur
 hl.bind(mainMod .. " + R", hl.dsp.exec_cmd(menu))
 -- bind = $mainMod SHIFT, P, pseudo, # dwindle
 hl.bind(mainMod .. " + Tab", hl.dsp.window.cycle_next({ next = false }), { repeating = true })
-hl.bind(mainMod .. " + grave", hl.dsp.exec_cmd("aurora-chars"))
+hl.bind(mainMod .. " + grave", hl.dsp.exec_cmd("qs -c aurora ipc call shell chars"), { description = "glyph picker" })
 hl.bind(mainMod .. " + escape", hl.dsp.exec_cmd("qs -c aurora ipc call shell power"))
 hl.bind(mainMod .. " + I", hl.dsp.exec_cmd("qs -c aurora ipc call shell settings ''"), { description = "aurora settings" })
 
