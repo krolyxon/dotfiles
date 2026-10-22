@@ -33,7 +33,6 @@ wireplumber
 
 # Apps the configs/keybinds assume
 foot
-kanshi
 nsxiv
 xdg-utils
 curl

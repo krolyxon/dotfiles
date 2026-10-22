@@ -19,7 +19,6 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("wl-paste --type text --watch cliphist store")
     hl.exec_cmd("wl-paste --type image --watch cliphist store")
     hl.exec_cmd("hyprpm reload -n")
-    hl.exec_cmd("kanshi")
     -- aurora is a systemd unit: hand it the login env (.zprofile: SUDO_ASKPASS, EDITOR, XDG dirs, ...)
     hl.exec_cmd("dbus-update-activation-environment --systemd --all && systemctl --user start aurora")
     -- hl.exec_cmd("waybar")
@@ -43,6 +42,7 @@ smw.setup({
 -- -----------------------------------------------------
 -- SOURCE FILES
 -- -----------------------------------------------------
+require("source.monitors")
 require("source.environment_variables")
 require("source.permissions")
 require("source.appearance")

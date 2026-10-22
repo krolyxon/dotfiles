@@ -3,8 +3,11 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
 
-// Settings app > Display: monitors (live, with a keep/revert countdown), kanshi profiles, brightness, night light.
-// Monitor changes are runtime only: kanshi re-applies its profile on hotplug, persistent layouts live in its config.
+// Settings app > Display: layout + per-monitor mode/scale/position, brightness, night light.
+// Monitors are Hyprland rules (hypr/source/monitors.lua, global `monitors`). A change is applied live with
+// `hyprctl eval 'monitors.apply()'` behind a keep/revert countdown, and only saved on keep:
+//   ~/.config/aurora/monitors.json  {"layout": "extend", "outputs": {"eDP-1": {mode, position, scale}}}  (state)
+//   ~/.config/aurora/monitors.lua   the same as a Lua table, dofile'd by monitors.lua
 Flickable {
     id: flick
     clip: true
@@ -12,54 +15,80 @@ Flickable {
     contentHeight: col.implicitHeight
     boundsBehavior: Flickable.StopAtBounds
 
-    readonly property string kanshiFile: Quickshell.env("HOME") + "/.config/kanshi/config"
+    readonly property string dir: Quickshell.env("HOME") + "/.config/aurora"
     property var monitors: []          // hyprctl monitors all -j
-    property var revertSpec: null      // spec to restore if the change isn't kept
+    property var saved: ({ layout: "extend", outputs: {} })
+    property string layout: "extend"   // live value, differs from saved.layout during the countdown
+    property string revertCode: ""     // lua that undoes the pending change
+    property var pendingSave: null     // what keep() stores: { layout } or { output, spec }
     property int countdown: 0
     property string message: ""
 
     function refresh() { monProc.running = true }
     Component.onCompleted: refresh()
 
-    // monitor -> its current spec
-    function specOf(m) {
-        if (m.disabled) return { output: m.name, disabled: true }
-        return { output: m.name, mode: m.width + "x" + m.height + "@" + m.refreshRate.toFixed(2),
-                 position: m.x + "x" + m.y, scale: m.scale }
-    }
     // only characters a monitor name / mode / position can contain, so nothing can break out of the Lua string
     function q(s) { return '"' + String(s).replace(/[^A-Za-z0-9@x._\-]/g, "") + '"' }
-    function lua(spec) {
-        if (spec.disabled) return "hl.monitor({ output = " + q(spec.output) + ", disabled = true })"
-        return "hl.monitor({ output = " + q(spec.output) + ", mode = " + q(spec.mode) + ", position = "
-            + q(spec.position) + ", scale = " + Number(spec.scale) + " })"
+    function luaSpec(s) {
+        return "{ mode = " + q(s.mode) + ", position = " + q(s.position) + ", scale = " + (Number(s.scale) || 1) + " }"
+    }
+    function setOutputCode(name, s) { return "monitors.outputs[" + q(name) + "] = " + luaSpec(s) + "; monitors.apply()" }
+    function setLayoutCode(l) { return "monitors.layout = " + q(l) + "; monitors.apply()" }
+
+    function specOf(m) {
+        return { mode: m.width + "x" + m.height + "@" + m.refreshRate.toFixed(2), position: m.x + "x" + m.y, scale: m.scale }
     }
     function apply(m, change) {
-        var spec
-        if (change.disabled) spec = { output: m.name, disabled: true }
-        else if (m.disabled) spec = { output: m.name, mode: "preferred", position: "auto", scale: 1 }
-        else {
-            spec = specOf(m)
-            for (var k in change) spec[k] = change[k]
-        }
-        revertSpec = specOf(m)
-        run(lua(spec))
+        var spec = specOf(m)
+        for (var k in change) spec[k] = change[k]
+        begin(setOutputCode(m.name, spec), setOutputCode(m.name, specOf(m)), { output: m.name, spec: spec })
+    }
+    function setLayout(l) {
+        if (l === layout) return
+        var old = layout
+        layout = l
+        begin(setLayoutCode(l), setLayoutCode(old), { layout: l })
+    }
+    function begin(code, undo, save) {
+        if (pendingSave) keep()        // a second change while counting down: the first one evidently works
+        revertCode = undo
+        pendingSave = save
+        run(code)
         countdown = 15
         tick.restart()
     }
-    function keep() { revertSpec = null; countdown = 0; tick.stop() }
+    function keep() {
+        if (pendingSave) {
+            var o = { layout: saved.layout, outputs: Object.assign({}, saved.outputs) }
+            if (pendingSave.layout) o.layout = pendingSave.layout
+            else o.outputs[pendingSave.output] = pendingSave.spec
+            saved = o
+            save()
+        }
+        pendingSave = null
+        revertCode = ""
+        countdown = 0
+        tick.stop()
+    }
     function revert() {
-        if (revertSpec) run(lua(revertSpec))
-        keep()
+        if (revertCode !== "") run(revertCode)
+        if (pendingSave && pendingSave.layout) layout = saved.layout
+        pendingSave = null
+        revertCode = ""
+        countdown = 0
+        tick.stop()
+    }
+    function save() {
+        jsonFile.setText(JSON.stringify(saved, null, 2) + "\n")
+        var lines = []
+        for (var n in saved.outputs) lines.push("        [" + q(n) + "] = " + luaSpec(saved.outputs[n]) + ",")
+        luaFile.setText("-- generated by aurora's settings app (SetDisplay.qml); edit there, not here\n"
+            + "return {\n    layout = " + q(saved.layout) + ",\n    outputs = {\n" + lines.join("\n")
+            + (lines.length ? "\n" : "") + "    },\n}\n")
     }
     function run(code) {
         evalProc.command = ["hyprctl", "eval", code]
         evalProc.running = true
-    }
-    function enabledCount() {
-        var n = 0
-        for (var i = 0; i < monitors.length; i++) if (!monitors[i].disabled) n++
-        return n
     }
 
     Timer {
@@ -85,19 +114,27 @@ Flickable {
             }
         }
     }
-    Timer { id: refreshLater; interval: 600; onTriggered: flick.refresh() }
+    Timer { id: refreshLater; interval: 800; onTriggered: flick.refresh() }
 
-    // kanshi profiles: `profile NAME {` lines
-    property var profiles: []
     FileView {
-        path: flick.kanshiFile
-        printErrors: false
+        id: jsonFile
+        path: flick.dir + "/monitors.json"
+        blockLoading: true
+        printErrors: false      // no file until the first kept change
         onLoaded: {
-            var out = [], re = /^\s*profile\s+(\S+)\s*\{/gm, mm
-            var t = text()
-            while ((mm = re.exec(t)) !== null) out.push(mm[1])
-            flick.profiles = out
+            try {
+                var j = JSON.parse(text())
+                flick.saved = { layout: j.layout || "extend", outputs: j.outputs || {} }
+            } catch (e) {}
+            flick.layout = flick.saved.layout
         }
+    }
+    FileView {                    // write-only
+        id: luaFile
+        path: flick.dir + "/monitors.lua"
+        preload: false
+        printErrors: false
+        onSaveFailed: err => flick.message = "could not write monitors.lua (error " + err + ")"
     }
 
     ColumnLayout {
@@ -137,6 +174,23 @@ Flickable {
             font.pixelSize: Theme.fontSize - 1
         }
 
+        SectionLabel { text: "layout" }
+        Choice {
+            label: "screens"
+            options: [{ value: "extend", label: "extend" }, { value: "laptop", label: "laptop only" },
+                      { value: "external", label: "external only" }]
+            value: flick.layout
+            onPicked: x => flick.setLayout(x)
+        }
+        Text {
+            Layout.fillWidth: true
+            text: "applies whenever a monitor is plugged in. external only turns the laptop panel back on when the last external screen is unplugged."
+            color: Theme.dim
+            wrapMode: Text.WordWrap
+            font.family: Theme.font
+            font.pixelSize: Theme.fontSize - 1
+        }
+
         Repeater {
             model: flick.monitors
             delegate: ColumnLayout {
@@ -157,15 +211,6 @@ Flickable {
                     elide: Text.ElideRight
                     font.family: Theme.font
                     font.pixelSize: Theme.fontSize - 1
-                }
-                Switch {
-                    label: "enabled"
-                    hint: !mon.m.disabled && flick.enabledCount() <= 1 ? "the only active monitor can't be turned off" : ""
-                    checked: !mon.m.disabled
-                    onToggled: on => {
-                        if (!on && flick.enabledCount() <= 1) return
-                        flick.apply(mon.m, { disabled: !on })
-                    }
                 }
                 Text {
                     visible: !mon.m.disabled
@@ -209,39 +254,6 @@ Flickable {
                         else flick.message = "position must look like 1920x0"
                     }
                 }
-            }
-        }
-
-        SectionLabel { text: "profiles (kanshi)" }
-        Text {
-            Layout.fillWidth: true
-            text: "changes above are temporary: kanshi re-applies its profile when monitors are plugged in."
-            color: Theme.dim
-            wrapMode: Text.WordWrap
-            font.family: Theme.font
-            font.pixelSize: Theme.fontSize - 1
-        }
-        Flow {
-            Layout.fillWidth: true
-            spacing: 4
-            Repeater {
-                model: flick.profiles
-                delegate: IconBtn {
-                    required property string modelData
-                    implicitHeight: 26
-                    icon: Theme.iMonitor
-                    label: modelData
-                    onClicked: {
-                        Quickshell.execDetached(["kanshictl", "switch", modelData])
-                        refreshLater.restart()
-                    }
-                }
-            }
-            IconBtn {
-                implicitHeight: 26
-                icon: Theme.iConsole
-                label: "edit config"
-                onClicked: Quickshell.execDetached(["sh", "-c", 'exec foot -e "${EDITOR:-nvim}" "$1"', "sh", flick.kanshiFile])
             }
         }
 
