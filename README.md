@@ -1,9 +1,44 @@
 # Dotfiles
 
-![Fullscreen](assets/fullscreen.png)
+![aurora desktop](assets/aurora-desktop.webp)
 
 My desktop: **Arch Linux + Hyprland** (Lua config) + **aurora**, a custom Quickshell shell (bar, panel,
 notifications, OSD, dock), themed live from the wallpaper with **pywal16** and deployed with **GNU stow**.
+
+## aurora
+One shell instead of waybar, dunst, wlogout, fuzzel and a pile of scripts. Everything below is themed from the
+current wallpaper.
+
+<table>
+  <tr>
+    <td width="50%"><img src="assets/aurora-panel.webp" alt="control panel"><br>
+      <sub><b>Control panel</b> · media, volume/mic/brightness, quick toggles, capture, session</sub></td>
+    <td width="50%"><img src="assets/aurora-panel-sys.webp" alt="system tab"><br>
+      <sub><b>System</b> · cpu, memory, disks, battery, power profile, GPU mode (envycontrol)</sub></td>
+  </tr>
+  <tr>
+    <td><img src="assets/aurora-runner.webp" alt="runner"><br>
+      <sub><b>Runner</b> (<kbd>Super</kbd>+<kbd>R</kbd>) · apps, scripts, calc, shell; also a dmenu for scripts</sub></td>
+    <td><img src="assets/aurora-wallpicker.webp" alt="wallpaper picker"><br>
+      <sub><b>Wallpaper picker</b> · folders, search, re-themes everything through pywal16</sub></td>
+  </tr>
+  <tr>
+    <td><img src="assets/aurora-chars.webp" alt="glyph picker"><br>
+      <sub><b>Glyph picker</b> (<kbd>Super</kbd>+<kbd>`</kbd>) · emoji, nerd icons, symbols, kaomoji, fancy text</sub></td>
+    <td><img src="assets/aurora-power.webp" alt="power menu"><br>
+      <sub><b>Power menu</b> (<kbd>Super</kbd>+<kbd>Esc</kbd>) · lock, logout, suspend, reboot, ...</sub></td>
+  </tr>
+  <tr>
+    <td><img src="assets/aurora-cal.webp" alt="calendar"><br>
+      <sub><b>Calendar</b> · from the clock in the bar</sub></td>
+    <td><img src="assets/aurora-settings.webp" alt="settings app"><br>
+      <sub><b>Settings</b> (<kbd>Super</kbd>+<kbd>I</kbd>) · network, sound, appearance, Hyprland, keybinds, display, power</sub></td>
+  </tr>
+  <tr>
+    <td colspan="2"><img src="assets/aurora-overview.webp" alt="overview"><br>
+      <sub><b>Overview</b> · live previews of every workspace and window, click to jump</sub></td>
+  </tr>
+</table>
 
 > [!WARNING]
 > **This is my personal setup, not a general purpose dotfiles framework.**
