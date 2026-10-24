@@ -136,7 +136,7 @@ PanelWindow {
             BarPill {
                 icon: Net.wired && !(Net.wifiEnabled && Net.connected !== "") ? Net.wiredIcon
                       : (Net.wifiEnabled ? Theme.wifiIcon(Net.connected !== "" ? Net.activeSignal : 0) : Theme.iWifiOff)
-                tint: (Net.wired || (Net.wifiEnabled && Net.connected !== "")) ? Theme.fg : Theme.dim
+                tint: Net.portal ? Theme.err : ((Net.wired || (Net.wifiEnabled && Net.connected !== "")) ? Theme.fg : Theme.dim)
                 onActivated: bar.togglePanel("net", bar.modelData)
             }
 

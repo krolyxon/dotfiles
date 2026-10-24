@@ -46,6 +46,9 @@ Flickable {
         SectionLabel { text: "on-screen display" }
         Knob { label: "osd timeout"; unit: "ms"; from: 500; to: 4000; value: Settings.osdTimeout; onMoved: v => Settings.osdTimeout = Math.round(v / 100) * 100 }
 
+        SectionLabel { text: "network" }
+        Switch { label: "captive portals"; hint: "open the login page in the browser when a network needs one"; checked: Settings.portalAutoOpen; onToggled: on => Settings.portalAutoOpen = on }
+
         SectionLabel { text: "notifications" }
         Switch { label: "do not disturb"; hint: "hide popups and mute the sound (critical ones still show)"; checked: Notifs.dnd; onToggled: on => Notifs.dnd = on }
         Switch { label: "sound"; checked: Settings.notifSound; onToggled: on => Settings.notifSound = on }

@@ -141,6 +141,7 @@ Singleton {
     readonly property string iMusic: cp(0xF075A)
     readonly property string iTrash: cp(0xF01B4)
     readonly property string iCheck: cp(0xF012C)
+    readonly property string iLogin: cp(0xF0342)
     readonly property string iMouse: cp(0xF037D)
     readonly property string iKeyboard: cp(0xF030C)
     readonly property string iPhone: cp(0xF011C)

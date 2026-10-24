@@ -210,6 +210,7 @@ ShellRoot {
         function rec(mode: string): void { root.close(); Rec.toggle(mode === "region" ? "region" : "screen") }   // screen (default) | region
         function settings(section: string): void { root.settings(section) }   // "" = toggle
         function caffeine(): void { Toggles.caffeine = !Toggles.caffeine }
+        function portal(): void { Net.signIn() }   // open the captive portal login page (or say we're online)
         function bright(dir: string): void { Bright.step(dir === "down" ? -1 : 1) }   // up | down
     }
 }

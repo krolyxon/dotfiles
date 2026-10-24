@@ -33,6 +33,79 @@ Singleton {
         return ""
     }
 
+    // ---- captive portal ----------------------------------------------
+    // NetworkManager's connectivity check (`nmcli monitor`) says *that* there is a portal; a curl probe
+    // finds *where* (the redirect). Opening the real URL matters: librewolf's HTTPS-only mode upgrades a
+    // plain http:// test page, so the portal never gets to intercept it.
+    readonly property string probeUrl: "http://connectivitycheck.gstatic.com/generate_204"
+    property string connectivity: "unknown"   // none | portal | limited | full | unknown
+    property bool portalProbed: false          // the probe got hijacked (also catches portals NM calls "limited")
+    property string portalUrl: ""
+    property string portalSeen: ""             // connection we already opened/notified for (once per connection)
+    property bool probeManual: false           // signIn() asked: report "already online" too
+    readonly property bool portal: connectivity === "portal" || portalProbed
+    readonly property string portalNet: connected !== "" ? connected : (wiredDevs.length > 0 ? wiredDevs[0].name : "")
+
+    onPortalNetChanged: if (portalNet !== "") checkNow()
+
+    function checkNow() { if (!checkProc.running) checkProc.running = true }
+
+    function gotConnectivity(s) {
+        if (s === "") return
+        var changed = s !== connectivity
+        connectivity = s
+        if (s === "portal" || s === "limited") {
+            if (changed || (portalNet !== "" && portalSeen !== portalNet)) probe(false)
+        } else {
+            if (s === "full" && portalUrl !== "")
+                Quickshell.execDetached(["notify-send", "-a", "aurora", "-i", "network-wireless", "online",
+                                         (portalNet !== "" ? portalNet + ": " : "") + "signed in"])
+            portalProbed = false
+            portalUrl = ""
+            portalSeen = ""         // next portal (even on the same network) opens again
+        }
+    }
+
+    function probe(manual) {
+        if (manual) probeManual = true
+        if (!probeProc.running) probeProc.running = true
+    }
+
+    function gotProbe(text) {
+        var m = /^(\d+) ?(.*)$/.exec(text.trim()), code = m ? m[1] : "000", url = m ? m[2] : ""
+        var manual = probeManual
+        probeManual = false
+        if (code === "204") {
+            portalProbed = false
+            if (connectivity !== "full") checkNow()
+            if (manual) Quickshell.execDetached(["notify-send", "-a", "aurora", "-i", "network-wireless", "already online", "no captive portal"])
+            return
+        }
+        if (code === "000") {
+            if (manual) Quickshell.execDetached(["notify-send", "-a", "aurora", "-i", "network-error", "no connection", "couldn't reach the network"])
+            return
+        }
+        portalProbed = true
+        portalUrl = url !== "" ? url : probeUrl     // 200 without a redirect: let the portal hijack the test page
+        if (manual) { openPortal(); return }
+        if (portalSeen === portalNet) return
+        portalSeen = portalNet
+        if (Settings.portalAutoOpen) openPortal()
+        Quickshell.execDetached(["notify-send", "-a", "aurora", "-i", "network-wireless-acquiring",
+                                 "sign in to " + (portalNet !== "" ? portalNet : "network"), portalUrl])
+    }
+
+    function openPortal() {
+        Quickshell.execDetached(["sh", "-c", 'exec ${BROWSER:-xdg-open} "$1"', "sh",
+                                 portalUrl !== "" ? portalUrl : probeUrl])
+    }
+
+    // manual "sign in" (IPC): open the portal if there is one, else say why not
+    function signIn() {
+        if (portal && portalUrl !== "") openPortal()
+        else probe(true)
+    }
+
     onActiveChanged: if (active) { askFor = ""; message = ""; rescan() }
 
     // nmcli -t output: ':' separates fields, '\:' and '\\' are escapes
@@ -97,6 +170,7 @@ Singleton {
         devProc.running = true
         savedProc.running = true
         listProc.running = true
+        connProc.running = true
     }
 
     function rescan() {
@@ -127,6 +201,7 @@ Singleton {
         } else {
             message = ""
             askFor = ""
+            checkNow()      // NM checks on activation too; this just makes the portal pop up sooner
         }
         lastWasNew = false
         refresh()
@@ -166,6 +241,47 @@ Singleton {
         repeat: true
         triggeredOnStart: true
         onTriggered: root.refresh()
+    }
+
+    // connectivity events; restarted if nmcli exits (NM restart)
+    Process {
+        id: monitorProc
+        running: true
+        command: ["nmcli", "monitor"]
+        stdout: SplitParser {
+            onRead: line => {
+                var m = /Connectivity is now '(\w+)'/.exec(line)
+                if (m) root.gotConnectivity(m[1])
+            }
+        }
+        onExited: monitorRestart.start()
+    }
+    Timer { id: monitorRestart; interval: 5000; onTriggered: monitorProc.running = true }
+
+    // NM only re-checks every 300s: poll while stuck behind a portal so "signed in" shows up quickly
+    Timer {
+        interval: 5000
+        running: root.portal
+        repeat: true
+        onTriggered: root.checkNow()
+    }
+
+    Process {
+        id: connProc
+        command: ["nmcli", "-t", "-f", "CONNECTIVITY", "general"]
+        stdout: StdioCollector { onStreamFinished: root.gotConnectivity(text.trim()) }
+    }
+
+    Process {
+        id: checkProc
+        command: ["nmcli", "networking", "connectivity", "check"]
+        stdout: StdioCollector { onStreamFinished: root.gotConnectivity(text.trim()) }
+    }
+
+    Process {
+        id: probeProc
+        command: ["curl", "-s", "-o", "/dev/null", "--max-time", "5", "-w", "%{http_code} %{redirect_url}", root.probeUrl]
+        stdout: StdioCollector { onStreamFinished: root.gotProbe(text) }
     }
 
     Process {

@@ -22,9 +22,16 @@ ColumnLayout {
                 required property var modelData
                 icon: modelData.usb ? Theme.iPhone : Theme.iEthernet
                 title: modelData.name
-                subtitle: modelData.dev + (modelData.ip !== "" ? "  ·  " + modelData.ip : "")
+                subtitle: Net.portal && Net.portalNet === modelData.name ? "sign in required"
+                          : modelData.dev + (modelData.ip !== "" ? "  ·  " + modelData.ip : "")
                 trailing: modelData.usb ? "usb" : ""
                 current: true
+                IconBtn {
+                    visible: Net.portal && Net.portalNet === modelData.name
+                    icon: Theme.iLogin
+                    height: 26
+                    onClicked: Net.openPortal()
+                }
                 IconBtn {
                     icon: Theme.iClose
                     height: 26
@@ -93,15 +100,24 @@ ColumnLayout {
                     spacing: 0
 
                     ListRow {
+                        id: row
                         icon: Theme.wifiIcon(item.modelData.signal)
                         title: item.modelData.ssid
-                        subtitle: item.modelData.inUse ? "connected"
+                        readonly property bool portal: item.modelData.inUse && Net.portal && Net.portalNet === item.modelData.ssid
+                        subtitle: portal ? "sign in required"
+                                  : item.modelData.inUse ? "connected"
                                   : (item.modelData.saved ? "saved"
                                   : (item.modelData.security === "" ? "open" : item.modelData.security))
                         trailing: item.modelData.signal + "%"
                         current: item.modelData.inUse
                         onClicked: Net.connectTo(item.modelData)
 
+                        IconBtn {
+                            visible: row.portal
+                            icon: Theme.iLogin
+                            height: 26
+                            onClicked: Net.openPortal()
+                        }
                         IconBtn {
                             visible: item.modelData.inUse
                             icon: Theme.iClose
