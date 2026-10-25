@@ -22,6 +22,13 @@ hl.permission({
     mode = "allow",
 })
 
+-- aurora (overview window previews use ScreencopyView)
+hl.permission({
+    binary = "/usr/(bin|local/bin)/quickshell",
+    type = "screencopy",
+    mode = "allow",
+})
+
 hl.permission({
     binary = "/usr/(lib|libexec|lib64)/xdg-desktop-portal-hyprland",
     type = "screencopy",
