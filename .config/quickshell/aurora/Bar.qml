@@ -128,17 +128,6 @@ PanelWindow {
                 underline: Theme.err
             }
 
-            BarPill {   // left click: list in the sys tab, right click: upgrade in foot
-                visible: bar.monFocused && Settings.updatesPill && Updates.count > 0
-                icon: Theme.iUpdate
-                text: String(Updates.count)
-                tint: Updates.upgrading ? Theme.dim : Theme.fg
-                onActivated: button => {
-                    if (button === Qt.RightButton) Updates.upgrade()
-                    else bar.togglePanel("sys", bar.modelData)
-                }
-            }
-
             BarPill {
                 visible: Toggles.caffeine || Toggles.airplane
                 icon: (Toggles.caffeine ? Theme.iCoffee : "") + (Toggles.caffeine && Toggles.airplane ? " " : "")
