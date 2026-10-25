@@ -24,6 +24,8 @@ wl-clipboard
 cliphist
 playerctl
 gnome-keyring
+libnotify
+python-gobject
 
 # Audio
 pipewire

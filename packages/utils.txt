@@ -79,7 +79,6 @@ qpdf
 # Desktop bits
 alacritty
 gammastep
-libnotify
 wtype
 nwg-look
 fastfetch
@@ -92,7 +91,6 @@ cmake
 meson
 lua
 bc
-python-gobject
 gobject-introspection
 python-pip
 python-virtualenv

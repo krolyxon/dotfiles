@@ -148,6 +148,9 @@ ShellRoot {
         onCloseRequested: root.closeOverlay()
     }
 
+    // polkit password prompt (Agents), on the focused monitor
+    AuthPrompt { screen: root.focusedScr }
+
     PowerMenu {
         screen: root.overlayScreen
         opened: root.overlay === "power"
