@@ -13,7 +13,7 @@ Flickable {
     function size(v) { return v >= 1000 ? (v / 1024).toFixed(1) + "T" : (v >= 100 ? Math.round(v) : v.toFixed(1)) + "G" }
 
     // pick up drives plugged in since the last poll
-    onVisibleChanged: if (visible) SysStats.refreshDisks()
+    onVisibleChanged: if (visible) { SysStats.refreshDisks(); Updates.check(false) }
 
     ColumnLayout {
         id: col
@@ -77,6 +77,50 @@ Flickable {
                     onClicked: Devices.eject(dr.modelData.key)
                 }
             }
+        }
+
+        // pending pacman + AUR updates (Updates)
+        SectionLabel { text: "updates"; Layout.topMargin: 6; visible: Updates.available }
+        RowLayout {
+            visible: Updates.available
+            Layout.fillWidth: true
+            spacing: 6
+            Text {
+                Layout.fillWidth: true
+                text: Updates.checking ? "checking..."
+                      : Updates.error !== "" ? Updates.error
+                      : (Updates.count === 0 ? "up to date" : Updates.repo + " repo, " + Updates.aur + " aur")
+                        + (Updates.lastCheck.getTime() > 0 ? "  ·  " + Qt.formatDateTime(Updates.lastCheck, "HH:mm") : "")
+                color: Updates.error !== "" ? Theme.err : Theme.fg
+                font.family: Theme.font
+                font.pixelSize: Theme.fontSize
+                elide: Text.ElideRight
+            }
+            IconBtn { icon: Theme.iRefresh; label: "check"; onClicked: Updates.check(true) }
+            IconBtn {
+                visible: Updates.count > 0
+                icon: Theme.iUpdate
+                label: Updates.upgrading ? "running" : "upgrade"
+                active: Updates.upgrading
+                onClicked: Updates.upgrade()
+            }
+        }
+        Repeater {
+            model: Updates.available ? Updates.list.slice(0, 6) : []
+            delegate: ListRow {
+                required property var modelData
+                icon: Theme.iUpdate
+                title: modelData.name
+                subtitle: modelData.from + " → " + modelData.to
+                trailing: modelData.aur ? "aur" : ""
+            }
+        }
+        Text {
+            visible: Updates.available && Updates.list.length > 6
+            text: "+ " + (Updates.list.length - 6) + " more"
+            color: Theme.dim
+            font.family: Theme.font
+            font.pixelSize: Theme.fontSize - 2
         }
 
         BatteryInfo { Layout.topMargin: 6 }

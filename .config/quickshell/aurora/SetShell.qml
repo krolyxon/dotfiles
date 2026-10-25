@@ -49,7 +49,9 @@ Flickable {
         SectionLabel { text: "network" }
         Switch { label: "captive portals"; hint: "open the login page in the browser when a network needs one"; checked: Settings.portalAutoOpen; onToggled: on => Settings.portalAutoOpen = on }
 
+        SectionLabel { text: "bar" }
         Switch { label: "privacy indicators"; hint: "show in the bar when an app records the mic, uses the camera or shares the screen"; checked: Settings.privacyIndicators; onToggled: on => Settings.privacyIndicators = on }
+        Switch { label: "pending updates"; hint: "show the pacman + AUR update count in the bar"; checked: Settings.updatesPill; onToggled: on => Settings.updatesPill = on }
 
         SectionLabel { text: "notifications" }
         Switch { label: "do not disturb"; hint: "hide popups and mute the sound (critical ones still show)"; checked: Notifs.dnd; onToggled: on => Notifs.dnd = on }

@@ -173,6 +173,7 @@ Singleton {
     readonly property string iDisk: cp(0xF02CA)
     readonly property string iUsb: cp(0xF129B)
     readonly property string iEject: cp(0xF01EA)
+    readonly property string iUpdate: cp(0xF03D5)   // package up
     readonly property string iFolderOpen: cp(0xF0770)
     readonly property string iGpu: cp(0xF08AE)
     readonly property string iLeaf: cp(0xF032A)

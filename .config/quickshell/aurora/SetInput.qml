@@ -57,6 +57,10 @@ Flickable {
         Switch { label: "disable while typing"; checked: flick.v("input:touchpad:disable_while_typing", false); onToggled: on => HyprConf.set("input:touchpad:disable_while_typing", on) }
         Knob { label: "scroll speed"; from: 0.1; to: 3; decimals: 2; value: flick.v("input:touchpad:scroll_factor", 1); onMoved: x => HyprConf.set("input:touchpad:scroll_factor", x) }
 
+        SectionLabel { text: "gestures" }
+        Switch { label: "invert swipe"; hint: "reverse the 3-finger workspace swipe"; checked: flick.v("gestures:workspace_swipe_invert", true); onToggled: on => HyprConf.set("gestures:workspace_swipe_invert", on) }
+        Knob { label: "swipe distance"; unit: "px"; from: 100; to: 1000; value: flick.v("gestures:workspace_swipe_distance", 300); onMoved: x => HyprConf.set("gestures:workspace_swipe_distance", Math.round(x / 10) * 10) }
+
         SectionLabel { text: "cursor" }
         Knob { label: "hide when idle"; unit: "s"; from: 0; to: 30; value: flick.v("cursor:inactive_timeout", 0); onMoved: x => HyprConf.set("cursor:inactive_timeout", x) }
         Switch { label: "hide while typing"; checked: flick.v("cursor:hide_on_key_press", false); onToggled: on => HyprConf.set("cursor:hide_on_key_press", on) }
@@ -72,7 +76,7 @@ Flickable {
                 font.family: Theme.font
                 font.pixelSize: Theme.fontSize - 2
             }
-            IconBtn { icon: Theme.iRefresh; label: "reset to config"; onClicked: HyprConf.resetAll(["input:", "cursor:"]) }
+            IconBtn { icon: Theme.iRefresh; label: "reset to config"; onClicked: HyprConf.resetAll(["input:", "cursor:", "gestures:"]) }
         }
     }
 }

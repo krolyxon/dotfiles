@@ -31,6 +31,7 @@ Singleton {
         "input:left_handed": "bool",
         "input:touchpad:natural_scroll": "bool", "input:touchpad:tap_to_click": "bool",
         "input:touchpad:disable_while_typing": "bool", "input:touchpad:scroll_factor": "float",
+        "gestures:workspace_swipe_invert": "bool", "gestures:workspace_swipe_distance": "int",
         "cursor:inactive_timeout": "int", "cursor:hide_on_key_press": "bool"
     })
 

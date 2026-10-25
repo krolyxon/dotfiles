@@ -219,5 +219,6 @@ ShellRoot {
         function caffeine(): void { Toggles.caffeine = !Toggles.caffeine }
         function portal(): void { Net.signIn() }   // open the captive portal login page (or say we're online)
         function bright(dir: string): void { Bright.step(dir === "down" ? -1 : 1) }   // up | down
+        function updates(): void { Updates.finished() }   // re-check pending updates (the upgrade terminal calls it)
     }
 }
