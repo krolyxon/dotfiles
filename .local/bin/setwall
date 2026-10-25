@@ -1,6 +1,6 @@
 #!/bin/sh
 # Set the wallpaper through aurora. aurora owns the wallpaper: it writes hyprpaper.conf,
-# switches hyprpaper live and runs pywal. This is just the CLI front-end for its IPC.
+# switches hyprpaper live and runs matugen (UI colours) + pywal (terminal colours). This is just the CLI front-end for its IPC.
 #
 #   setwall              random wallpaper from the folder selected in aurora's picker
 #   setwall -m           open (toggle) aurora's wallpaper picker

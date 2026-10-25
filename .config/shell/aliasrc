@@ -29,6 +29,7 @@ alias \
 alias on="tmux new-session -s notes -c ~/dox/brain 'nvim .'"
 alias todo="nvim ~/dox/brain/Todo.md"
 alias dots="cd ~/.dotfiles/"
+alias cava="cava -p ~/.cache/matugen/cava"   # colours from matugen
 
 # Colorize commands when possible.
 alias \

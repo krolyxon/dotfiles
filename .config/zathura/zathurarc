@@ -1,4 +1,4 @@
-include ../../.cache/wal/colors-zathura
+include ../../.cache/matugen/colors-zathura
 
 set sandbox none
 set statusbar-h-padding 0
