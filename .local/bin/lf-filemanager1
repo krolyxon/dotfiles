@@ -1,0 +1,57 @@
+#!/usr/bin/env python3
+# org.freedesktop.FileManager1 for lf: browsers' "Show in Folder", Electron apps, portals... call
+# ShowItems/ShowFolders over D-Bus. Each opens lf in foot (a file = its folder with the file selected).
+# D-Bus activated via ~/.local/share/dbus-1/services/org.freedesktop.FileManager1.service.
+import os
+import subprocess
+from urllib.parse import unquote, urlparse
+
+from gi.repository import Gio, GLib
+
+XML = """
+<node>
+  <interface name="org.freedesktop.FileManager1">
+    <method name="ShowFolders"><arg type="as" name="URIs" direction="in"/><arg type="s" name="StartupId" direction="in"/></method>
+    <method name="ShowItems"><arg type="as" name="URIs" direction="in"/><arg type="s" name="StartupId" direction="in"/></method>
+    <method name="ShowItemProperties"><arg type="as" name="URIs" direction="in"/><arg type="s" name="StartupId" direction="in"/></method>
+  </interface>
+</node>
+"""
+
+
+def path_of(uri):
+    if uri.startswith("file://"):
+        return unquote(urlparse(uri).path)
+    return uri if uri.startswith("/") else None
+
+
+def lf(path):
+    subprocess.Popen(["foot", "-e", "lf", path], start_new_session=True,
+                     stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
+def call(conn, sender, obj, iface, method, params, inv):
+    uris, _startup = params.unpack()
+    # one window per folder: ShowItems of several files in the same folder opens it once
+    seen = set()
+    for uri in uris:
+        p = path_of(uri)
+        if not p or not os.path.exists(p):
+            continue
+        key = p if method == "ShowFolders" else os.path.dirname(p)
+        if key in seen:
+            continue
+        seen.add(key)
+        lf(p)
+    inv.return_value(None)
+
+
+def acquired(conn, name):
+    node = Gio.DBusNodeInfo.new_for_xml(XML)
+    conn.register_object("/org/freedesktop/FileManager1", node.interfaces[0], call, None, None)
+
+
+loop = GLib.MainLoop()
+Gio.bus_own_name(Gio.BusType.SESSION, "org.freedesktop.FileManager1", Gio.BusNameOwnerFlags.NONE,
+                 acquired, None, lambda *a: loop.quit())
+loop.run()
