@@ -16,7 +16,8 @@ Singleton {
         dock: true, dockPinned: ["foot", "librewolf", "pcmanfm", "obsidian"], wallFolder: "dusky-dark",
         notifSound: true, notifVolume: 0.7,
         idleDim: 150, idleOff: 330, idleLock: 600, idleSuspend: 0, charTone: 0, portalAutoOpen: true,
-        chargeMode: "off", batLow: 15, batCritical: 5, batCriticalAction: "none"
+        chargeMode: "off", batLow: 15, batCritical: 5, batCriticalAction: "none",
+        privacyIndicators: true
     })
 
     property alias fontSize: a.fontSize
@@ -44,6 +45,7 @@ Singleton {
     property alias batLow: a.batLow
     property alias batCritical: a.batCritical
     property alias batCriticalAction: a.batCriticalAction
+    property alias privacyIndicators: a.privacyIndicators
 
     function reset() {
         for (var k in defaults) a[k] = defaults[k]
@@ -93,6 +95,7 @@ Singleton {
             property int batLow: 15            // low battery warning, %
             property int batCritical: 5
             property string batCriticalAction: "none"   // none | suspend | poweroff
+            property bool privacyIndicators: true       // mic/camera/screen-share icons in the bar (Privacy.qml)
         }
     }
     // first run: create the file once the directory exists

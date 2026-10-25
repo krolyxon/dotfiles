@@ -104,6 +104,30 @@ PanelWindow {
                 onActivated: Rec.stop()
             }
 
+            // privacy: global, so only on the focused monitor's bar. Click the mic one to mute the mic.
+            BarPill {
+                visible: bar.monFocused && Privacy.mic
+                icon: bar.mic && bar.mic.muted ? Theme.iMicOff : Theme.iMic
+                text: Privacy.micApps.join(", ")
+                tint: bar.mic && bar.mic.muted ? Theme.dim : Theme.err
+                underline: Theme.err
+                onActivated: if (bar.mic) bar.mic.muted = !bar.mic.muted
+            }
+            BarPill {
+                visible: bar.monFocused && Privacy.cam
+                icon: Theme.iWebcam
+                text: Privacy.camApps.join(", ")
+                tint: Theme.err
+                underline: Theme.err
+            }
+            BarPill {
+                visible: bar.monFocused && Privacy.screen
+                icon: Theme.iCast
+                text: Privacy.shareApps.join(", ")
+                tint: Theme.err
+                underline: Theme.err
+            }
+
             BarPill {
                 visible: Toggles.caffeine || Toggles.airplane
                 icon: (Toggles.caffeine ? Theme.iCoffee : "") + (Toggles.caffeine && Toggles.airplane ? " " : "")

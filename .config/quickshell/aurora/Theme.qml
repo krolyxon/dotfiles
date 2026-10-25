@@ -159,6 +159,8 @@ Singleton {
 
     readonly property string iHeadset: cp(0xF02CE)
     readonly property string iCamera: cp(0xF0100)
+    readonly property string iWebcam: cp(0xF05A0)
+    readonly property string iCast: cp(0xF0118)
     readonly property string iCrop: cp(0xF019E)
     readonly property string iWindow: cp(0xF05B0)
     readonly property string iMonitor: cp(0xF0379)
