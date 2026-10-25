@@ -1,0 +1,34 @@
+# matugen: Material colours for everything that is UI. aurora (Wall.qml) runs it on every wallpaper
+# change, with the scheme type / contrast from its settings. pywal16 still runs too, only for the terminal.
+# Outputs go to ~/.cache/matugen/, like pywal's ~/.cache/wal/.
+[config]
+
+[templates.aurora]
+input_path  = '~/.config/matugen/templates/aurora.json'
+output_path = '~/.cache/matugen/aurora.json'
+
+[templates.hyprland]
+input_path  = '~/.config/matugen/templates/hyprland-colors.lua'
+output_path = '~/.cache/matugen/hyprland-colors.lua'
+post_hook   = 'hyprctl reload config-only >/dev/null 2>&1 || :'
+
+[templates.hyprlock]
+input_path  = '~/.config/matugen/templates/hyprlock.conf'
+output_path = '~/.cache/matugen/hyprlock.conf'
+
+[templates.zathura]
+input_path  = '~/.config/matugen/templates/colors-zathura'
+output_path = '~/.cache/matugen/colors-zathura'
+
+[templates.cava]
+input_path  = '~/.config/matugen/templates/cava'
+output_path = '~/.cache/matugen/cava'
+post_hook   = 'pkill -USR2 -x cava || :'
+
+[templates.gtk]
+input_path  = '~/.config/matugen/templates/gtk.css'
+output_path = '~/.cache/matugen/gtk.css'
+
+[templates.qt]
+input_path  = '~/.config/matugen/templates/qt-colors.conf'
+output_path = '~/.cache/matugen/qt-colors.conf'
