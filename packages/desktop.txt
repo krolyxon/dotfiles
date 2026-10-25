@@ -12,7 +12,7 @@ xdg-desktop-portal-hyprland
 xdg-desktop-portal-gtk
 qt6-wayland
 
-# Theming: matugen = UI colours (aurora, hypr, gtk, qt), pywal16 (aur.txt) = terminal only
+# Theming: matugen = all colours (aurora, hypr, gtk, qt, foot, ...)
 matugen
 adw-gtk-theme
 qt5ct

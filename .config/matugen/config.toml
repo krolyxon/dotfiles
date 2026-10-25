@@ -1,6 +1,5 @@
 # matugen: Material colours for everything that is UI. aurora (Wall.qml) runs it on every wallpaper
-# change, with the scheme type / contrast from its settings. pywal16 still runs too, only for the terminal.
-# Outputs go to ~/.cache/matugen/, like pywal's ~/.cache/wal/.
+# change, with the scheme type / contrast from its settings. Outputs go to ~/.cache/matugen/.
 [config]
 
 [templates.aurora]
@@ -32,3 +31,7 @@ output_path = '~/.cache/matugen/gtk.css'
 [templates.qt]
 input_path  = '~/.config/matugen/templates/qt-colors.conf'
 output_path = '~/.cache/matugen/qt-colors.conf'
+
+[templates.foot]
+input_path  = '~/.config/matugen/templates/foot.ini'
+output_path = '~/.cache/matugen/foot.ini'

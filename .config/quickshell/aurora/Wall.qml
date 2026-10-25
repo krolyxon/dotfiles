@@ -4,8 +4,8 @@ import Quickshell
 import Quickshell.Io
 
 // Wallpapers: folder listing, cached thumbnails, and applying them. aurora owns the wallpaper:
-// apply() writes hyprpaper.conf, switches hyprpaper live, runs matugen (UI colours, Theme then recolours itself)
-// and pywal16 (terminal colours only). recolor() re-runs just matugen when the scheme/contrast setting changes.
+// apply() writes hyprpaper.conf, switches hyprpaper live, runs matugen (all colours, terminal included; Theme then
+// recolours itself). recolor() re-runs just matugen when the scheme/contrast setting changes.
 // ~/.local/bin/setwall is only a CLI front-end for the IPC calls (wallrandom / wall / wallset).
 Singleton {
     id: root
@@ -48,15 +48,14 @@ Singleton {
         'printf "splash = false\\nwallpaper {\\n    monitor =\\n    path = %s\\n}\\n" "$p" > "$c"; ' +
         'if pgrep -x hyprpaper >/dev/null; then hyprctl hyprpaper wallpaper ",$p"; ' +
         'else hyprctl dispatch \'hl.dsp.exec_cmd("hyprpaper")\'; fi; ' +
-        'matugen image "$p" -m dark -t "$3" --contrast="$4" --prefer saturation -q; ' +
-        'wal -i "$p" -n -q'
+        'matugen image "$p" -m dark -t "$3" --contrast="$4" --prefer saturation -q'
     function apply(path) {
         if (!path) return
         current = path
         Quickshell.execDetached(["sh", "-c", applyJob, "sh", path, conf, Settings.matuScheme, String(Settings.matuContrast)])
     }
 
-    // matugen only (UI colours). --prefer: v4 otherwise asks on stdin when the image has several source colours.
+    // matugen only. --prefer: v4 otherwise asks on stdin when the image has several source colours.
     // With "missing", only if there is no output yet (fresh install).
     readonly property string matuJob:
         '[ "$4" = missing ] && [ -f "$HOME/.cache/matugen/aurora.json" ] && exit 0; ' +

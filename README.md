@@ -3,7 +3,7 @@
 ![aurora desktop](assets/aurora-desktop.webp)
 
 My desktop: **Arch Linux + Hyprland** (Lua config) + **aurora**, a custom Quickshell shell (bar, panel,
-notifications, OSD, dock), themed live from the wallpaper with **matugen** (pywal16 for the terminal) and deployed with **GNU stow**.
+notifications, OSD, dock), themed live from the wallpaper with **matugen** and deployed with **GNU stow**.
 
 ## aurora
 One shell instead of waybar, dunst, wlogout, fuzzel and a pile of scripts. Everything below is themed from the
@@ -57,7 +57,7 @@ You don't need the installer for that. Browse the repo and copy what you like, f
 - `.config/quickshell/aurora/`: the shell (needs Quickshell; it reads its colours from matugen's `~/.cache/matugen/aurora.json`)
 - `.config/hypr/`: Hyprland in the new Lua config format
 - `.local/bin/`: small scripts (`setwall`, `brictl`, `sysact`, `tms`, ...)
-- `.config/matugen/templates/`: matugen templates for aurora, Hyprland, hyprlock, GTK, Qt, zathura, cava
+- `.config/matugen/templates/`: matugen templates for aurora, Hyprland, hyprlock, GTK, Qt, foot, zathura, cava
 
 ## Installing (fresh Arch only)
 ```bash
@@ -99,7 +99,7 @@ The lists live in `packages/*.txt`: one package per line, `#` for comments, and 
 |---|---|
 | WM | Hyprland (Lua config), hypridle, hyprlock, hyprpaper |
 | Shell / bar | aurora (Quickshell) |
-| Theming | matugen: picking a wallpaper in aurora (or `setwall`) re-themes everything (GTK via adw-gtk3, Qt via qt6ct); accent = the wallpaper's own colour, near-black surfaces. pywal16 colours the terminal |
+| Theming | matugen: picking a wallpaper in aurora (or `setwall`) re-themes everything (GTK via adw-gtk3, Qt via qt6ct); accent = the wallpaper's own colour, near-black surfaces. The terminal (foot) too, with ANSI colours tinted toward the wallpaper |
 | Terminal / shell | foot, zsh |
 | Editor | Neovim (LazyVim) |
 | Launcher / menus | aurora's runner (`aurora-run`, also a dmenu replacement for scripts) |
