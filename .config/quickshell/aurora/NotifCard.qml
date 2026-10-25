@@ -103,7 +103,12 @@ Rectangle {
                         required property var modelData
                         label: modelData.text
                         implicitHeight: 24
-                        onClicked: { modelData.invoke(); if (card.popup) Notifs.dropPopup(card.n) }
+                        // invoke() can close the notification and destroy this card: read everything first
+                        onClicked: {
+                            var action = modelData, n = card.n, popup = card.popup
+                            action.invoke()
+                            if (popup) Notifs.dropPopup(n)
+                        }
                     }
                 }
             }
