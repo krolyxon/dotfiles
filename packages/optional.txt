@@ -9,4 +9,3 @@ torbrowser-launcher
 qbittorrent
 tailscale
 blender !
-matugen !
