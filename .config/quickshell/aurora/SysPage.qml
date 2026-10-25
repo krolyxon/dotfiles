@@ -52,15 +52,18 @@ Flickable {
             }
         }
 
-        // removable drives + phones (Devices): mount / open / eject
+        // removable drives + phones (Devices): mount / open / unmount, power-off once the disk is idle
         SectionLabel { text: "removable"; Layout.topMargin: 6; visible: Devices.drives.length + Devices.phones.length > 0 }
         Repeater {
             model: Devices.drives.concat(Devices.phones)
             delegate: ListRow {
                 id: dr
                 required property var modelData
+                required property int index
                 readonly property bool phone: modelData.uri !== undefined
                 readonly property bool mounted: phone ? modelData.mounted : modelData.mount !== ""
+                // first row of its disk carries the power-off button
+                readonly property bool firstOfDisk: !phone && (index === 0 || Devices.drives[index - 1].disk !== modelData.disk)
                 icon: phone ? Theme.iPhone : (modelData.locked ? Theme.iLock : Theme.iUsb)
                 title: phone ? modelData.name : Devices.title(modelData)
                 subtitle: phone ? (mounted ? modelData.path : "not mounted")
@@ -73,8 +76,13 @@ Flickable {
                 }
                 IconBtn {
                     icon: Theme.iEject
-                    visible: dr.mounted || !dr.phone
+                    visible: dr.mounted || (!dr.phone && dr.modelData.luksParent !== "")
                     onClicked: Devices.eject(dr.modelData.key)
+                }
+                IconBtn {
+                    icon: Theme.iPower
+                    visible: dr.firstOfDisk && !Devices.diskBusy(dr.modelData.disk)
+                    onClicked: Devices.powerOff(dr.modelData.disk)
                 }
             }
         }

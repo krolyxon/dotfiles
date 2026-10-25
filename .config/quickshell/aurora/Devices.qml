@@ -35,24 +35,32 @@ Singleton {
         return false
     }
     function xdgOpen(path) { Quickshell.execDetached(["xdg-open", path]) }
-    // unmount every filesystem of the disk, lock its LUKS containers, power it off
+    // unmount this filesystem and lock its LUKS container; the disk stays powered, so it can be mounted again
     function eject(key) {
         if (key.indexOf("mtp://") === 0) {
             run(["gio", "mount", "-u", key], "phone unmounted, safe to unplug", null)
             return
         }
-        var disk = "", steps = []
-        for (var i = 0; i < drives.length; i++) if (drives[i].key === key) disk = drives[i].disk
-        if (disk === "") return
-        for (i = 0; i < drives.length; i++) {
-            var d = drives[i]
-            if (d.disk !== disk) continue
-            if (d.mount !== "") steps.push("u:" + d.dev)
-            if (d.luksParent !== "") steps.push("l:" + d.luksParent)
-        }
-        steps.push((disk.indexOf("/dev/loop") === 0 ? "d:" : "p:") + disk)   // an image: detach it
+        var d = null, steps = []
+        for (var i = 0; i < drives.length; i++) if (drives[i].key === key) d = drives[i]
+        if (!d) return
+        if (d.mount !== "") steps.push("u:" + d.dev)
+        if (d.luksParent !== "") steps.push("l:" + d.luksParent)
+        if (steps.length === 0) return
         run(["sh", "-c", 'for a; do case $a in u:*) udisksctl unmount -b "${a#u:}" ;; l:*) udisksctl lock -b "${a#l:}" ;;'
-             + ' p:*) udisksctl power-off -b "${a#p:}" ;; d:*) udisksctl loop-delete -b "${a#d:}" ;; esac >/dev/null || exit; done', "sh"].concat(steps),
+             + ' esac >/dev/null || exit; done', "sh"].concat(steps),
+            title(d) + (d.luksParent !== "" ? " locked" : " unmounted"), null)
+    }
+    // anything on the disk still mounted or unlocked
+    function diskBusy(disk) {
+        for (var i = 0; i < drives.length; i++)
+            if (drives[i].disk === disk && (drives[i].mount !== "" || drives[i].luksParent !== "")) return true
+        return false
+    }
+    // power the disk off (an image: detach it). It disappears until replugged.
+    function powerOff(disk) {
+        if (diskBusy(disk)) return
+        run(["udisksctl", disk.indexOf("/dev/loop") === 0 ? "loop-delete" : "power-off", "-b", disk],
             "safe to unplug " + disk, null)
     }
 
