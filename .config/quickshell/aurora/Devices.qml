@@ -26,9 +26,10 @@ Singleton {
     function mount(key, thenOpen) {
         run(["mounter", key], "", () => { if (thenOpen) openLater.key = key })
     }
+    // a LUKS key (/dev/sda2) also matches its unlocked mapper, whose row replaces it after mounting
     function open(key) {
         for (var i = 0; i < drives.length; i++)
-            if (drives[i].key === key && drives[i].mount !== "") { xdgOpen(drives[i].mount); return true }
+            if ((drives[i].key === key || drives[i].luksParent === key) && drives[i].mount !== "") { xdgOpen(drives[i].mount); return true }
         for (i = 0; i < phones.length; i++)
             if (phones[i].key === key && phones[i].mounted) { xdgOpen(phones[i].path); return true }
         return false
