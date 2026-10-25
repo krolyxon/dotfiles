@@ -37,6 +37,7 @@ evtest
 cryptsetup
 lvm2
 gparted
+xorg-xhost # gparted runs as root on Xwayland; its launcher grants root access with xhost
 man-db
 pacman-contrib
 reflector
