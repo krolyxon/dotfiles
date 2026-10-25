@@ -195,8 +195,9 @@ Singleton {
         var out = lines.join(" ").trim()
         if (rc !== 0) {
             message = out
-            // a failed first-time connect leaves a broken profile behind; drop it
-            if (lastWasNew && lastSsid !== "")
+            // a failed first-time connect (wrong password: rc 4) leaves a broken profile behind; drop it.
+            // Not on a timeout (rc 3): NM is still activating (slow campus DHCP) and deleting would abort it.
+            if (rc === 4 && lastWasNew && lastSsid !== "")
                 Quickshell.execDetached(["nmcli", "connection", "delete", "id", lastSsid])
         } else {
             message = ""
@@ -222,7 +223,7 @@ Singleton {
             run(["connection", "up", "id", ssid])
         } else {
             lastWasNew = !isSaved
-            var cmd = ["--wait", "20", "device", "wifi", "connect", ssid]
+            var cmd = ["--wait", "60", "device", "wifi", "connect", ssid]
             if (password) cmd = cmd.concat(["password", password])
             run(cmd)
         }
@@ -322,9 +323,12 @@ Singleton {
         }
     }
 
+    // --rescan no: a plain `wifi list` starts a full scan when the last one is >30s old, i.e. on every
+    // poll. Constant scans make the card roam (5 GHz -> weak 2.4 GHz), which drops the DHCP lease
+    // behind captive portals. Scans only come from rescan() (Net tab opened / button) and NM itself.
     Process {
         id: listProc
-        command: ["nmcli", "-t", "-f", "IN-USE,SSID,SIGNAL,SECURITY", "device", "wifi", "list"]
+        command: ["nmcli", "-t", "-f", "IN-USE,SSID,SIGNAL,SECURITY", "device", "wifi", "list", "--rescan", "no"]
         stdout: StdioCollector {
             onStreamFinished: {
                 var best = {}, lines = text.split("\n")
