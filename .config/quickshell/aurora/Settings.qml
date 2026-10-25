@@ -11,7 +11,7 @@ Singleton {
 
     // defaults live here; reset() puts them back
     readonly property var defaults: ({
-        fontSize: 12, wsFontSize: 11, barHeight: 22, barAlpha: 1.0, panelAlpha: 0.88, matuScheme: "scheme-tonal-spot", matuContrast: 0.0,
+        fontSize: 12, wsFontSize: 11, barHeight: 22, barAlpha: 1.0, panelAlpha: 0.88, matuScheme: "scheme-content", matuContrast: 0.0,
         osdTimeout: 1500, desktopClock: true, desktopViz: true, vizBars: 64,
         dock: true, dockPinned: ["foot", "librewolf", "pcmanfm", "obsidian"], wallFolder: "dusky-dark",
         notifSound: true, notifVolume: 0.7,
@@ -76,7 +76,7 @@ Singleton {
             property int barHeight: 22
             property real barAlpha: 1.0
             property real panelAlpha: 0.88
-            property string matuScheme: "scheme-tonal-spot"   // matugen -t (Wall.qml), accent = its primary
+            property string matuScheme: "scheme-content"   // matugen -t (Wall.qml), accent = its primary_container (= wallpaper colour)
             property real matuContrast: 0.0                    // matugen --contrast, -1..1
             property int osdTimeout: 1500
             property bool desktopClock: true
