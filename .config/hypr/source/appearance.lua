@@ -13,12 +13,12 @@ hl.config({
         layout = "master",
 
         ["col.active_border"] = {
-            colors = { wal.colors.color14, wal.colors.color14 },
+            colors = { colors.primary, colors.primary },
             angle = 45,
         },
 
         ["col.inactive_border"] = {
-            colors = { wal.colors.color0, wal.colors.color0 },
+            colors = { colors.outline_variant, colors.outline_variant },
             angle = 45,
         },
     },
