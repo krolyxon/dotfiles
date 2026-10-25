@@ -3,6 +3,7 @@
 # udisks mounts drives to /run/media/$USER/<label> (fstab entries to their fstab
 # target) and unlocks LUKS with a passphrase asked in aurora's runner; phones go
 # through gvfs (/run/user/$UID/gvfs/mtp:host=...). Root is asked via polkit. See unmounter.
+# `mounter DEV|mtp://URI` mounts that one without the menu (aurora's device notifications use it).
 
 menu() { aurora-run -d -p "$1"; }
 notify() { notify-send -a mounter "$@"; }
@@ -69,6 +70,14 @@ mountdrive() {
 	fi
 	notify "💾 Mounted" "$dev → ${mp:-$out}"
 }
+
+if [ -n "$1" ]; then
+	case "$1" in
+		mtp://*) mountphone "$1" ;;
+		*) mountdrive "$1" ;;
+	esac
+	exit 0
+fi
 
 list="$(drives; phones)"
 [ -z "$list" ] && { notify "💾 Mounter" "Nothing to mount."; exit 0; }

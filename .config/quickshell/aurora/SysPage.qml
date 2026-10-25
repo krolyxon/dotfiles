@@ -52,6 +52,33 @@ Flickable {
             }
         }
 
+        // removable drives + phones (Devices): mount / open / eject
+        SectionLabel { text: "removable"; Layout.topMargin: 6; visible: Devices.drives.length + Devices.phones.length > 0 }
+        Repeater {
+            model: Devices.drives.concat(Devices.phones)
+            delegate: ListRow {
+                id: dr
+                required property var modelData
+                readonly property bool phone: modelData.uri !== undefined
+                readonly property bool mounted: phone ? modelData.mounted : modelData.mount !== ""
+                icon: phone ? Theme.iPhone : (modelData.locked ? Theme.iLock : Theme.iUsb)
+                title: phone ? modelData.name : Devices.title(modelData)
+                subtitle: phone ? (mounted ? modelData.path : "not mounted")
+                                : modelData.size + "  " + modelData.fstype + "  " + (mounted ? modelData.mount : (modelData.locked ? "locked" : "not mounted"))
+                current: mounted
+                onClicked: if (mounted) Devices.open(modelData.key); else Devices.mount(modelData.key, true)
+                IconBtn {
+                    icon: Theme.iFolderOpen
+                    onClicked: if (dr.mounted) Devices.open(dr.modelData.key); else Devices.mount(dr.modelData.key, true)
+                }
+                IconBtn {
+                    icon: Theme.iEject
+                    visible: dr.mounted || !dr.phone
+                    onClicked: Devices.eject(dr.modelData.key)
+                }
+            }
+        }
+
         BatteryInfo { Layout.topMargin: 6 }
 
         ColumnLayout {
