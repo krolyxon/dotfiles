@@ -62,21 +62,18 @@ Flickable {
         Choice {
             visible: Battery.supported
             label: "charge limit"
-            options: [{ value: "off", label: "off" }, { value: "limit80", label: "80%" },
-                      { value: "conservation", label: "conservation" }]
-            value: Settings.chargeMode
+            options: [{ value: "off", label: "off" }, { value: "conservation", label: "conservation" }]
+            value: Settings.chargeMode === "off" ? "off" : "conservation"
             onPicked: v => Settings.chargeMode = v
         }
         Text {
             visible: Battery.supported
             Layout.fillWidth: true
             wrapMode: Text.WordWrap
-            text: Settings.chargeMode === "limit80"
-                  ? "aurora stops charging at 80% (conservation mode on) and resumes below 75%. Only while aurora runs."
-                  : Settings.chargeMode === "conservation"
-                    ? "the firmware's fixed cap, kept even when aurora isn't running. Conservation mode is "
-                      + (Battery.capOn ? "on" : "off") + "."
-                    : "charges to 100%"
+            text: Settings.chargeMode !== "off"
+                  ? "the firmware stops charging at ~80%, even when aurora isn't running. Conservation mode is "
+                    + (Battery.capOn ? "on" : "off") + "."
+                  : "charges to 100%"
             color: Theme.dim
             font.family: Theme.font
             font.pixelSize: Theme.fontSize - 2

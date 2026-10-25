@@ -9,9 +9,8 @@ import Quickshell.Services.UPower
 // switches it without sudo (EnableChargeThreshold, polkit allow_active) but Quickshell's UPower doesn't
 // expose that, hence busctl. Settings.chargeMode:
 //   off           normal charging
-//   conservation  firmware cap on all the time (kept by the EC, works without aurora)
-//   limit80       aurora turns the cap on at 80% while plugged in (charging stops and the charge is held),
-//                 and off again below 75% or when unplugged. Only while aurora runs.
+//   conservation  firmware cap on all the time (stops at ~80%, kept by the EC, works without aurora)
+// (anything else that isn't "off", like the old "limit80", counts as conservation)
 Singleton {
     id: root
 
@@ -41,20 +40,15 @@ Singleton {
         setProc.command = busctl(["call", "EnableChargeThreshold", "b", on ? "true" : "false"])
         setProc.running = true
     }
-    // what the cap should be for the current mode / charge / power source
+    // keep the firmware cap in line with the setting
     function evaluate() {
-        if (!started || !ready || !supported || !hasBat || pct <= 0) return
-        var mode = Settings.chargeMode, want = capOn
-        if (mode === "conservation") want = true
-        else if (mode === "limit80") {
-            if (!onAc || pct < 75) want = false   // unplugged: replugging under 80% charges again
-            else if (pct >= 80) want = true
-        } else want = false
+        if (!started || !ready || !supported || !hasBat) return
+        var want = Settings.chargeMode !== "off"
         if (want !== capOn) setCap(want)
     }
 
-    onPctChanged: { evaluate(); checkLow() }
-    onOnAcChanged: { evaluate(); checkLow() }
+    onPctChanged: checkLow()
+    onOnAcChanged: checkLow()
     Connections {
         target: Settings
         function onChargeModeChanged() { root.evaluate() }

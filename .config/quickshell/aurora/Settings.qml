@@ -91,7 +91,7 @@ Singleton {
             property int idleSuspend: 0
             property int charTone: 0           // glyph picker emoji skin tone, 0 = none, 1-5 light..dark
             property bool portalAutoOpen: true // open captive portal login pages in $BROWSER (Net.qml)
-            property string chargeMode: "off"  // off | conservation | limit80 (Battery.qml)
+            property string chargeMode: "off"  // off | conservation (Battery.qml)
             property int batLow: 15            // low battery warning, %
             property int batCritical: 5
             property string batCriticalAction: "none"   // none | suspend | poweroff
