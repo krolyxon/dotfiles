@@ -55,7 +55,7 @@ Flickable {
         BatteryInfo { Layout.topMargin: 6 }
 
         ColumnLayout {
-            visible: PowerProfiles.hasPerformanceProfile !== undefined
+            visible: Battery.hasProfiles
             Layout.fillWidth: true
             Layout.topMargin: 6
             spacing: 8

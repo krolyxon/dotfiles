@@ -15,7 +15,8 @@ Singleton {
         osdTimeout: 1500, desktopClock: true, desktopViz: true, vizBars: 64,
         dock: true, dockPinned: ["foot", "librewolf", "pcmanfm", "obsidian"], wallFolder: "dusky-dark",
         notifSound: true, notifVolume: 0.7,
-        idleDim: 150, idleOff: 330, idleLock: 600, idleSuspend: 0, charTone: 0, portalAutoOpen: true
+        idleDim: 150, idleOff: 330, idleLock: 600, idleSuspend: 0, charTone: 0, portalAutoOpen: true,
+        chargeMode: "off", batLow: 15, batCritical: 5, batCriticalAction: "none"
     })
 
     property alias fontSize: a.fontSize
@@ -39,6 +40,10 @@ Singleton {
     property alias idleSuspend: a.idleSuspend
     property alias charTone: a.charTone
     property alias portalAutoOpen: a.portalAutoOpen
+    property alias chargeMode: a.chargeMode
+    property alias batLow: a.batLow
+    property alias batCritical: a.batCritical
+    property alias batCriticalAction: a.batCriticalAction
 
     function reset() {
         for (var k in defaults) a[k] = defaults[k]
@@ -84,6 +89,10 @@ Singleton {
             property int idleSuspend: 0
             property int charTone: 0           // glyph picker emoji skin tone, 0 = none, 1-5 light..dark
             property bool portalAutoOpen: true // open captive portal login pages in $BROWSER (Net.qml)
+            property string chargeMode: "off"  // off | conservation | limit80 (Battery.qml)
+            property int batLow: 15            // low battery warning, %
+            property int batCritical: 5
+            property string batCriticalAction: "none"   // none | suspend | poweroff
         }
     }
     // first run: create the file once the directory exists

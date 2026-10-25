@@ -21,6 +21,7 @@ ShellRoot {
     property var overlayScreen: focusedScreen()
     // touch singletons that must start with the shell (Idle creates ~/.config/aurora/hypridle.conf)
     readonly property string idleFile: Idle.file
+    readonly property bool batCare: Battery.ready   // charge limit + low battery warnings
     readonly property var tabNames: ["home", "audio", "net", "bt", "sys", "notif"]
     // settings app (a normal window): open state + shown section
     property bool settingsOpen: false

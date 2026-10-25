@@ -1,7 +1,8 @@
 import QtQuick
 import QtQuick.Layouts
+import Quickshell.Services.UPower
 
-// Settings app > Power: battery, graphics mode, idle timeouts (hypridle via Idle) and caffeine.
+// Settings app > Power: battery + battery care (Battery), power profile, graphics mode, idle timeouts (hypridle via Idle) and caffeine.
 Flickable {
     id: flick
     clip: true
@@ -56,6 +57,62 @@ Flickable {
         spacing: 8
 
         BatteryInfo {}
+
+        SectionLabel { text: "battery care"; Layout.topMargin: 6; visible: Battery.hasBat }
+        Choice {
+            visible: Battery.supported
+            label: "charge limit"
+            options: [{ value: "off", label: "off" }, { value: "limit80", label: "80%" },
+                      { value: "conservation", label: "conservation" }]
+            value: Settings.chargeMode
+            onPicked: v => Settings.chargeMode = v
+        }
+        Text {
+            visible: Battery.supported
+            Layout.fillWidth: true
+            wrapMode: Text.WordWrap
+            text: Settings.chargeMode === "limit80"
+                  ? "aurora stops charging at 80% (conservation mode on) and resumes below 75%. Only while aurora runs."
+                  : Settings.chargeMode === "conservation"
+                    ? "the firmware's fixed cap, kept even when aurora isn't running. Conservation mode is "
+                      + (Battery.capOn ? "on" : "off") + "."
+                    : "charges to 100%"
+            color: Theme.dim
+            font.family: Theme.font
+            font.pixelSize: Theme.fontSize - 2
+        }
+        Knob {
+            visible: Battery.hasBat
+            label: "warn at"
+            from: 5; to: 40; unit: "%"
+            value: Settings.batLow
+            onMoved: v => Settings.batLow = v
+        }
+        Knob {
+            visible: Battery.hasBat
+            label: "critical at"
+            from: 2; to: 15; unit: "%"
+            value: Settings.batCritical
+            onMoved: v => Settings.batCritical = v
+        }
+        Choice {
+            visible: Battery.hasBat
+            label: "when critical"
+            options: [{ value: "none", label: "warn" }, { value: "suspend", label: "suspend" },
+                      { value: "poweroff", label: "power off" }]
+            value: Settings.batCriticalAction
+            onPicked: v => Settings.batCriticalAction = v
+        }
+
+        Choice {
+            Layout.topMargin: 6
+            visible: Battery.hasProfiles
+            label: "power profile"
+            options: [{ value: PowerProfile.PowerSaver, label: "saver" }, { value: PowerProfile.Balanced, label: "balanced" }]
+                     .concat(PowerProfiles.hasPerformanceProfile ? [{ value: PowerProfile.Performance, label: "performance" }] : [])
+            value: PowerProfiles.profile
+            onPicked: v => PowerProfiles.profile = v
+        }
         GpuSwitch { Layout.topMargin: 6 }
 
         SectionLabel { text: "when idle"; Layout.topMargin: 6 }
