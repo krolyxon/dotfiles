@@ -60,14 +60,6 @@ hl.gesture({
     end,
 })
 
--- 3-finger down: scratchpad (same special workspace as SUPER+S)
-hl.gesture({
-    fingers = 3,
-    direction = "down",
-    action = "special",
-    workspace_name = "magic",
-})
-
 -- 3-finger pinch: zoom around the cursor
 hl.gesture({
     fingers = 3,
