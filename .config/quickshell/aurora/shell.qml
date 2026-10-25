@@ -6,7 +6,7 @@ import Quickshell.Io
 import Quickshell.Hyprland
 import Quickshell.Services.Pipewire
 
-// aurora: bar + control panel + notifications, themed from pywal16.
+// aurora: bar + control panel + notifications, themed from matugen.
 ShellRoot {
     id: root
 

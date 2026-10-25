@@ -4,7 +4,8 @@ import Quickshell
 import Quickshell.Io
 
 // Wallpapers: folder listing, cached thumbnails, and applying them. aurora owns the wallpaper:
-// apply() writes hyprpaper.conf, switches hyprpaper live and runs `wal -i` (Theme then recolours itself).
+// apply() writes hyprpaper.conf, switches hyprpaper live, runs matugen (UI colours, Theme then recolours itself)
+// and pywal16 (terminal colours only). recolor() re-runs just matugen when the scheme/contrast setting changes.
 // ~/.local/bin/setwall is only a CLI front-end for the IPC calls (wallrandom / wall / wallset).
 Singleton {
     id: root
@@ -21,6 +22,7 @@ Singleton {
     property string current: ""                      // wallpaper hyprpaper is showing
     property bool loading: false
     property bool pendingRandom: false               // random() asked before the folder was listed
+    property bool checkedColours: false              // matugen output checked once at startup
 
     function dirOf(name) { return name === "" ? rootDir : rootDir + "/" + name }
     function thumbOf(path) { return thumbDir + "/" + Qt.md5(path) + ".jpg" }
@@ -46,11 +48,29 @@ Singleton {
         'printf "splash = false\\nwallpaper {\\n    monitor =\\n    path = %s\\n}\\n" "$p" > "$c"; ' +
         'if pgrep -x hyprpaper >/dev/null; then hyprctl hyprpaper wallpaper ",$p"; ' +
         'else hyprctl dispatch \'hl.dsp.exec_cmd("hyprpaper")\'; fi; ' +
-        'wal -i "$p" -n'
+        'matugen image "$p" -m dark -t "$3" --contrast="$4" --prefer saturation -q; ' +
+        'wal -i "$p" -n -q'
     function apply(path) {
         if (!path) return
         current = path
-        Quickshell.execDetached(["sh", "-c", applyJob, "sh", path, conf])
+        Quickshell.execDetached(["sh", "-c", applyJob, "sh", path, conf, Settings.matuScheme, String(Settings.matuContrast)])
+    }
+
+    // matugen only (UI colours). --prefer: v4 otherwise asks on stdin when the image has several source colours.
+    // With "missing", only if there is no output yet (fresh install).
+    readonly property string matuJob:
+        '[ "$4" = missing ] && [ -f "$HOME/.cache/matugen/aurora.json" ] && exit 0; ' +
+        'matugen image "$1" -m dark -t "$2" --contrast="$3" --prefer saturation -q'
+    function recolor(onlyIfMissing) {
+        if (!current) return
+        Quickshell.execDetached(["sh", "-c", matuJob, "sh", current, Settings.matuScheme,
+                                 String(Settings.matuContrast), onlyIfMissing ? "missing" : ""])
+    }
+    Timer { id: recolorLater; interval: 400; onTriggered: root.recolor(false) }
+    Connections {
+        target: Settings
+        function onMatuSchemeChanged() { recolorLater.restart() }
+        function onMatuContrastChanged() { recolorLater.restart() }
     }
     // random from the picker's folder (Settings.wallFolder), never the one already shown
     function random() {
@@ -141,6 +161,7 @@ Singleton {
         onLoaded: {
             var m = text().match(/^\s*path\s*=\s*(.+)$/m)
             if (m) root.current = m[1].trim()
+            if (!root.checkedColours) { root.checkedColours = true; root.recolor(true) }
         }
     }
 }

@@ -3,7 +3,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-// pywal16 colours (~/.cache/wal/colors.json), hot-reloaded whenever `wal` runs.
+// matugen colours (~/.cache/matugen/aurora.json, written by Wall.apply/recolor), hot-reloaded on every run.
 Singleton {
     id: root
 
@@ -12,79 +12,51 @@ Singleton {
     readonly property int fontSize: Settings.fontSize
     readonly property int wsFontSize: Settings.wsFontSize   // workspace icons only; everything else uses fontSize
     readonly property real panelAlpha: Settings.panelAlpha
-    // your waybar uses @color14 for underlines/active workspace, so that is the default.
-    // -1 auto-picks the most vivid of color1..color6 instead
-    readonly property int accentIndex: Settings.accentIndex
     readonly property int barHeight: Settings.barHeight
     readonly property real barAlpha: Settings.barAlpha
 
-    readonly property string walFile: Quickshell.env("HOME") + "/.cache/wal/colors.json"
+    readonly property string matFile: Quickshell.env("HOME") + "/.cache/matugen/aurora.json"
 
+    // flat keys from ~/.config/matugen/templates/aurora.json; defaults = a dark teal scheme for a fresh install
     FileView {
-        path: root.walFile
+        path: root.matFile
         watchChanges: true
         onFileChanged: reload()
         adapter: JsonAdapter {
-            id: wal
-            property JsonObject special: JsonObject {
-                property string background: "#0b1514"
-                property string foreground: "#cfe3df"
-                property string cursor: "#cfe3df"
-            }
-            property JsonObject colors: JsonObject {
-                property string color0: "#0b1514"
-                property string color1: "#c0616b"
-                property string color2: "#3fa593"
-                property string color3: "#7fb6a8"
-                property string color4: "#3a8f8a"
-                property string color5: "#5f9f9a"
-                property string color6: "#4fbfae"
-                property string color7: "#cfe3df"
-                property string color8: "#4a5f5c"
-                property string color9: "#d97a84"
-                property string color10: "#52c2ae"
-                property string color11: "#9ad0c3"
-                property string color12: "#4fb0a9"
-                property string color13: "#78b8b2"
-                property string color14: "#6fd6c5"
-                property string color15: "#e3f2ef"
-            }
+            id: mat
+            property string bg: "#0e1514"
+            property string fg: "#dde4e2"
+            property string primary: "#80d5cb"
+            property string primaryFg: "#003733"
+            property string primaryContainer: "#00504a"
+            property string secondary: "#b1ccc7"
+            property string tertiary: "#adcae6"
+            property string surfaceLow: "#161d1c"
+            property string surface: "#1a2120"
+            property string surfaceHigh: "#252b2a"
+            property string surfaceHighest: "#2f3635"
+            property string outline: "#889391"
+            property string outlineVariant: "#3f4947"
+            property string surfaceVariantFg: "#bec9c6"
+            property string err: "#ffb4ab"   // no "error"/"onX" names: JsonAdapter signal / QML handler syntax
         }
-    }
-
-    readonly property var pal: [
-        wal.colors.color0, wal.colors.color1, wal.colors.color2, wal.colors.color3,
-        wal.colors.color4, wal.colors.color5, wal.colors.color6, wal.colors.color7,
-        wal.colors.color8, wal.colors.color9, wal.colors.color10, wal.colors.color11,
-        wal.colors.color12, wal.colors.color13, wal.colors.color14, wal.colors.color15
-    ]
-
-    function mix(a, b, t) {
-        return Qt.rgba(a.r + (b.r - a.r) * t, a.g + (b.g - a.g) * t, a.b + (b.b - a.b) * t, 1)
-    }
-
-    function autoAccent() {
-        var best = 4, score = -1
-        for (var i = 1; i <= 6; i++) {
-            var c = Qt.color(pal[i])
-            var s = c.hsvSaturation * c.hsvValue
-            if (s > score) { score = s; best = i }
-        }
-        return Qt.color(pal[best])
     }
 
     // ---- palette ------------------------------------------------------
-    readonly property color bg: wal.special.background
-    readonly property color fg: wal.special.foreground
-    readonly property color accent: accentIndex >= 0 ? Qt.color(pal[accentIndex]) : autoAccent()
-    readonly property color accentDim: mix(bg, accent, 0.45)
-    readonly property color surface: mix(bg, fg, 0.06)
-    readonly property color surfaceHi: mix(bg, fg, 0.14)
-    readonly property color line: mix(bg, accent, 0.35)
-    readonly property color dim: mix(bg, fg, 0.55)
-    readonly property color err: Qt.color(pal[1])
+    readonly property color bg: mat.bg
+    readonly property color fg: mat.fg
+    readonly property color accent: mat.primary
+    readonly property color accentFg: mat.primaryFg
+    readonly property color accentDim: mat.primaryContainer
+    readonly property color secondary: mat.secondary
+    readonly property color tertiary: mat.tertiary
+    readonly property color surface: mat.surface
+    readonly property color surfaceHi: mat.surfaceHigh
+    readonly property color line: mat.outlineVariant
+    readonly property color dim: mat.surfaceVariantFg
+    readonly property color err: mat.err
     readonly property color barBg: Qt.rgba(bg.r, bg.g, bg.b, barAlpha)
-    readonly property color cursorC: wal.special.cursor
+    readonly property color cursorC: mat.primary
     readonly property color bgA: Qt.rgba(bg.r, bg.g, bg.b, panelAlpha)
 
     // ---- hyprlock -----------------------------------------------------
