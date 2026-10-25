@@ -14,6 +14,7 @@ local envs = {
 
     GDK_BACKEND = "wayland,x11,*",
     QT_QPA_PLATFORM = "wayland;xcb",
+    QT_QPA_PLATFORMTHEME = "qt6ct",   -- qt5ct/qt6ct: colours from matugen (~/.cache/matugen/qt-colors.conf)
     SDL_VIDEODRIVER = "Wayland",
     CLUTTER_BACKEND = "wayland",
 }
