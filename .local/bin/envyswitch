@@ -10,7 +10,11 @@ notify-send "Switching to $mode mode..."
 # Map mode to envycontrol argument
 arg=$(echo "$mode" | tr '[:upper:]' '[:lower:]')
 
-if sudo -A envycontrol -s "$arg"; then
+# hybrid: --rtd3 lets the dGPU power off when idle
+set -- -s "$arg"
+[ "$arg" = hybrid ] && set -- "$@" --rtd3
+
+if sudo -A envycontrol "$@"; then
     notify-send "Graphics mode set to $mode"
 else
     notify-send "Failed to set graphics mode to $mode"

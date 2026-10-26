@@ -55,7 +55,6 @@ openbsd-netcat
 wakeonlan
 aria2
 wget
-transmission-cli
 
 # Audio / media
 pamixer
@@ -83,7 +82,6 @@ gammastep
 wtype
 nwg-look
 fastfetch
-newsboat
 cmatrix
 
 # Build / scripting (also needed by hyprpm plugins)

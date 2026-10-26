@@ -5,7 +5,3 @@ jmtpfs
 yaru-icon-theme
 zsh-fast-syntax-highlighting-git
 claude-code
-github-copilot-cli-bin
-lmstudio-bin !
-easyeda-bin !
-davinci-resolve-studio !
