@@ -25,16 +25,34 @@ if ! mpc status >/dev/null 2>&1; then
     exit 1
 fi
 
-library=$(mpc listall)
+# One "Artist - Title · Album<TAB>file" line per track (the album makes typing an
+# album name list its songs). Untagged tracks fall back to the file name (minus
+# extension and a leading track number), and the artist is only prefixed when
+# that name doesn't already contain one. Singles (album = title) skip the album.
+library=$(mpc listall -f '%artist%\t%title%\t%album%\t%file%' | awk -F'\t' '{
+    artist = $1; title = $2; album = $3; file = $4
+    if (title == "") {
+        title = file
+        sub(/.*\//, "", title); sub(/\.[^.]*$/, "", title); sub(/^[0-9]+[.)]? *-? */, "", title)
+        if (index(title, " - ")) artist = ""
+    }
+    line = artist != "" ? artist " - " title : title
+    sub(/ - (Single|EP)$/, "", album)
+    if (album != "" && album != title) line = line " · " album
+    print line "\t" file
+}')
 if [ -z "$library" ]; then
     notify -u critical "MPD library is empty" "Try: mpc update"
     exit 1
 fi
 
 if [ -t 0 ]; then
-    filename=$(printf '%s\n' "$library" | fzf)
+    filename=$(printf '%s\n' "$library" | fzf -d '\t' --with-nth 1 | cut -f2)
 else
-    filename=$(printf '%s\n' "$library" | aurora-run -d -l 30 -p 'play: ')
+    # aurora-run can't hide a column: show the names, map the index back to the file.
+    n=$(printf '%s\n' "$library" | cut -f1 | aurora-run -d -l 30 -p 'play: ' --index) || exit 0
+    [ "$n" -ge 0 ] 2>/dev/null || exit 0
+    filename=$(printf '%s\n' "$library" | sed -n "$((n + 1))p" | cut -f2)
 fi
 
 # Cancelled (Esc): nothing to do.

@@ -47,6 +47,7 @@ hl.bind(mainMod .. " + SHIFT + P", hl.dsp.exec_cmd("hypr_screenshot.sh"))
 
 -- Music Controls
 hl.bind(mainMod .. " + m", hl.dsp.exec_cmd(terminal .. " -e zsh -i -c \"rmptui\""))
+hl.bind(mainMod .. " + SHIFT + m", hl.dsp.exec_cmd("madd </dev/null")) -- stdin is tty1 otherwise: madd would pick fzf
 hl.bind(mainMod .. " + p", hl.dsp.exec_cmd("mpc toggle"))
 hl.bind(mainMod .. " + period", hl.dsp.exec_cmd("mpc seek +10"), { repeating = true })
 hl.bind(mainMod .. " + comma", hl.dsp.exec_cmd("mpc seek -10"), { repeating = true })
