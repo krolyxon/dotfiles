@@ -20,9 +20,7 @@ alias \
         yt="yt-dlp --embed-metadata -i -o '%(title)s.%(ext)s'" \
         yta="yt -x -f bestaudio/best" \
         ytbdl="yt-dlp -f bestvideo+bestaudio -o '%(title)s.%(ext)s' --external-downloader=aria2c" \
-        ytdl="yt-dlp -f best -o '%(title)s.%(ext)s' --external-downloader=aria2c" \
-        tsm="transmission-remote" \
-        tsmd="transmission-daemon"
+        ytdl="yt-dlp -f best -o '%(title)s.%(ext)s' --external-downloader=aria2c"
 
         # yt="yt-dlp --embed-metadata -i -o '%(title)s.%(ext)s' --external-downloader=aria2c"   \
 

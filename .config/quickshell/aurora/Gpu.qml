@@ -18,7 +18,8 @@ Singleton {
         busy = true
         message = ""
         target = m
-        sw.command = ["pkexec", "envycontrol", "-s", m]
+        // hybrid: --rtd3 lets the dGPU power off when idle (NVreg_DynamicPowerManagement + udev power/control=auto)
+        sw.command = ["pkexec", "envycontrol", "-s", m].concat(m === "hybrid" ? ["--rtd3"] : [])
         sw.running = true
     }
 

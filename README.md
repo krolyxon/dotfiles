@@ -52,13 +52,6 @@ current wallpaper.
 > packages (NVIDIA drivers included if you pick them), replaces your configs with symlinks, changes your login
 > shell and can enable system services. Don't run it on a system you already use.
 
-## Just want a piece of it?
-You don't need the installer for that. Browse the repo and copy what you like, for example:
-- `.config/quickshell/aurora/`: the shell (needs Quickshell; it reads its colours from matugen's `~/.cache/matugen/aurora.json`)
-- `.config/hypr/`: Hyprland in the new Lua config format
-- `.local/bin/`: small scripts (`setwall`, `brictl`, `sysact`, `tms`, ...)
-- `.config/matugen/templates/`: matugen templates for aurora, Hyprland, hyprlock, GTK, Qt, foot, zathura, cava
-
 ## Installing (fresh Arch only)
 ```bash
 git clone https://git.krolyxon.com/dotfiles ~/.dotfiles
@@ -68,17 +61,6 @@ cd ~/.dotfiles
 ./install.sh --check   # only compare installed packages with the lists, changes nothing
 ```
 The repo has to live at `~/.dotfiles` (stow links into the parent directory).
-
-What `install.sh` does:
-1. Refuses to run as root or on anything other than Arch, and asks for confirmation if the system doesn't
-   look fresh (another desktop's config, or lots of configs this repo doesn't provide).
-2. Installs `stow gum git zsh`, shows the disclaimer, then lets you pick packages per group.
-3. Runs `stow . --no-folding`. Files that are in the way are **moved** to `~/.dotfiles-backup/<date>/`, not deleted.
-4. Sets zsh as your login shell.
-5. Installs `paru` if it's missing, then installs the desktop packages and everything you picked.
-6. Optionally copies `system/etc/keyd/default.conf` to `/etc/keyd` and enables `keyd` (capslock: tap esc, hold ctrl).
-
-Afterwards, reboot and log in to Hyprland.
 
 ## Packages
 The lists live in `packages/*.txt`: one package per line, `#` for comments, and a trailing `!` means
