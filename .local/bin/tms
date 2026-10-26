@@ -1,25 +1,31 @@
-#!/bin/env bash
+#!/usr/bin/env bash
 
 if [[ $# -eq 1 ]]; then
-    selected=$1;
+    selected=$(realpath -- "$1") || exit 1
 else
-    selected=$(find ~/code/dev ~/code/repos ~/code/rust -mindepth 1 -maxdepth 1 -type d | fzf);
+    selected=$( {
+        tmux list-sessions -F '#S' 2>/dev/null
+        find ~/code/dev ~/code/repos ~/code/rust -mindepth 1 -maxdepth 1 -type d
+    } | fzf)
 fi
 
 if [[ -z $selected ]]; then
     exit 0
 fi
 
-selected_name=$(basename "$selected" | tr . _)
-tmux_running=$(pgrep tmux)
-
-if [[ -z $TMUX ]] && [[ -z $tmux_running ]]; then
-    tmux new-session -s $selected_name -c $selected
-    exit 0
+# an existing session picked from the list: just go there
+if [[ ! -d $selected ]]; then
+    selected_name=$selected
+else
+    selected_name=$(basename -- "$selected" | tr '.:' '__')
 fi
 
-if ! tmux has-session -t=$selected_name 2> /dev/null; then
-    tmux new-session -ds $selected_name -c $selected
+if [[ -z $TMUX ]]; then
+    exec tmux new-session -A -s "$selected_name" -c "$selected"
 fi
 
-tmux switch-client -t $selected_name
+if ! tmux has-session -t="$selected_name" 2> /dev/null; then
+    tmux new-session -ds "$selected_name" -c "$selected"
+fi
+
+tmux switch-client -t="$selected_name"
