@@ -158,6 +158,16 @@ PanelWindow {
                         Keys.onDownPressed: grid.moveCurrentIndexDown()
                         Keys.onTabPressed: win.cycleFolder(1)
                         Keys.onBacktabPressed: win.cycleFolder(-1)
+                        // ctrl+hjkl moves through the results without leaving the search
+                        Keys.onPressed: event => {
+                            if (!(event.modifiers & Qt.ControlModifier)) return
+                            event.accepted = true
+                            if (event.key === Qt.Key_H) grid.moveCurrentIndexLeft()
+                            else if (event.key === Qt.Key_J) grid.moveCurrentIndexDown()
+                            else if (event.key === Qt.Key_K) grid.moveCurrentIndexUp()
+                            else if (event.key === Qt.Key_L) grid.moveCurrentIndexRight()
+                            else event.accepted = false
+                        }
                     }
                 }
                 Text {
