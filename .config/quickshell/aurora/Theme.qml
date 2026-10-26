@@ -151,6 +151,7 @@ Singleton {
     readonly property string iLeaf: cp(0xF032A)
     readonly property string iBalance: cp(0xF05D1)
     readonly property string iSpeed: cp(0xF04C5)
+    readonly property string iAuto: cp(0xF006A)     // autorenew
     readonly property string iCal: cp(0xF00ED)
     readonly property string iClock: cp(0xF0954)
     readonly property string iArch: cp(0xF08C7)

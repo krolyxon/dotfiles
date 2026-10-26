@@ -146,23 +146,31 @@ Flickable {
                     Layout.fillWidth: true
                     icon: Theme.iLeaf
                     label: "saver"
-                    active: PowerProfiles.profile === PowerProfile.PowerSaver
-                    onClicked: PowerProfiles.profile = PowerProfile.PowerSaver
+                    active: Battery.profile === "saver"
+                    onClicked: Battery.setProfile("saver")
                 }
                 IconBtn {
                     Layout.fillWidth: true
                     icon: Theme.iBalance
                     label: "balanced"
-                    active: PowerProfiles.profile === PowerProfile.Balanced
-                    onClicked: PowerProfiles.profile = PowerProfile.Balanced
+                    active: Battery.profile === "balanced"
+                    onClicked: Battery.setProfile("balanced")
                 }
                 IconBtn {
                     Layout.fillWidth: true
                     visible: PowerProfiles.hasPerformanceProfile
                     icon: Theme.iSpeed
                     label: "perf"
-                    active: PowerProfiles.profile === PowerProfile.Performance
-                    onClicked: PowerProfiles.profile = PowerProfile.Performance
+                    active: Battery.profile === "performance"
+                    onClicked: Battery.setProfile("performance")
+                }
+                IconBtn {
+                    Layout.fillWidth: true
+                    visible: Battery.hasBat
+                    icon: Theme.iAuto
+                    label: "auto"
+                    active: Battery.profile === "auto"
+                    onClicked: Battery.setProfile("auto")
                 }
             }
         }

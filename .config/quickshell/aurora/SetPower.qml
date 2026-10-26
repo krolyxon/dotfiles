@@ -10,6 +10,9 @@ Flickable {
     contentHeight: col.implicitHeight
     boundsBehavior: Flickable.StopAtBounds
 
+    readonly property var profiles: [{ value: "saver", label: "saver" }, { value: "balanced", label: "balanced" }]
+        .concat(PowerProfiles.hasPerformanceProfile ? [{ value: "performance", label: "performance" }] : [])
+
     // seconds -> "2m 30s" / "never"
     function dur(s) {
         if (s <= 0) return "never"
@@ -105,10 +108,23 @@ Flickable {
             Layout.topMargin: 6
             visible: Battery.hasProfiles
             label: "power profile"
-            options: [{ value: PowerProfile.PowerSaver, label: "saver" }, { value: PowerProfile.Balanced, label: "balanced" }]
-                     .concat(PowerProfiles.hasPerformanceProfile ? [{ value: PowerProfile.Performance, label: "performance" }] : [])
-            value: PowerProfiles.profile
-            onPicked: v => PowerProfiles.profile = v
+            options: flick.profiles.concat(Battery.hasBat ? [{ value: "auto", label: "auto" }] : [])
+            value: Battery.profile
+            onPicked: v => Battery.setProfile(v)
+        }
+        Choice {
+            visible: Battery.hasProfiles && Settings.powerAuto
+            label: "on AC"
+            options: flick.profiles
+            value: Settings.powerAc
+            onPicked: v => Settings.powerAc = v
+        }
+        Choice {
+            visible: Battery.hasProfiles && Settings.powerAuto
+            label: "on battery"
+            options: flick.profiles
+            value: Settings.powerBat
+            onPicked: v => Settings.powerBat = v
         }
         GpuSwitch { Layout.topMargin: 6 }
 

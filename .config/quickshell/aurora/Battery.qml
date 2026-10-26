@@ -20,7 +20,7 @@ Singleton {
     readonly property bool ready: path !== ""
     // UPower reports 0% for a moment at startup: no decisions before this
     property bool started: false
-    Timer { interval: 4000; running: true; onTriggered: { root.started = true; root.evaluate(); root.checkLow() } }
+    Timer { interval: 4000; running: true; onTriggered: { root.started = true; root.evaluate(); root.checkLow(); root.applyAuto() } }
 
     readonly property var bat: UPower.displayDevice
     readonly property bool hasBat: bat !== null && bat.isPresent
@@ -48,7 +48,7 @@ Singleton {
     }
 
     onPctChanged: checkLow()
-    onOnAcChanged: checkLow()
+    onOnAcChanged: { checkLow(); applyAuto() }
     Connections {
         target: Settings
         function onChargeModeChanged() { root.evaluate() }
@@ -101,7 +101,35 @@ Singleton {
         command: ["busctl", "--system", "status", "org.freedesktop.UPower.PowerProfiles"]
         running: true
         stdout: StdioCollector {}
-        onExited: code => root.hasProfiles = code === 0
+        onExited: code => { root.hasProfiles = code === 0; root.applyAuto() }
+    }
+
+    // ---- power profile: saver | balanced | performance (set in ppd, which remembers it), or auto =
+    // Settings.powerAc / powerBat, switched when the power source changes
+    readonly property string profile: Settings.powerAuto ? "auto" : nameOf(PowerProfiles.profile)
+    function nameOf(p) {
+        return p === PowerProfile.PowerSaver ? "saver" : p === PowerProfile.Performance ? "performance" : "balanced"
+    }
+    function profileOf(name) {
+        if (name === "saver") return PowerProfile.PowerSaver
+        if (name === "performance" && PowerProfiles.hasPerformanceProfile) return PowerProfile.Performance
+        return PowerProfile.Balanced
+    }
+    function setProfile(name) {
+        Settings.powerAuto = name === "auto"
+        if (name === "auto") applyAuto()
+        else PowerProfiles.profile = profileOf(name)
+    }
+    function applyAuto() {
+        if (!started || !hasProfiles || !Settings.powerAuto) return
+        var p = profileOf(onAc ? Settings.powerAc : Settings.powerBat)
+        if (PowerProfiles.profile !== p) PowerProfiles.profile = p
+    }
+    Connections {
+        target: Settings
+        function onPowerAutoChanged() { root.applyAuto() }
+        function onPowerAcChanged() { root.applyAuto() }
+        function onPowerBatChanged() { root.applyAuto() }
     }
 
     // ---- low battery: one warning per level per discharge, then the critical action after 60s
