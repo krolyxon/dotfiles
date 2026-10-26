@@ -1,7 +1,6 @@
 # AUR packages (installed with paru). A trailing ! means "not pre-selected".
 envycontrol
 htop-vim
-hyprshade-git
 jmtpfs
 yaru-icon-theme
 zsh-fast-syntax-highlighting-git

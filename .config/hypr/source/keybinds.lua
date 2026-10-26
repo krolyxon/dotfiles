@@ -26,7 +26,6 @@ hl.bind(
     { description = "Smart Float" }
 )
 
-
 ------------------
 -- Aurora Shell
 -----------------
@@ -147,11 +146,6 @@ hl.bind(mainMod .. " + CTRL + comma", hl.dsp.exec_cmd("hypr_screen_rotate.py +90
     { locked = true, desc = "Rotate Screen Anti-Clockwise" })
 hl.bind(mainMod .. " + CTRL + period", hl.dsp.exec_cmd("hypr_screen_rotate.py -90"),
     { locked = true, desc = "Rotate Screen Clockwise" })
-
--- --- Hyprshade (Visual Filters) ---
-hl.bind(mainMod .. " + CTRL + S", hl.dsp.exec_cmd("hypr_shader_menu.sh"), { desc = "Shader Menu" })
-hl.bind(mainMod .. " + CTRL + X", hl.dsp.exec_cmd("hyprshade off"), { locked = true, desc = "Disable Shader" })
-hl.bind(mainMod .. " + CTRL + V", hl.dsp.exec_cmd("hyprshade on vibrance"), { locked = true, desc = "Vibrant Shader" })
 
 -- Scroll through existing workspaces with mainMod + scroll
 hl.bind(mainMod .. " + mouse_down", hl.dsp.focus({ workspace = "e+1" }))
