@@ -35,3 +35,7 @@ output_path = '~/.cache/matugen/qt-colors.conf'
 [templates.foot]
 input_path  = '~/.config/matugen/templates/foot.ini'
 output_path = '~/.cache/matugen/foot.ini'
+
+[templates.budctl]
+input_path  = '~/.config/matugen/templates/budctl.json'
+output_path = '~/.cache/matugen/budctl.json'
