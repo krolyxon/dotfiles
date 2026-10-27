@@ -114,7 +114,7 @@ Flickable {
                 }
                 IconBtn {
                     Layout.fillWidth: true
-                    visible: PowerProfiles.hasPerformanceProfile
+                    visible: Battery.hasPerf
                     icon: Theme.iSpeed
                     label: "perf"
                     active: Battery.profile === "performance"

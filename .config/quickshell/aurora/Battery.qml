@@ -96,29 +96,41 @@ Singleton {
     }
 
     // ---- power-profiles-daemon present? (Quickshell's PowerProfiles has no "available" flag)
+    // Don't touch PowerProfiles before it is: reading it D-Bus-activates ppd and blocks the whole shell until it
+    // runs, and ppd is After=multi-user.target (which waits on network-online), so that can be 30s+ after login.
     property bool hasProfiles: false
+    readonly property bool hasPerf: hasProfiles && PowerProfiles.hasPerformanceProfile
+    property int ppdTries: 0
     Process {
+        id: ppdCheck
         command: ["busctl", "--system", "status", "org.freedesktop.UPower.PowerProfiles"]
         running: true
         stdout: StdioCollector {}
-        onExited: code => { root.hasProfiles = code === 0; root.applyAuto() }
+        onExited: code => { root.ppdTries++; root.hasProfiles = code === 0; root.applyAuto() }
+    }
+    // keep looking for ~2 min after start
+    Timer {
+        interval: 5000
+        repeat: true
+        running: !root.hasProfiles && root.ppdTries < 24
+        onTriggered: if (!ppdCheck.running) ppdCheck.running = true
     }
 
     // ---- power profile: saver | balanced | performance (set in ppd, which remembers it), or auto =
     // Settings.powerAc / powerBat, switched when the power source changes
-    readonly property string profile: Settings.powerAuto ? "auto" : nameOf(PowerProfiles.profile)
+    readonly property string profile: Settings.powerAuto ? "auto" : hasProfiles ? nameOf(PowerProfiles.profile) : "balanced"
     function nameOf(p) {
         return p === PowerProfile.PowerSaver ? "saver" : p === PowerProfile.Performance ? "performance" : "balanced"
     }
     function profileOf(name) {
         if (name === "saver") return PowerProfile.PowerSaver
-        if (name === "performance" && PowerProfiles.hasPerformanceProfile) return PowerProfile.Performance
+        if (name === "performance" && hasPerf) return PowerProfile.Performance
         return PowerProfile.Balanced
     }
     function setProfile(name) {
         Settings.powerAuto = name === "auto"
         if (name === "auto") applyAuto()
-        else PowerProfiles.profile = profileOf(name)
+        else if (hasProfiles) PowerProfiles.profile = profileOf(name)
     }
     function applyAuto() {
         if (!started || !hasProfiles || !Settings.powerAuto) return

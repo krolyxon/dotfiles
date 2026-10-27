@@ -11,7 +11,7 @@ Flickable {
     boundsBehavior: Flickable.StopAtBounds
 
     readonly property var profiles: [{ value: "saver", label: "saver" }, { value: "balanced", label: "balanced" }]
-        .concat(PowerProfiles.hasPerformanceProfile ? [{ value: "performance", label: "performance" }] : [])
+        .concat(Battery.hasPerf ? [{ value: "performance", label: "performance" }] : [])
 
     // seconds -> "2m 30s" / "never"
     function dur(s) {
