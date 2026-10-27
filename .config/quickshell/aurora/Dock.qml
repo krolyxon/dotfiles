@@ -66,7 +66,7 @@ PanelWindow {
     }
 
     function activate(a) {
-        if (a.wins.length === 0) { if (a.entry) a.entry.execute(); return }
+        if (a.wins.length === 0) { if (a.entry) Session.launch(a.entry.command, a.entry.workingDirectory); return }
         // focus the next window of that app after the active one (cycles)
         var act = Hyprland.activeToplevel, i = -1
         for (var k = 0; k < a.wins.length; k++) if (act && a.wins[k].address === act.address) i = k
@@ -166,7 +166,7 @@ PanelWindow {
                             onEntered: { hide.stop(); win.shown = true }
                             onClicked: m => {
                                 if (m.button === Qt.RightButton) Settings.togglePin(cell.modelData.id)
-                                else if (m.button === Qt.MiddleButton) { if (cell.modelData.entry) cell.modelData.entry.execute() }
+                                else if (m.button === Qt.MiddleButton) { if (cell.modelData.entry) Session.launch(cell.modelData.entry.command, cell.modelData.entry.workingDirectory) }
                                 else win.activate(cell.modelData)
                             }
                         }

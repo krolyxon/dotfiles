@@ -322,7 +322,7 @@ PanelWindow {
 
     // ---- launching ----
     function exec(cmd, term) {
-        Quickshell.execDetached({ command: term ? ["foot", "-e"].concat(cmd) : cmd, workingDirectory: home })
+        Session.launch(term ? ["foot", "-e"].concat(cmd) : cmd, home)
     }
     function trigger(i, term) {
         if (dmenu) {
@@ -343,9 +343,9 @@ PanelWindow {
         switch (it.kind) {
         case "app":
             if (term || it.entry.runInTerminal) exec(it.entry.command, true)
-            else it.entry.execute()
+            else Session.launch(it.entry.command, it.entry.workingDirectory)
             break
-        case "act":  it.action.execute(); break
+        case "act":  Session.launch(it.action.command); break
         case "bin":  exec([it.name], term); break
         case "sh":   exec(["sh", "-c", it.name], term); break
         case "calc": if (it.value !== "") Quickshell.execDetached(["wl-copy", "--", it.value]); break

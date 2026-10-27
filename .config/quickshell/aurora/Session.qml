@@ -15,6 +15,13 @@ Singleton {
         { id: "display",   icon: Theme.iMonitor,   label: "display off",    confirm: false }
     ]
 
+    // Start an app in its own systemd scope. Spawned straight from quickshell it would sit in aurora.service's cgroup:
+    // killed on every `systemctl --user restart aurora`, and one that ignores SIGTERM stalls the restart for 90s.
+    function launch(cmd, wd) {
+        Quickshell.execDetached({ command: ["systemd-run", "--user", "--scope", "--quiet", "--collect", "--"].concat(cmd),
+                                  workingDirectory: wd || Quickshell.env("HOME") })
+    }
+
     function run(id) {
         switch (id) {
         case "lock":      Quickshell.execDetached(["loginctl", "lock-session"]); break

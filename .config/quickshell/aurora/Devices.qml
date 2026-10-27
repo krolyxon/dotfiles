@@ -34,7 +34,7 @@ Singleton {
             if (phones[i].key === key && phones[i].mounted) { xdgOpen(phones[i].path); return true }
         return false
     }
-    function xdgOpen(path) { Quickshell.execDetached(["xdg-open", path]) }
+    function xdgOpen(path) { Session.launch(["xdg-open", path]) }
     // unmount this filesystem and lock its LUKS container; the disk stays powered, so it can be mounted again
     function eject(key) {
         if (key.indexOf("mtp://") === 0) {

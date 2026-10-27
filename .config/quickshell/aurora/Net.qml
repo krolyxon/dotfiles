@@ -96,8 +96,7 @@ Singleton {
     }
 
     function openPortal() {
-        Quickshell.execDetached(["sh", "-c", 'exec ${BROWSER:-xdg-open} "$1"', "sh",
-                                 portalUrl !== "" ? portalUrl : probeUrl])
+        Session.launch(["sh", "-c", 'exec ${BROWSER:-xdg-open} "$1"', "sh", portalUrl !== "" ? portalUrl : probeUrl])
     }
 
     // manual "sign in" (IPC): open the portal if there is one, else say why not
