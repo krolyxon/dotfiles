@@ -157,18 +157,15 @@ PanelWindow {
                 }
             }
 
+            // net + bt share one block: click the left icon for the net tab, the right one for bt
             BarPill {
                 icon: Net.wired && !(Net.wifiEnabled && Net.connected !== "") ? Net.wiredIcon
                       : (Net.wifiEnabled ? Theme.wifiIcon(Net.connected !== "" ? Net.activeSignal : 0) : Theme.iWifiOff)
                 tint: Net.portal ? Theme.err : ((Net.wired || (Net.wifiEnabled && Net.connected !== "")) ? Theme.fg : Theme.dim)
+                icon2: bar.adapter === null ? "" : (!bar.btOn ? Theme.iBtOff : (bar.btLink ? Theme.iBtConn : Theme.iBt))
+                tint2: bar.btLink ? Theme.fg : Theme.dim
                 onActivated: bar.togglePanel("net", bar.modelData)
-            }
-
-            BarPill {
-                visible: bar.adapter !== null
-                icon: !bar.btOn ? Theme.iBtOff : (bar.btLink ? Theme.iBtConn : Theme.iBt)
-                tint: bar.btLink ? Theme.fg : Theme.dim
-                onActivated: bar.togglePanel("bt", bar.modelData)
+                onActivated2: bar.togglePanel("bt", bar.modelData)
             }
 
             BarPill {
@@ -178,16 +175,6 @@ PanelWindow {
                 tint: bar.batLow ? Theme.err : Theme.fg
                 underline: bar.batLow ? Theme.err : Theme.accent
                 onActivated: bar.togglePanel("sys", bar.modelData)
-            }
-
-            BarPill {
-                icon: Notifs.dnd ? Theme.iBellOff : Theme.iBell
-                text: Notifs.count > 0 ? String(Notifs.count) : ""
-                tint: Notifs.dnd ? Theme.dim : Theme.fg
-                onActivated: button => {
-                    if (button === Qt.RightButton) Notifs.dnd = !Notifs.dnd
-                    else bar.togglePanel("notif", bar.modelData)
-                }
             }
 
             BarPill {
