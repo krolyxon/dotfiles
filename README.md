@@ -87,4 +87,4 @@ The lists live in `packages/*.txt`: one package per line, `#` for comments, and 
 | Launcher / menus | aurora's runner (`aurora-run`, also a dmenu replacement for scripts) |
 | Files | lf, pcmanfm |
 | Music / video | mpd + ncmpcpp, mpv |
-| Font / icons | JetBrainsMono Nerd Font, Yaru |
+| Font / icons | JetBrainsMono Nerd Font, Papirus-Dark |

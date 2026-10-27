@@ -3,7 +3,7 @@
 
 include "/home/krolyxon/.gtkrc-2.0.mine"
 gtk-theme-name="Adwaita-dark"
-gtk-icon-theme-name="Yaru"
+gtk-icon-theme-name="Papirus-Dark"
 gtk-font-name="JetBrainsMonoNL Nerd Font Mono 11"
 gtk-cursor-theme-name="default"
 gtk-cursor-theme-size=24

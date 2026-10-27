@@ -1,4 +1,4 @@
-//@ pragma IconTheme Yaru
+//@ pragma IconTheme Papirus-Dark
 // ^ same as gtk-3.0: notify-send -i names (drive-removable-media, network-wireless, ...) resolve through it
 import QtQuick
 import Quickshell

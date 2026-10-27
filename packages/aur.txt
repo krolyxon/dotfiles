@@ -2,6 +2,5 @@
 envycontrol
 htop-vim
 jmtpfs
-yaru-icon-theme
 zsh-fast-syntax-highlighting-git
 claude-code

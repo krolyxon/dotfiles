@@ -15,6 +15,7 @@ qt6-wayland
 # Theming: matugen = all colours (aurora, hypr, gtk, qt, foot, ...)
 matugen
 adw-gtk-theme
+papirus-icon-theme
 qt5ct
 qt6ct
 
