@@ -1,38 +1,44 @@
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Effects
 import Quickshell
 import Quickshell.Wayland
-import Quickshell.Hyprland
 
-// Wallpaper picker: folder chips, filter, thumbnail grid. Vim-style: the grid has the keyboard
-// (hjkl/arrows move, g/G first/last, ctrl+d/u page), `/` starts searching (enter keeps the filter,
-// esc clears it). Enter / double-click applies (stays open so you can try a few), Esc / q or click
-// outside closes. Tab / Shift+Tab cycles folders.
+// Wallpaper picker: the whole screen previews the selected wallpaper in the current look (no matugen until you apply),
+// a card at the bottom holds folder chips, the look (mono dots / colour dots / photo), the filter and the thumbnails.
+// Vim-style: the grid has the keyboard (hjkl/arrows move, g/G first/last, ctrl+d/u page), `/` searches (enter keeps the
+// filter, esc clears it), `v` cycles the look, Tab / Shift+Tab the folders. Enter / double-click applies (stays open to
+// try a few), Esc / q or a click on the preview closes. After glyph-rice (github.com/Nebelung-cloud/glyph-rice, GPL-3.0), wall/Walls.qml.
 PanelWindow {
     id: win
     property bool opened: false
     signal closeRequested()
 
-    visible: opened
-    implicitWidth: screen ? Math.round(screen.width * 0.7) : 1200
-    implicitHeight: screen ? Math.round(screen.height * 0.7) : 700
-    exclusiveZone: 0
+    property real t: opened ? 1 : 0
+    Behavior on t { NumberAnimation { duration: Theme.t; easing.type: Easing.BezierSpline; easing.bezierCurve: Theme.glide } }
+
+    visible: t > 0
+    anchors { top: true; bottom: true; left: true; right: true }
+    exclusionMode: ExclusionMode.Ignore
     color: "transparent"
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.namespace: "aurora-wallpaper"
     WlrLayershell.keyboardFocus: opened ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
-    HyprlandFocusGrab {
-        windows: [win]
-        active: win.opened
-        onCleared: win.closeRequested()
-    }
-
+    property bool pendingSel: false      // just opened: select the current wallpaper once the folder is listed
     onOpenedChanged: {
-        if (!opened) return
+        if (!opened) { previewPath = ""; return }
         filter.text = ""
+        pendingSel = true
         Wall.refresh()
         grid.forceActiveFocus()
+        selT.restart()
+    }
+    function selectCurrent() {
+        if (!pendingSel || Wall.loading || !shown.length) return
+        pendingSel = false
+        var i = shown.indexOf(Wall.current)
+        if (i >= 0) { grid.currentIndex = i; grid.positionViewAtIndex(i, GridView.Center) }
     }
 
     // search mode = the filter box has the keyboard (entered with `/` or by clicking it)
@@ -46,12 +52,21 @@ PanelWindow {
     function page(d) {
         grid.currentIndex = Math.max(0, Math.min(shown.length - 1, grid.currentIndex + d * grid.perPage))
     }
+    readonly property var looks: ["dots", "colour", "photo"]
+    function cycleLook() { Settings.wallLook = looks[(looks.indexOf(Settings.wallLook) + 1) % looks.length] }
 
     readonly property var shown: {
         var q = filter.text.toLowerCase(), out = [], l = Wall.files
         for (var i = 0; i < l.length; i++)
             if (q === "" || l[i].substring(l[i].lastIndexOf("/") + 1).toLowerCase().indexOf(q) >= 0) out.push(l[i])
         return out
+    }
+    // after the grid has taken the new model (replacing it resets its currentIndex to 0)
+    Timer { id: selT; interval: 60; onTriggered: win.selectCurrent() }
+    onShownChanged: if (pendingSel) selT.restart()
+    Connections {
+        target: Wall
+        function onLoadingChanged() { if (win.pendingSel) selT.restart() }
     }
     readonly property var chips: [""].concat(Wall.folders)
 
@@ -61,123 +76,148 @@ PanelWindow {
     }
     function name(p) { return p.substring(p.lastIndexOf("/") + 1) }
 
+    // the preview follows the selection after a short pause (flipping fast with hjkl doesn't load every image)
+    property string previewPath: ""
+    readonly property string selected: opened && grid.currentIndex >= 0 && grid.currentIndex < shown.length ? shown[grid.currentIndex] : ""
+    onSelectedChanged: previewT.restart()
+    Timer { id: previewT; interval: 220; onTriggered: win.previewPath = win.selected || Wall.current }
+
+    // ---- the preview, full screen ----
     Rectangle {
         anchors.fill: parent
-        color: Theme.bgA
-        border.width: 2
-        border.color: Theme.accent
+        color: Theme.bg
+        opacity: win.t
+        WallView {
+            anchors.fill: parent
+            path: win.previewPath !== "" ? win.previewPath : Wall.current
+        }
+        MouseArea { anchors.fill: parent; onClicked: win.closeRequested() }
+        Lb {
+            x: 40
+            y: 32
+            px: 11
+            color: Theme.fg
+            text: "preview · " + win.name(win.previewPath !== "" ? win.previewPath : Wall.current)
+                  + (win.previewPath !== "" && win.previewPath !== Wall.current ? " · ↵ apply" : " · on now")
+        }
+    }
+
+    // ---- the card ----
+    Rectangle {
+        id: card
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: 24 - 24 * (1 - win.t)
+        width: Math.min(parent.width - 48, 1480)
+        height: Math.round(parent.height * 0.46)
+        opacity: win.t
+        radius: 40
+        color: Qt.rgba(Theme.s1.r, Theme.s1.g, Theme.s1.b, Theme.panelAlpha)
+        border.width: 1
+        border.color: Theme.s2
+        MouseArea { anchors.fill: parent }   // clicks on the card don't close
 
         ColumnLayout {
             anchors.fill: parent
-            anchors.margins: 12
-            spacing: 10
+            anchors.margins: 24
+            spacing: 14
 
-            // folder chips
-            Flow {
-                Layout.fillWidth: true
-                spacing: 4
-                Repeater {
-                    model: win.chips
-                    delegate: Rectangle {
-                        id: chip
-                        required property var modelData
-                        readonly property bool current: Wall.folder === modelData
-                        width: cl.implicitWidth + 18
-                        height: 24
-                        color: current ? Theme.accent : (cm.containsMouse ? Theme.surfaceHi : "transparent")
-                        border.width: 1
-                        border.color: current ? Theme.accent : Theme.line
-                        Text {
-                            id: cl
-                            anchors.centerIn: parent
-                            text: chip.modelData === "" ? "all" : chip.modelData
-                            color: chip.current ? Theme.bg : Theme.fg
-                            font.family: Theme.font
-                            font.pixelSize: Theme.fontSize - 1
-                            font.bold: chip.current
-                        }
-                        MouseArea {
-                            id: cm
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: Wall.listFolder(chip.modelData)
-                        }
-                    }
-                }
-            }
-
-            // filter + actions
             RowLayout {
                 Layout.fillWidth: true
-                spacing: 6
-                Rectangle {
+                spacing: 10
+                Flow {
                     Layout.fillWidth: true
-                    implicitHeight: 30
-                    color: Theme.surface
-                    border.width: 1
-                    border.color: filter.activeFocus ? Theme.accent : Theme.line
-                    Text {
-                        anchors.left: parent.left
-                        anchors.leftMargin: 10
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: win.searching ? "/" : Theme.iSearch
-                        color: win.searching ? Theme.accent : Theme.dim
-                        font.family: Theme.font
-                        font.pixelSize: Theme.fontSize
-                        font.bold: win.searching
-                    }
-                    Text {
-                        anchors.left: parent.left
-                        anchors.leftMargin: 32
-                        anchors.verticalCenter: parent.verticalCenter
-                        visible: filter.text === "" && !win.searching
-                        text: "press / to search"
-                        color: Theme.dim
-                        font.family: Theme.font
-                        font.pixelSize: Theme.fontSize
-                    }
-                    TextInput {
-                        id: filter
-                        anchors.fill: parent
-                        anchors.leftMargin: 32
-                        anchors.rightMargin: 10
-                        verticalAlignment: TextInput.AlignVCenter
-                        color: Theme.fg
-                        selectionColor: Theme.accent
-                        selectedTextColor: Theme.bg
-                        font.family: Theme.font
-                        font.pixelSize: Theme.fontSize
-                        clip: true
-                        onTextChanged: grid.currentIndex = 0
-                        // like vim's `/`: enter keeps the filter and goes back to the grid, esc drops it
-                        Keys.onEscapePressed: win.endSearch(true)
-                        Keys.onReturnPressed: win.endSearch(false)
-                        Keys.onEnterPressed: win.endSearch(false)
-                        Keys.onUpPressed: grid.moveCurrentIndexUp()
-                        Keys.onDownPressed: grid.moveCurrentIndexDown()
-                        Keys.onTabPressed: win.cycleFolder(1)
-                        Keys.onBacktabPressed: win.cycleFolder(-1)
-                        // ctrl+hjkl moves through the results without leaving the search
-                        Keys.onPressed: event => {
-                            if (!(event.modifiers & Qt.ControlModifier)) return
-                            event.accepted = true
-                            if (event.key === Qt.Key_H) grid.moveCurrentIndexLeft()
-                            else if (event.key === Qt.Key_J) grid.moveCurrentIndexDown()
-                            else if (event.key === Qt.Key_K) grid.moveCurrentIndexUp()
-                            else if (event.key === Qt.Key_L) grid.moveCurrentIndexRight()
-                            else event.accepted = false
+                    spacing: 2
+                    Repeater {
+                        model: win.chips
+                        delegate: Chip {
+                            required property var modelData
+                            text: modelData === "" ? "all" : modelData
+                            selected: Wall.folder === modelData
+                            onClicked: Wall.listFolder(modelData)
                         }
                     }
                 }
-                Text {
-                    text: Wall.loading ? "..." : win.shown.length + " / " + Wall.files.length
-                    color: Theme.dim
-                    font.family: Theme.font
-                    font.pixelSize: Theme.fontSize - 1
+                Segmented {
+                    Layout.preferredWidth: 330
+                    implicitHeight: 44
+                    options: [{ value: "dots", label: "mono" }, { value: "colour", label: "colour" }, { value: "photo", label: "photo" }]
+                    value: Settings.wallLook
+                    onPicked: v => Settings.wallLook = v
                 }
-                IconBtn { icon: Theme.iShuffle; label: "random"; onClicked: Wall.random() }
-                IconBtn { icon: Theme.iClose; onClicked: win.closeRequested() }
+                IconBtn { implicitHeight: 44; icon: Theme.iShuffle; label: "random"; onClicked: Wall.random() }
+                IconBtn { implicitHeight: 44; icon: Theme.iClose; onClicked: win.closeRequested() }
+            }
+
+            // filter: a pill with the live caret
+            Rectangle {
+                Layout.fillWidth: true
+                implicitHeight: 48
+                radius: height / 2
+                color: Theme.s2
+                border.width: win.searching ? 1 : 0
+                border.color: Theme.fill
+                Icon {
+                    id: lens
+                    x: 20
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: Theme.iSearch
+                    color: win.searching ? Theme.fg : Theme.grey
+                    font.pixelSize: 18
+                }
+                TextInput {
+                    id: filter
+                    anchors.left: lens.right
+                    anchors.leftMargin: 14
+                    anchors.right: count.left
+                    anchors.rightMargin: 12
+                    anchors.verticalCenter: parent.verticalCenter
+                    color: Theme.fg
+                    selectionColor: Theme.fill
+                    selectedTextColor: Theme.fillFg
+                    font.family: Theme.ui
+                    font.pixelSize: 16
+                    clip: true
+                    cursorDelegate: Rectangle {
+                        width: 2
+                        color: Theme.live
+                        visible: filter.activeFocus
+                        Timer { running: filter.activeFocus; interval: 500; repeat: true; onTriggered: parent.opacity = 1 - parent.opacity }
+                    }
+                    onTextChanged: grid.currentIndex = 0
+                    // like vim's `/`: enter keeps the filter and goes back to the grid, esc drops it
+                    Keys.onEscapePressed: win.endSearch(true)
+                    Keys.onReturnPressed: win.endSearch(false)
+                    Keys.onEnterPressed: win.endSearch(false)
+                    Keys.onUpPressed: grid.moveCurrentIndexUp()
+                    Keys.onDownPressed: grid.moveCurrentIndexDown()
+                    Keys.onTabPressed: win.cycleFolder(1)
+                    Keys.onBacktabPressed: win.cycleFolder(-1)
+                    // ctrl+hjkl moves through the results without leaving the search
+                    Keys.onPressed: event => {
+                        if (!(event.modifiers & Qt.ControlModifier)) return
+                        event.accepted = true
+                        if (event.key === Qt.Key_H) grid.moveCurrentIndexLeft()
+                        else if (event.key === Qt.Key_J) grid.moveCurrentIndexDown()
+                        else if (event.key === Qt.Key_K) grid.moveCurrentIndexUp()
+                        else if (event.key === Qt.Key_L) grid.moveCurrentIndexRight()
+                        else event.accepted = false
+                    }
+                    Text {
+                        visible: filter.text === "" && !win.searching
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: "Press / to search wallpapers"
+                        font: filter.font
+                        color: Theme.mute
+                    }
+                }
+                Lb {
+                    id: count
+                    anchors.right: parent.right
+                    anchors.rightMargin: 22
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: Wall.loading ? "…" : win.shown.length + " / " + Wall.files.length
+                }
             }
 
             GridView {
@@ -185,10 +225,10 @@ PanelWindow {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 clip: true
-                readonly property int cols: Math.max(1, Math.floor(width / 240))
+                readonly property int cols: Math.max(1, Math.floor(width / 230))
                 readonly property int perPage: cols * Math.max(1, Math.floor(height / cellHeight))
                 cellWidth: Math.floor(width / cols)
-                cellHeight: Math.round(cellWidth * 9 / 16) + 22
+                cellHeight: Math.round(cellWidth * 9 / 16) + 30
                 model: win.shown
                 currentIndex: 0
                 boundsBehavior: Flickable.StopAtBounds
@@ -216,6 +256,7 @@ PanelWindow {
                     else if (event.text === "l") grid.moveCurrentIndexRight()
                     else if (event.text === "g") grid.currentIndex = 0
                     else if (event.text === "G") grid.currentIndex = win.shown.length - 1
+                    else if (event.text === "v") win.cycleLook()
                     else if (event.text === "q") win.closeRequested()
                     else event.accepted = false
                 }
@@ -231,43 +272,65 @@ PanelWindow {
                     height: grid.cellHeight
 
                     Rectangle {
-                        anchors.fill: parent
-                        anchors.margins: 4
-                        color: Theme.surface
-                        border.width: cell.selected || cell.isCurrent ? 2 : 1
-                        border.color: cell.selected ? Theme.fg : (cell.isCurrent ? Theme.accent : Theme.line)
-
+                        id: frame
+                        x: 6
+                        y: 6
+                        width: parent.width - 12
+                        height: parent.height - 36
+                        radius: 22
+                        color: Theme.s2
+                        border.width: cell.selected ? 2 : 0
+                        border.color: Theme.fill
                         Image {
                             id: img
                             anchors.fill: parent
-                            anchors.margins: 2
-                            anchors.bottomMargin: 20
+                            anchors.margins: cell.selected ? 5 : 0
                             fillMode: Image.PreserveAspectCrop
                             asynchronous: true
                             cache: false
                             sourceSize.width: 320
                             sourceSize.height: 180
                             source: Wall.ready[cell.hash] ? "file://" + Wall.thumbDir + "/" + cell.hash + ".jpg" : ""
+                            layer.enabled: true
+                            layer.effect: MultiEffect { maskEnabled: true; maskSource: mask }
                         }
-                        Text {
-                            anchors.centerIn: img
+                        Rectangle {
+                            id: mask
+                            width: img.width
+                            height: img.height
+                            radius: cell.selected ? 17 : 22
+                            visible: false
+                            layer.enabled: true
+                        }
+                        Icon {
+                            anchors.centerIn: parent
                             visible: img.status !== Image.Ready
                             text: Theme.iImage
-                            color: Theme.dim
-                            font.family: Theme.font
+                            color: Theme.mute
                             font.pixelSize: 22
                         }
-                        Text {
-                            anchors.left: parent.left
-                            anchors.right: parent.right
-                            anchors.bottom: parent.bottom
-                            anchors.margins: 4
-                            height: 14
-                            text: (cell.isCurrent ? Theme.iCheck + " " : "") + win.name(cell.modelData)
+                    }
+                    Row {
+                        anchors.left: frame.left
+                        anchors.leftMargin: 8
+                        anchors.right: frame.right
+                        anchors.top: frame.bottom
+                        anchors.topMargin: 8
+                        spacing: 8
+                        Rectangle {
+                            visible: cell.isCurrent
+                            anchors.verticalCenter: parent.verticalCenter
+                            width: 8
+                            height: 8
+                            radius: 4
+                            color: Theme.live
+                        }
+                        Lb {
+                            width: parent.width - (cell.isCurrent ? 16 : 0)
                             elide: Text.ElideMiddle
-                            color: cell.isCurrent ? Theme.accent : Theme.dim
-                            font.family: Theme.font
-                            font.pixelSize: Theme.fontSize - 2
+                            px: 10
+                            text: win.name(cell.modelData)
+                            color: cell.selected ? Theme.fg : Theme.grey
                         }
                     }
                     MouseArea {
@@ -279,15 +342,13 @@ PanelWindow {
                 }
             }
 
-            Text {
-                Layout.fillWidth: true
-                text: (win.searching ? "-- SEARCH --   enter done   esc clear   ↑↓ move   "
-                                     : "hjkl move   / search   enter apply   tab folder   g/G first/last   esc close   ")
-                      + Theme.iImage + " " + win.name(Wall.current)
-                elide: Text.ElideRight
-                color: Theme.dim
-                font.family: Theme.font
-                font.pixelSize: Theme.fontSize - 2
+            Row {
+                spacing: 30
+                Repeater {
+                    model: win.searching ? ["↵ done", "esc clear", "↑↓ move"]
+                                         : ["hjkl move", "/ search", "↵ apply", "v look", "tab folder", "g/G first/last", "esc close"]
+                    Lb { required property string modelData; text: modelData; px: 10 }
+                }
             }
         }
     }

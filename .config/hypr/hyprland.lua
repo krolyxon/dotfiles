@@ -30,7 +30,7 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("gammastep")
     hl.exec_cmd("hypridle")
     -- hl.exec_cmd("blueman-applet")
-    hl.exec_cmd("hyprpaper")   -- wallpaper is set by aurora (Wall.qml), it reads hyprpaper.conf
+    -- no hyprpaper: aurora draws the wallpaper itself (Back.qml / WallView.qml)
     -- polkit agent: aurora (Agents.qml); it starts hyprpolkitagent itself if it can't register
 end)
 

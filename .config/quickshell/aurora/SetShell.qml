@@ -15,8 +15,8 @@ Flickable {
         spacing: 8
 
         SectionLabel { text: "desktop" }
-        Switch { label: "clock"; hint: "big clock + stats on the wallpaper"; checked: Settings.desktopClock; onToggled: on => Settings.desktopClock = on }
-        Switch { label: "visualizer"; hint: "cava bars while music plays"; checked: Settings.desktopViz; onToggled: on => Settings.desktopViz = on }
+        Switch { label: "clock"; hint: "home screen: Doto clock, greeting, widgets"; checked: Settings.desktopClock; onToggled: on => Settings.desktopClock = on }
+        Switch { label: "visualizer"; hint: "the round cava matrix widget while music plays"; checked: Settings.desktopViz; onToggled: on => Settings.desktopViz = on }
         Knob { label: "visualizer bars"; from: 16; to: 128; value: Settings.vizBars; onMoved: v => Settings.vizBars = v }
 
         SectionLabel { text: "dock" }

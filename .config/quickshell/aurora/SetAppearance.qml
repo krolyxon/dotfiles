@@ -63,6 +63,29 @@ Flickable {
             }
         }
 
+        SectionLabel { text: "wallpaper look" }
+        Choice {
+            label: "drawn as"
+            options: [{ value: "dots", label: "mono dots" }, { value: "colour", label: "colour dots" }, { value: "photo", label: "photo" }]
+            value: Settings.wallLook
+            onPicked: v => Settings.wallLook = v
+        }
+        Knob { label: "dot size"; from: 6; to: 24; value: Settings.wallPitch; unit: "px"; onMoved: v => Settings.wallPitch = v }
+        Knob { label: "brightness"; from: 20; to: 100; value: Settings.wallBright; unit: "%"; onMoved: v => Settings.wallBright = v }
+        Switch { label: "dot grid"; hint: "on the desktop when there is no wallpaper"; checked: Settings.dotGrid; onToggled: on => Settings.dotGrid = on }
+
+        SectionLabel { text: "home screen" }
+        Field { label: "name"; value: Settings.name; placeholder: "greeting name (empty = your user name)"; onSubmitted: v => Settings.name = v }
+        Switch { label: "24-hour clock"; checked: Settings.clock24; onToggled: on => Settings.clock24 = on }
+        Switch { label: "blinking colon"; checked: Settings.blink; onToggled: on => Settings.blink = on }
+        Switch { label: "animations"; hint: "panels slide and fade, dots light up in waves"; checked: Settings.motion; onToggled: on => Settings.motion = on }
+        Choice {
+            label: "app icons"
+            options: [{ value: "dots", label: "dots" }, { value: "mono", label: "mono" }, { value: "colour", label: "colour" }]
+            value: Settings.appIcons
+            onPicked: v => Settings.appIcons = v
+        }
+
         SectionLabel { text: "colours" }
         Text {
             Layout.fillWidth: true

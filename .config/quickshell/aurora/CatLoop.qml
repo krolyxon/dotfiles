@@ -4,7 +4,8 @@ import QtQuick
 // falls asleep after 4 idle cycles. Needs the "Waycat" font you already use.
 Item {
     id: cat
-    implicitWidth: 40
+    implicitWidth: Math.max(40, size * 2.6)
+    property int size: 14                // the bar uses 14; the home screen draws it big
 
     property int idx: 0
     property bool sleeping: false
@@ -18,7 +19,7 @@ Item {
         text: cat.frames[cat.idx] || ""
         color: Theme.fg
         font.family: "Waycat"
-        font.pixelSize: 14
+        font.pixelSize: cat.size
         font.bold: true
     }
 

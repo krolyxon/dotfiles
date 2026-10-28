@@ -3,9 +3,9 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-// Wallpapers: folder listing, cached thumbnails, and applying them. aurora owns the wallpaper:
-// apply() writes hyprpaper.conf, switches hyprpaper live, runs matugen (all colours, terminal included; Theme then
-// recolours itself). recolor() re-runs just matugen when the scheme/contrast setting changes.
+// Wallpapers: folder listing, cached thumbnails, and applying them. aurora owns the wallpaper and draws it itself
+// (Back.qml / WallView.qml, look = Settings.wallLook): apply() records the path in hyprpaper.conf (only as the record,
+// hyprpaper isn't run any more) and runs matugen (all colours, terminal included; Theme then recolours itself). recolor() re-runs just matugen when the scheme/contrast setting changes.
 // ~/.local/bin/setwall is only a CLI front-end for the IPC calls (wallrandom / wall / wallset).
 Singleton {
     id: root
@@ -19,7 +19,7 @@ Singleton {
     property var folders: []                         // subfolder names; "" = everything under rootDir
     property var files: []                           // absolute paths of the current folder
     property var ready: ({})                         // md5(path) -> true once its thumbnail exists
-    property string current: ""                      // wallpaper hyprpaper is showing
+    property string current: ""                      // the wallpaper on screen
     property bool loading: false
     property bool pendingRandom: false               // random() asked before the folder was listed
     property bool checkedColours: false              // matugen output checked once at startup
@@ -41,13 +41,11 @@ Singleton {
                             "-regextype", "posix-extended", "-iregex", ".*\\.(png|jpe?g|webp)"]
         listProc.running = true
     }
-    // hyprpaper.conf is the source of truth for the current wallpaper (hyprpaper reads it on start).
-    // If hyprpaper isn't running, let Hyprland start it so it doesn't live in aurora's service cgroup.
+    // hyprpaper.conf is the record of the current wallpaper (kept in hyprpaper's format, so it still works if
+    // hyprpaper is ever started again)
     readonly property string applyJob:
         'p="$1"; c="$2"; ' +
         'printf "splash = false\\nwallpaper {\\n    monitor =\\n    path = %s\\n}\\n" "$p" > "$c"; ' +
-        'if pgrep -x hyprpaper >/dev/null; then hyprctl hyprpaper wallpaper ",$p"; ' +
-        'else hyprctl dispatch \'hl.dsp.exec_cmd("hyprpaper")\'; fi; ' +
         'matugen image "$p" -m dark -t "$3" --contrast="$4" --prefer saturation -q'
     function apply(path) {
         if (!path) return
@@ -151,7 +149,7 @@ Singleton {
         }
     }
 
-    // current wallpaper, straight from hyprpaper.conf. None yet (fresh install): pick a random one.
+    // current wallpaper, from its record in hyprpaper.conf. None yet (fresh install): pick a random one.
     FileView {
         path: root.conf
         watchChanges: true

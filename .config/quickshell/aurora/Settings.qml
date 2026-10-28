@@ -18,7 +18,9 @@ Singleton {
         idleDim: 150, idleOff: 330, idleLock: 600, idleSuspend: 0, charTone: 0, portalAutoOpen: true,
         chargeMode: "off", batLow: 15, batCritical: 5, batCriticalAction: "none",
         privacyIndicators: true, powerAuto: false, powerAc: "balanced", powerBat: "saver",
-        motion: true, clock24: true, appIcons: "dots", barSize: 40
+        motion: true, clock24: true, appIcons: "dots", barSize: 40,
+        wallLook: "dots", wallPitch: 10, wallBright: 85, dotGrid: true,
+        name: "", blink: true, homeWidgets: ["calendar", "cpu", "ram", "player", "cava", "system"]
     })
 
     property alias fontSize: a.fontSize
@@ -55,6 +57,13 @@ Singleton {
     property alias clock24: a.clock24
     property alias appIcons: a.appIcons
     property alias barSize: a.barSize
+    property alias wallLook: a.wallLook
+    property alias wallPitch: a.wallPitch
+    property alias wallBright: a.wallBright
+    property alias dotGrid: a.dotGrid
+    property alias name: a.name
+    property alias blink: a.blink
+    property alias homeWidgets: a.homeWidgets
 
     function reset() {
         for (var k in defaults) a[k] = defaults[k]
@@ -113,6 +122,14 @@ Singleton {
             property bool clock24: true
             property string appIcons: "dots"           // dots | mono | colour: how app icons are drawn
             property int barSize: 40                   // height of the bar pill (Doto clock from 40 up)
+            property string wallLook: "dots"           // dots | colour | photo: how aurora draws the wallpaper (WallView)
+            property int wallPitch: 10                 // dot step, px
+            property int wallBright: 85                // %, from the background to the full image
+            property bool dotGrid: true                // dot grid on an empty desktop
+            property string name: ""                   // home screen greeting, empty = $USER
+            property bool blink: true                  // the home clock's colon blinks
+            // home screen bento, in order: calendar cpu ram disk battery gpu player cava cat system (Desktop.qml)
+            property list<string> homeWidgets: ["calendar", "cpu", "ram", "player", "cava", "system"]
         }
     }
     // first run: create the file once the directory exists

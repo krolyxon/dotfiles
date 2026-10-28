@@ -91,6 +91,12 @@ ShellRoot {
     // keep every pipewire node bound so volume / mute / properties are readable
     PwObjectTracker { objects: Pipewire.nodes.values }
 
+    // the wallpaper (Background layer), then the home screen on top of it (Bottom layer)
+    Variants {
+        model: Quickshell.screens
+        Back {}
+    }
+
     Variants {
         model: Quickshell.screens
         Desktop {}
