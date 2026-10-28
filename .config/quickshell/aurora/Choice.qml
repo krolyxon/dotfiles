@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 
-// label + segmented buttons. options: [{value, label}] (settings app)
+// A settings row: label + a segmented pill where the primary cell slides to the choice. options: [{value, label}]
 RowLayout {
     id: c
     property string label: ""
@@ -9,29 +9,21 @@ RowLayout {
     property var value
     signal picked(var v)
     Layout.fillWidth: true
-    spacing: 8
+    Layout.leftMargin: 18
+    spacing: 16
     Text {
-        Layout.preferredWidth: 150
+        Layout.preferredWidth: 200
         text: c.label
         color: Theme.fg
         elide: Text.ElideRight
-        font.family: Theme.font
-        font.pixelSize: Theme.fontSize
+        font.family: Theme.ui
+        font.pixelSize: 15
     }
-    RowLayout {
+    Segmented {
         Layout.fillWidth: true
-        spacing: 2
-        Repeater {
-            model: c.options
-            delegate: IconBtn {
-                required property var modelData
-                Layout.fillWidth: true
-                Layout.preferredWidth: 1      // equal widths, whatever the label length
-                implicitHeight: 26
-                label: modelData.label
-                active: c.value === modelData.value
-                onClicked: c.picked(modelData.value)
-            }
-        }
+        implicitHeight: 46
+        options: c.options
+        value: c.value
+        onPicked: v => c.picked(v)
     }
 }

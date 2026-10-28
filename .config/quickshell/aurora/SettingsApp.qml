@@ -1,10 +1,11 @@
 import QtQuick
-import QtQuick.Layouts
 import Quickshell
 
-// The settings app: a normal Hyprland window (class org.quickshell, title "aurora settings"; floated + sized by a
-// window rule). Sidebar of sections, one Loader so only the shown section runs (net scans, bt discovery).
-// Esc closes, Ctrl+Tab / Ctrl+Shift+Tab (or Ctrl+J/K) cycle sections. Opened with the `settings [section]` IPC.
+// The settings app: a normal Hyprland window (class org.quickshell, title "aurora settings"), opened maximized by a
+// window rule. glyph's prefs layout: the sections as a column of Doto words (the selected one large with the live dot),
+// the page on the right under a caption, key hints at the bottom. One Loader, so only the shown section runs.
+// Up/Down (outside text fields), Ctrl+Tab / Ctrl+Shift+Tab or Ctrl+J/K = sections, Esc closes.
+// Opened with the `settings [section]` IPC. After glyph-rice (github.com/Nebelung-cloud/glyph-rice, GPL-3.0), prefs/Prefs.qml.
 FloatingWindow {
     id: win
     property bool opened: false
@@ -15,32 +16,35 @@ FloatingWindow {
 
     visible: opened
     title: "aurora settings"
-    implicitWidth: 960
-    implicitHeight: 680
+    implicitWidth: 1600
+    implicitHeight: 900
     color: Theme.bg
     // closed by the compositor (killactive): keep shell state in sync
     onVisibleChanged: if (!visible && opened) closeRequested()
 
     readonly property var sections: [
-        { id: "network",    icon: Theme.iWifi,     name: "network",    group: "connections" },
-        { id: "bluetooth",  icon: Theme.iBt,       name: "bluetooth",  group: "connections" },
-        { id: "sound",      icon: Theme.iVolHigh,  name: "sound",      group: "connections" },
-        { id: "appearance", icon: Theme.iPalette,  name: "appearance", group: "look" },
-        { id: "shell",      icon: Theme.iDock,     name: "shell",      group: "look" },
-        { id: "windows",    icon: Theme.iWindow,   name: "windows",    group: "hyprland" },
-        { id: "input",      icon: Theme.iMouse,    name: "input",      group: "hyprland" },
-        { id: "keybinds",   icon: Theme.iKeyboard, name: "keybinds",   group: "hyprland" },
-        { id: "display",    icon: Theme.iMonitor,  name: "display",    group: "system" },
-        { id: "power",      icon: Theme.iPower,    name: "power",      group: "system" },
-        { id: "about",      icon: Theme.iArch,     name: "about",      group: "system" }
+        { id: "network",    word: "network",   caption: "network · wi-fi, wired, tethering" },
+        { id: "bluetooth",  word: "bluetooth", caption: "bluetooth · devices, pairing" },
+        { id: "sound",      word: "sound",     caption: "sound · levels, devices, apps" },
+        { id: "appearance", word: "look",      caption: "look · wallpaper, home screen, colours, sizes" },
+        { id: "shell",      word: "shell",     caption: "shell · home screen, dock, osd, notifications" },
+        { id: "windows",    word: "windows",   caption: "windows · hyprland gaps, borders, effects, layout" },
+        { id: "input",      word: "input",     caption: "input · keyboard, mouse, touchpad" },
+        { id: "keybinds",   word: "keys",      caption: "keys · hyprland binds" },
+        { id: "display",    word: "display",   caption: "display · monitors, layout, night light" },
+        { id: "power",      word: "power",     caption: "power · battery, profiles, idle" },
+        { id: "about",      word: "about",     caption: "about · this system" }
     ]
     readonly property int index: {
         for (var i = 0; i < sections.length; i++) if (sections[i].id === section) return i
         return 0
     }
     function cycle(d) { sectionRequested(sections[(index + d + sections.length) % sections.length].id) }
+    // typing in a field: arrows belong to it
+    function inText() { var a = win.activeFocusItem; return a !== null && a.cursorPosition !== undefined }
 
     Item {
+        id: root
         anchors.fill: parent
         focus: true
         Keys.onPressed: e => {
@@ -49,92 +53,70 @@ FloatingWindow {
             else if (ctrl && (e.key === Qt.Key_Tab || e.key === Qt.Key_J)) { win.cycle(1); e.accepted = true }
             else if (ctrl && (e.key === Qt.Key_Backtab || e.key === Qt.Key_K)) { win.cycle(-1); e.accepted = true }
         }
+        // a click outside the page drops the focus out of text fields (arrows switch sections again)
+        MouseArea { anchors.fill: parent; onClicked: root.forceActiveFocus() }
 
-        RowLayout {
+        Item {
+            id: stage
             anchors.fill: parent
-            spacing: 0
+            Keys.forwardTo: [root]
 
-            // sidebar
-            Rectangle {
-                Layout.fillHeight: true
-                Layout.preferredWidth: 200
-                color: Theme.surface
-                ColumnLayout {
-                    anchors.fill: parent
-                    anchors.margins: 10
-                    spacing: 2
-                    Text {
-                        Layout.bottomMargin: 8
-                        text: Theme.iCog + "  aurora settings"
-                        color: Theme.accent
-                        font.family: Theme.font
-                        font.pixelSize: Theme.fontSize + 1
-                        font.bold: true
-                    }
-                    Repeater {
-                        model: win.sections
-                        delegate: ColumnLayout {
-                            id: entry
-                            required property var modelData
-                            required property int index
-                            readonly property bool current: win.section === modelData.id
-                            readonly property bool firstOfGroup: index === 0 || win.sections[index - 1].group !== modelData.group
-                            Layout.fillWidth: true
-                            spacing: 2
-                            Text {
-                                visible: entry.firstOfGroup
-                                Layout.topMargin: entry.index === 0 ? 0 : 8
-                                text: entry.modelData.group.toUpperCase()
-                                color: Theme.dim
-                                font.family: Theme.font
-                                font.pixelSize: Theme.fontSize - 3
-                                font.letterSpacing: 1.5
-                            }
-                            Rectangle {
-                                Layout.fillWidth: true
-                                implicitHeight: 30
-                                color: entry.current ? Theme.accent : (em.containsMouse ? Theme.surfaceHi : "transparent")
-                                Text {
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    x: 10
-                                    text: entry.modelData.icon + "   " + entry.modelData.name
-                                    color: entry.current ? Theme.bg : Theme.fg
-                                    font.family: Theme.font
-                                    font.pixelSize: Theme.fontSize
-                                    font.bold: entry.current
-                                }
-                                MouseArea {
-                                    id: em
-                                    anchors.fill: parent
-                                    hoverEnabled: true
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: win.sectionRequested(entry.modelData.id)
-                                }
-                            }
+            // ---- sections ----
+            Column {
+                id: words
+                x: Math.round(Math.min(150, win.width * 0.07))
+                anchors.verticalCenter: parent.verticalCenter
+                spacing: 12
+                Repeater {
+                    model: win.sections
+                    Row {
+                        id: w
+                        required property var modelData
+                        required property int index
+                        readonly property bool on: win.index === index
+                        spacing: 20
+                        Rectangle {
+                            anchors.verticalCenter: parent.verticalCenter
+                            visible: w.on
+                            width: 20
+                            height: 20
+                            radius: 10
+                            color: Theme.live
                         }
+                        Num {
+                            text: w.modelData.word.toUpperCase()
+                            font.pixelSize: w.on ? 76 : 32
+                            color: w.on ? Theme.fg : wm.hovered ? Theme.grey : Theme.mute
+                            Behavior on font.pixelSize {
+                                enabled: Theme.motion
+                                NumberAnimation { duration: Theme.t; easing.type: Easing.BezierSpline; easing.bezierCurve: Theme.glide }
+                            }
+                            Behavior on color { enabled: Theme.motion; ColorAnimation { duration: Theme.t } }
+                        }
+                        HoverHandler { id: wm; cursorShape: Qt.PointingHandCursor }
+                        TapHandler { onTapped: { win.sectionRequested(w.modelData.id); root.forceActiveFocus() } }
                     }
-                    Item { Layout.fillHeight: true }
                 }
             }
-            Rectangle { Layout.fillHeight: true; Layout.preferredWidth: 1; color: Theme.line }
 
-            // content
-            ColumnLayout {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                Layout.margins: 16
-                spacing: 12
-                Text {
-                    text: win.sections[win.index].name.toUpperCase()
-                    color: Theme.fg
-                    font.family: Theme.font
-                    font.pixelSize: Theme.fontSize + 4
-                    font.bold: true
-                    font.letterSpacing: 2
+            // ---- the page ----
+            Item {
+                id: pageBox
+                x: Math.max(words.x + 560, Math.round(win.width * 0.42))
+                y: 96
+                width: Math.min(900, win.width - x - 80)
+                height: parent.height - y - 110
+                Lb {
+                    id: caption
+                    x: 18
+                    text: win.sections[win.index].caption
                 }
                 Loader {
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
+                    anchors.top: caption.bottom
+                    anchors.topMargin: 24
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.bottom: parent.bottom
                     active: win.opened
                     sourceComponent: {
                         switch (win.section) {
@@ -153,7 +135,21 @@ FloatingWindow {
                     }
                 }
             }
+
+            Row {
+                x: words.x
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: 50
+                spacing: 34
+                Repeater {
+                    model: ["↑↓ section", "ctrl tab next", "esc close"]
+                    Lb { required property string modelData; text: modelData }
+                }
+            }
         }
+        // ↑↓ switch sections unless a text field has the keyboard
+        Keys.onUpPressed: e => { if (win.inText()) { e.accepted = false; return } win.cycle(-1) }
+        Keys.onDownPressed: e => { if (win.inText()) { e.accepted = false; return } win.cycle(1) }
     }
 
     Component { id: netC; NetPage { active: true } }

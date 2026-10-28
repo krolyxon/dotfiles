@@ -20,11 +20,12 @@ Flickable {
         SectionLabel { text: "wallpaper" }
         Text {
             Layout.fillWidth: true
+            Layout.leftMargin: 18
             text: Wall.current !== "" ? Wall.current.replace(Wall.home, "~") : "-"
             elide: Text.ElideLeft
             color: Theme.dim
-            font.family: Theme.font
-            font.pixelSize: Theme.fontSize - 1
+            font.family: Theme.ui
+            font.pixelSize: 14
         }
         RowLayout {
             Layout.fillWidth: true
@@ -45,8 +46,8 @@ Flickable {
         Text {
             text: "random picks from"
             color: Theme.fg
-            font.family: Theme.font
-            font.pixelSize: Theme.fontSize
+            font.family: Theme.ui
+            font.pixelSize: 15
         }
         Flow {
             Layout.fillWidth: true
@@ -89,11 +90,12 @@ Flickable {
         SectionLabel { text: "colours" }
         Text {
             Layout.fillWidth: true
+            Layout.leftMargin: 18
             text: "matugen scheme from the wallpaper, accent = its primary"
             elide: Text.ElideRight
             color: Theme.dim
-            font.family: Theme.font
-            font.pixelSize: Theme.fontSize - 1
+            font.family: Theme.ui
+            font.pixelSize: 14
         }
         Flow {
             Layout.fillWidth: true

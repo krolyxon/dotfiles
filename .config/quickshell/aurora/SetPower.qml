@@ -21,6 +21,7 @@ Flickable {
     }
 
     // one timeout row: slider in 30s steps (0 = never) + readable value
+    // one timeout row, like a Knob: slider in 30s steps (0 = never) + the readable value in a chip
     component Timeout: RowLayout {
         id: t
         property string label: ""
@@ -28,13 +29,16 @@ Flickable {
         property int value: 0
         property int max: 1800
         Layout.fillWidth: true
-        spacing: 8
+        Layout.leftMargin: 18
+        Layout.rightMargin: 14
+        implicitHeight: 48
+        spacing: 16
         Text {
-            Layout.preferredWidth: 150
+            Layout.preferredWidth: 200
             text: t.label
             color: Theme.fg
-            font.family: Theme.font
-            font.pixelSize: Theme.fontSize
+            font.family: Theme.ui
+            font.pixelSize: 15
         }
         BarSlider {
             Layout.fillWidth: true
@@ -44,13 +48,16 @@ Flickable {
             value: t.value
             onMoved: v => Idle.setTimeout(t.key, Math.round(v / 30) * 30)
         }
-        Text {
-            Layout.preferredWidth: 70
-            horizontalAlignment: Text.AlignRight
-            text: flick.dur(t.value)
-            color: t.value > 0 ? Theme.fg : Theme.dim
-            font.family: Theme.font
-            font.pixelSize: Theme.fontSize
+        Rectangle {
+            Layout.preferredWidth: 76
+            implicitHeight: 32
+            radius: 16
+            color: Theme.s2
+            Lb {
+                anchors.centerIn: parent
+                text: flick.dur(t.value)
+                color: t.value > 0 ? Theme.fg : Theme.grey
+            }
         }
     }
 
@@ -78,8 +85,8 @@ Flickable {
                     + (Battery.capOn ? "on" : "off") + "."
                   : "charges to 100%"
             color: Theme.dim
-            font.family: Theme.font
-            font.pixelSize: Theme.fontSize - 2
+            font.family: Theme.ui
+            font.pixelSize: 13
         }
         Knob {
             visible: Battery.hasBat
@@ -141,11 +148,12 @@ Flickable {
         }
         Text {
             Layout.fillWidth: true
+            Layout.leftMargin: 18
             text: "saved to ~/.config/aurora/hypridle.conf, hypridle restarts on change"
             color: Theme.dim
             elide: Text.ElideLeft
-            font.family: Theme.font
-            font.pixelSize: Theme.fontSize - 2
+            font.family: Theme.ui
+            font.pixelSize: 13
         }
     }
 }

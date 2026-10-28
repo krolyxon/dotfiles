@@ -24,8 +24,8 @@ Flickable {
         Text {
             text: "pinned apps (pin more from the dock's right-click)"
             color: Theme.dim
-            font.family: Theme.font
-            font.pixelSize: Theme.fontSize - 1
+            font.family: Theme.ui
+            font.pixelSize: 14
         }
         Flow {
             Layout.fillWidth: true
@@ -67,11 +67,12 @@ Flickable {
             Layout.fillWidth: true
             Text {
                 Layout.fillWidth: true
+                Layout.leftMargin: 18
                 text: "~/.config/aurora/settings.json"
                 elide: Text.ElideLeft
                 color: Theme.dim
-                font.family: Theme.font
-                font.pixelSize: Theme.fontSize - 2
+                font.family: Theme.ui
+                font.pixelSize: 13
             }
             IconBtn { icon: Theme.iRefresh; label: "reset shell settings"; onClicked: Settings.reset() }
         }

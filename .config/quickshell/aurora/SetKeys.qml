@@ -113,21 +113,20 @@ ColumnLayout {
             }
             Rectangle {
                 visible: !parent.isHeader
-                Layout.preferredWidth: 220
-                implicitHeight: 24
-                color: Theme.surface
-                border.width: 1
-                border.color: Theme.line
-                Text {
+                Layout.preferredWidth: 240
+                Layout.leftMargin: 18
+                implicitHeight: 30
+                radius: 15
+                color: Theme.s2
+                Lb {
                     anchors.fill: parent
-                    anchors.leftMargin: 6
+                    anchors.leftMargin: 14
+                    anchors.rightMargin: 10
                     verticalAlignment: Text.AlignVCenter
                     text: modelData.keys || ""
-                    color: Theme.accent
+                    color: Theme.fill
                     elide: Text.ElideRight
-                    font.family: Theme.font
-                    font.pixelSize: Theme.fontSize - 1
-                    font.bold: true
+                    px: 10
                 }
             }
             Text {
@@ -136,15 +135,15 @@ ColumnLayout {
                 text: modelData.action || ""
                 color: Theme.fg
                 elide: Text.ElideRight
-                font.family: Theme.font
-                font.pixelSize: Theme.fontSize - 1
+                font.family: Theme.ui
+                font.pixelSize: 14
             }
         }
     }
     Text {
         text: page.binds.length + " binds  ·  " + page.file.replace(Quickshell.env("HOME"), "~")
         color: Theme.dim
-        font.family: Theme.font
-        font.pixelSize: Theme.fontSize - 2
+        font.family: Theme.ui
+        font.pixelSize: 13
     }
 }

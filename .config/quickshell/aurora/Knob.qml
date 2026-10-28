@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 
-// label + slider + value, for an integer or real setting (settings app)
+// A settings row: label + dotted slider + value, for an integer or real setting
 RowLayout {
     id: k
     property string label: ""
@@ -12,14 +12,17 @@ RowLayout {
     property string unit: ""
     signal moved(real v)
     Layout.fillWidth: true
-    spacing: 8
+    Layout.leftMargin: 18
+    Layout.rightMargin: 14
+    implicitHeight: 48
+    spacing: 16
     Text {
-        Layout.preferredWidth: 150
+        Layout.preferredWidth: 200
         text: k.label
         color: Theme.fg
         elide: Text.ElideRight
-        font.family: Theme.font
-        font.pixelSize: Theme.fontSize
+        font.family: Theme.ui
+        font.pixelSize: 15
     }
     BarSlider {
         Layout.fillWidth: true
@@ -29,12 +32,15 @@ RowLayout {
         value: k.value
         onMoved: v => k.moved(k.decimals ? Math.round(v * 100) / 100 : Math.round(v))
     }
-    Text {
-        Layout.preferredWidth: 56
-        horizontalAlignment: Text.AlignRight
-        text: (k.decimals ? k.value.toFixed(k.decimals) : String(Math.round(k.value))) + k.unit
-        color: Theme.fg
-        font.family: Theme.font
-        font.pixelSize: Theme.fontSize
+    Rectangle {
+        Layout.preferredWidth: 76
+        implicitHeight: 32
+        radius: 16
+        color: Theme.s2
+        Lb {
+            anchors.centerIn: parent
+            text: (k.decimals ? k.value.toFixed(k.decimals) : String(Math.round(k.value))) + k.unit
+            color: Theme.fg
+        }
     }
 }

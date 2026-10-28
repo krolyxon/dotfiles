@@ -50,7 +50,7 @@ Flickable {
             Text {
                 text: Theme.iArch
                 color: Theme.accent
-                font.family: Theme.font
+                font.family: Theme.ui
                 font.pixelSize: 56
             }
             ColumnLayout {
@@ -58,16 +58,16 @@ Flickable {
                 Text {
                     text: flick.info.length ? flick.info[0][1] : ""
                     color: Theme.fg
-                    font.family: Theme.font
-                    font.pixelSize: Theme.fontSize + 6
+                    font.family: Theme.ui
+                    font.pixelSize: 21
                     font.bold: true
                 }
                 Text {
                     text: Quickshell.env("USER") + "@" + (flick.info.length > 2 ? flick.info[2][1] : "")
                         + "  ·  up " + Theme.fmtTime(SysStats.uptime)
                     color: Theme.dim
-                    font.family: Theme.font
-                    font.pixelSize: Theme.fontSize
+                    font.family: Theme.ui
+                    font.pixelSize: 15
                 }
             }
         }
@@ -83,16 +83,17 @@ Flickable {
                     Layout.preferredWidth: 150
                     text: modelData[0]
                     color: Theme.accent
-                    font.family: Theme.font
-                    font.pixelSize: Theme.fontSize
+                    font.family: Theme.ui
+                    font.pixelSize: 15
                 }
                 Text {
                     Layout.fillWidth: true
+                    Layout.leftMargin: 18
                     text: modelData[1]
                     color: Theme.fg
                     elide: Text.ElideRight
-                    font.family: Theme.font
-                    font.pixelSize: Theme.fontSize
+                    font.family: Theme.ui
+                    font.pixelSize: 15
                 }
             }
         }
@@ -109,9 +110,24 @@ Flickable {
                 required property var modelData
                 label: modelData.label
                 frac: modelData.used / modelData.size
-                fill: frac > 0.9 ? Theme.err : Theme.accent
+                fill: frac > 0.9 ? Theme.err : Theme.fill
                 valueText: flick.size(modelData.used) + " / " + flick.size(modelData.size)
             }
+        }
+
+        SectionLabel { text: "credits"; Layout.topMargin: 6 }
+        Text {
+            Layout.fillWidth: true
+            Layout.leftMargin: 18
+            wrapMode: Text.WordWrap
+            lineHeight: 1.3
+            color: Theme.fgDim
+            font.family: Theme.ui
+            font.pixelSize: 14
+            text: "The look follows Nothing OS through glyph-rice by Nebelung-cloud (GPL-3.0): its design language, "
+                + "dot-matrix shaders and several components. Fonts: Doto, Space Grotesk, Space Mono (SIL OFL). "
+                + "Colours: matugen (Material You). Nothing, Nothing OS and Glyph are trademarks of Nothing Technology Ltd; "
+                + "this is a fan setup, not affiliated with Nothing."
         }
     }
 }

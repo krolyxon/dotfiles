@@ -155,10 +155,11 @@ Flickable {
                 anchors.margins: 6
                 Text {
                     Layout.fillWidth: true
+                    Layout.leftMargin: 18
                     text: "keep this display setup? reverting in " + flick.countdown + "s"
                     color: Theme.fg
-                    font.family: Theme.font
-                    font.pixelSize: Theme.fontSize
+                    font.family: Theme.ui
+                    font.pixelSize: 15
                 }
                 IconBtn { icon: Theme.iCheck; label: "keep"; active: true; onClicked: flick.keep() }
                 IconBtn { icon: Theme.iRefresh; label: "revert"; onClicked: flick.revert() }
@@ -166,12 +167,13 @@ Flickable {
         }
         Text {
             Layout.fillWidth: true
+            Layout.leftMargin: 18
             visible: flick.message !== ""
             text: flick.message
             color: Theme.err
             wrapMode: Text.WordWrap
-            font.family: Theme.font
-            font.pixelSize: Theme.fontSize - 1
+            font.family: Theme.ui
+            font.pixelSize: 14
         }
 
         SectionLabel { text: "layout" }
@@ -184,11 +186,12 @@ Flickable {
         }
         Text {
             Layout.fillWidth: true
+            Layout.leftMargin: 18
             text: "applies whenever a monitor is plugged in. external only turns the laptop panel back on when the last external screen is unplugged."
             color: Theme.dim
             wrapMode: Text.WordWrap
-            font.family: Theme.font
-            font.pixelSize: Theme.fontSize - 1
+            font.family: Theme.ui
+            font.pixelSize: 14
         }
 
         Repeater {
@@ -204,20 +207,21 @@ Flickable {
                 SectionLabel { text: mon.m.name }
                 Text {
                     Layout.fillWidth: true
+                    Layout.leftMargin: 18
                     text: mon.m.description + (mon.m.disabled ? "  ·  disabled"
                         : "  ·  " + mon.curMode + " @ " + mon.m.refreshRate.toFixed(2) + "Hz  ·  scale " + mon.m.scale
                           + "  ·  at " + mon.m.x + "," + mon.m.y)
                     color: Theme.dim
                     elide: Text.ElideRight
-                    font.family: Theme.font
-                    font.pixelSize: Theme.fontSize - 1
+                    font.family: Theme.ui
+                    font.pixelSize: 14
                 }
                 Text {
                     visible: !mon.m.disabled
                     text: "mode"
                     color: Theme.fg
-                    font.family: Theme.font
-                    font.pixelSize: Theme.fontSize
+                    font.family: Theme.ui
+                    font.pixelSize: 15
                 }
                 Flow {
                     Layout.fillWidth: true
@@ -278,8 +282,8 @@ Flickable {
             visible: !Toggles.hasNightLight
             text: "night light: gammastep isn't running"
             color: Theme.dim
-            font.family: Theme.font
-            font.pixelSize: Theme.fontSize - 1
+            font.family: Theme.ui
+            font.pixelSize: 14
         }
     }
 }

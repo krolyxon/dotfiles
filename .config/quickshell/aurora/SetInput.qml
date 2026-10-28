@@ -19,12 +19,13 @@ Flickable {
 
         Text {
             Layout.fillWidth: true
+            Layout.leftMargin: 18
             visible: HyprConf.message !== ""
             text: HyprConf.message
             color: Theme.err
             wrapMode: Text.WordWrap
-            font.family: Theme.font
-            font.pixelSize: Theme.fontSize - 1
+            font.family: Theme.ui
+            font.pixelSize: 14
         }
 
         SectionLabel { text: "keyboard" }
@@ -70,11 +71,12 @@ Flickable {
             Layout.fillWidth: true
             Text {
                 Layout.fillWidth: true
+                Layout.leftMargin: 18
                 text: "per-device settings (hl.device) stay in source/input.lua"
                 elide: Text.ElideRight
                 color: Theme.dim
-                font.family: Theme.font
-                font.pixelSize: Theme.fontSize - 2
+                font.family: Theme.ui
+                font.pixelSize: 13
             }
             IconBtn { icon: Theme.iRefresh; label: "reset to config"; onClicked: HyprConf.resetAll(["input:", "cursor:", "gestures:"]) }
         }
