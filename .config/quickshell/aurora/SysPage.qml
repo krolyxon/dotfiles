@@ -2,11 +2,14 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell.Services.UPower
 
+// Control panel > sys: cpu (Doto value + dot-matrix history), memory and disks, removable drives,
+// battery, power profile, graphics mode, pending updates, uptime.
 Flickable {
     id: flick
     clip: true
     contentWidth: width
     contentHeight: col.implicitHeight
+    implicitHeight: col.implicitHeight
     boundsBehavior: Flickable.StopAtBounds
 
     // GiB -> "812G" / "1.8T"
@@ -18,42 +21,49 @@ Flickable {
     ColumnLayout {
         id: col
         width: flick.width
-        spacing: 8
+        spacing: 10
 
-        SectionLabel { text: "cpu" }
+        SectionLabel { text: "cpu · 40 s" }
         RowLayout {
             Layout.fillWidth: true
-            spacing: 10
-            Text {
-                text: Theme.iChip + " " + Math.round(SysStats.cpu * 100) + "%"
-                Layout.preferredWidth: 80
-                color: Theme.fg
-                font.family: Theme.font
-                font.pixelSize: Theme.fontSize + 2
-                font.bold: true
+            Layout.leftMargin: 6
+            spacing: 18
+            Num {
+                Layout.preferredWidth: 96
+                text: Math.round(SysStats.cpu * 100) + "%"
+                font.pixelSize: 44
             }
-            Spark { Layout.fillWidth: true; values: SysStats.history }
+            Spark {
+                Layout.fillWidth: true
+                Layout.preferredWidth: 100
+                Layout.preferredHeight: 44
+                values: SysStats.history
+            }
         }
 
-        SectionLabel { text: "memory & storage"; Layout.topMargin: 6 }
+        SectionLabel { text: "memory · storage"; Layout.topMargin: 8 }
         StatBar {
             label: "memory"
             frac: SysStats.memTotal > 0 ? SysStats.memUsed / SysStats.memTotal : 0
             valueText: flick.size(SysStats.memUsed) + " / " + flick.size(SysStats.memTotal)
+            Layout.leftMargin: 6
+            Layout.rightMargin: 6
         }
         Repeater {
             model: SysStats.disks
             delegate: StatBar {
                 required property var modelData
+                Layout.leftMargin: 6
+                Layout.rightMargin: 6
                 label: modelData.label
                 frac: modelData.used / modelData.size
-                fill: frac > 0.9 ? Theme.err : Theme.accent
+                fill: frac > 0.9 ? Theme.err : Theme.fill
                 valueText: flick.size(modelData.used) + " / " + flick.size(modelData.size)
             }
         }
 
         // removable drives + phones (Devices): mount / open / unmount, power-off once the disk is idle
-        SectionLabel { text: "removable"; Layout.topMargin: 6; visible: Devices.drives.length + Devices.phones.length > 0 }
+        SectionLabel { text: "removable"; Layout.topMargin: 8; visible: Devices.drives.length + Devices.phones.length > 0 }
         Repeater {
             model: Devices.drives.concat(Devices.phones)
             delegate: ListRow {
@@ -67,88 +77,68 @@ Flickable {
                 icon: phone ? Theme.iPhone : (modelData.locked ? Theme.iLock : Theme.iUsb)
                 title: phone ? modelData.name : Devices.title(modelData)
                 subtitle: phone ? (mounted ? modelData.path : "not mounted")
-                                : modelData.size + "  " + modelData.fstype + "  " + (mounted ? modelData.mount : (modelData.locked ? "locked" : "not mounted"))
+                                : modelData.size + " · " + modelData.fstype + " · " + (mounted ? modelData.mount : (modelData.locked ? "locked" : "not mounted"))
                 current: mounted
                 onClicked: if (mounted) Devices.open(modelData.key); else Devices.mount(modelData.key, true)
                 IconBtn {
                     icon: Theme.iFolderOpen
+                    implicitHeight: 32
                     onClicked: if (dr.mounted) Devices.open(dr.modelData.key); else Devices.mount(dr.modelData.key, true)
                 }
                 IconBtn {
                     icon: Theme.iEject
+                    implicitHeight: 32
                     visible: dr.mounted || (!dr.phone && dr.modelData.luksParent !== "")
                     onClicked: Devices.eject(dr.modelData.key)
                 }
                 IconBtn {
                     icon: Theme.iPower
+                    implicitHeight: 32
                     visible: dr.firstOfDisk && !Devices.diskBusy(dr.modelData.disk)
                     onClicked: Devices.powerOff(dr.modelData.disk)
                 }
             }
         }
 
-        BatteryInfo { Layout.topMargin: 6 }
+        BatteryInfo { Layout.topMargin: 8 }
 
-        ColumnLayout {
-            visible: Battery.hasProfiles
+        SectionLabel { text: "power profile"; Layout.topMargin: 8; visible: Battery.hasProfiles }
+        Segmented {
             Layout.fillWidth: true
-            Layout.topMargin: 6
-            spacing: 8
-            SectionLabel { text: "power profile" }
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: 6
-                IconBtn {
-                    Layout.fillWidth: true
-                    icon: Theme.iLeaf
-                    label: "saver"
-                    active: Battery.profile === "saver"
-                    onClicked: Battery.setProfile("saver")
-                }
-                IconBtn {
-                    Layout.fillWidth: true
-                    icon: Theme.iBalance
-                    label: "balanced"
-                    active: Battery.profile === "balanced"
-                    onClicked: Battery.setProfile("balanced")
-                }
-                IconBtn {
-                    Layout.fillWidth: true
-                    visible: Battery.hasPerf
-                    icon: Theme.iSpeed
-                    label: "perf"
-                    active: Battery.profile === "performance"
-                    onClicked: Battery.setProfile("performance")
-                }
-                IconBtn {
-                    Layout.fillWidth: true
-                    visible: Battery.hasBat
-                    icon: Theme.iAuto
-                    label: "auto"
-                    active: Battery.profile === "auto"
-                    onClicked: Battery.setProfile("auto")
-                }
+            visible: Battery.hasProfiles
+            options: {
+                var o = [{ value: "saver", label: "saver", ticks: 1 }, { value: "balanced", label: "bal", ticks: 2 }]
+                if (Battery.hasPerf) o.push({ value: "performance", label: "perf", ticks: 4 })
+                if (Battery.hasBat) o.push({ value: "auto", label: "auto" })
+                return o
             }
+            value: Battery.profile
+            onPicked: v => Battery.setProfile(v)
         }
 
-        GpuSwitch { Layout.topMargin: 6 }
+        GpuSwitch { Layout.topMargin: 8 }
 
         // pending pacman + AUR updates (Updates)
-        SectionLabel { text: "updates"; Layout.topMargin: 6; visible: Updates.available }
+        SectionLabel {
+            visible: Updates.available
+            Layout.topMargin: 8
+            text: "updates"
+            count: Updates.count > 0 ? String(Updates.count) : ""
+        }
         RowLayout {
             visible: Updates.available
             Layout.fillWidth: true
-            spacing: 6
-            Text {
+            Layout.leftMargin: 6
+            spacing: 8
+            Lb {
                 Layout.fillWidth: true
-                text: Updates.checking ? "checking..."
-                      : Updates.error !== "" ? Updates.error
-                      : (Updates.count === 0 ? "up to date" : Updates.repo + " repo, " + Updates.aur + " aur")
-                        + (Updates.lastCheck.getTime() > 0 ? "  ·  " + Qt.formatDateTime(Updates.lastCheck, "HH:mm") : "")
-                color: Updates.error !== "" ? Theme.err : Theme.fg
-                font.family: Theme.font
-                font.pixelSize: Theme.fontSize
                 elide: Text.ElideRight
+                px: 10
+                text: Updates.checking ? "checking…"
+                      : Updates.error !== "" ? Updates.error
+                      : (Updates.count === 0 ? "up to date" : Updates.repo + " repo · " + Updates.aur + " aur")
+                        + (Updates.lastCheck.getTime() > 0 ? " · " + Qt.formatDateTime(Updates.lastCheck, "HH:mm") : "")
+                color: Updates.error !== "" ? Theme.err : Theme.fg
             }
             IconBtn { icon: Theme.iRefresh; label: "check"; onClicked: Updates.check(true) }
             IconBtn {
@@ -169,22 +159,20 @@ Flickable {
                 trailing: modelData.aur ? "aur" : ""
             }
         }
-        Text {
+        Lb {
             visible: Updates.available && Updates.list.length > 6
+            Layout.leftMargin: 6
+            px: 10
             text: "+ " + (Updates.list.length - 6) + " more"
-            color: Theme.dim
-            font.family: Theme.font
-            font.pixelSize: Theme.fontSize - 2
         }
 
-        Text {
+        Lb {
             Layout.topMargin: 10
+            Layout.rightMargin: 6
             Layout.alignment: Qt.AlignRight
+            px: 10
             text: "up " + Theme.fmtTime(SysStats.uptime)
-            color: Theme.dim
-            font.family: Theme.font
-            font.pixelSize: Theme.fontSize - 2
         }
-        Item { Layout.preferredHeight: 6 }
+        Item { Layout.preferredHeight: 4 }
     }
 }

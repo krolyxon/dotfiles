@@ -11,13 +11,14 @@ Singleton {
 
     // defaults live here; reset() puts them back
     readonly property var defaults: ({
-        fontSize: 12, wsFontSize: 11, barHeight: 22, barAlpha: 1.0, panelAlpha: 0.88, matuScheme: "scheme-content", matuContrast: 0.0,
+        fontSize: 12, wsFontSize: 11, barHeight: 22, barAlpha: 1.0, panelAlpha: 1.0, matuScheme: "scheme-content", matuContrast: 0.0,
         osdTimeout: 1500, desktopClock: true, desktopViz: true, vizBars: 64,
         dock: true, dockPinned: ["foot", "librewolf", "pcmanfm", "obsidian"], wallFolder: "dusky-dark",
         notifSound: true, notifVolume: 0.7,
         idleDim: 150, idleOff: 330, idleLock: 600, idleSuspend: 0, charTone: 0, portalAutoOpen: true,
         chargeMode: "off", batLow: 15, batCritical: 5, batCriticalAction: "none",
-        privacyIndicators: true, powerAuto: false, powerAc: "balanced", powerBat: "saver"
+        privacyIndicators: true, powerAuto: false, powerAc: "balanced", powerBat: "saver",
+        motion: true, clock24: true, appIcons: "dots"
     })
 
     property alias fontSize: a.fontSize
@@ -50,6 +51,9 @@ Singleton {
     property alias powerAuto: a.powerAuto
     property alias powerAc: a.powerAc
     property alias powerBat: a.powerBat
+    property alias motion: a.motion
+    property alias clock24: a.clock24
+    property alias appIcons: a.appIcons
 
     function reset() {
         for (var k in defaults) a[k] = defaults[k]
@@ -78,7 +82,7 @@ Singleton {
             property int wsFontSize: 11
             property int barHeight: 22
             property real barAlpha: 1.0
-            property real panelAlpha: 0.88
+            property real panelAlpha: 1.0               // control panel / popup opacity (settings > appearance)
             property string matuScheme: "scheme-content"   // matugen -t (Wall.qml), accent = its primary_container (= wallpaper colour)
             property real matuContrast: 0.0                    // matugen --contrast, -1..1
             property int osdTimeout: 1500
@@ -104,6 +108,9 @@ Singleton {
             property bool powerAuto: false              // power profile follows AC/battery (Battery.qml), off = whatever ppd has
             property string powerAc: "balanced"         // saver | balanced | performance
             property string powerBat: "saver"
+            property bool motion: true                 // shell animations (Theme.t)
+            property bool clock24: true
+            property string appIcons: "dots"           // dots | mono | colour: how app icons are drawn
         }
     }
     // first run: create the file once the directory exists

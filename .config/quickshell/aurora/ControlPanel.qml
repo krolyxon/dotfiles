@@ -4,6 +4,9 @@ import Quickshell
 import Quickshell.Wayland
 import Quickshell.Hyprland
 
+// Control panel: a card at the top right, as tall as the shown page (pages scroll when the screen is shorter).
+// Header: Doto clock, date, settings + power. Tabs are chips. Slides in from the right.
+// After glyph-rice's quick settings (github.com/Nebelung-cloud/glyph-rice, GPL-3.0), quick/Quick.qml.
 PanelWindow {
     id: win
     property bool opened: false
@@ -13,13 +16,17 @@ PanelWindow {
     signal overlayRequested(string name)
     signal settingsRequested()
 
-    visible: opened
-    anchors { top: true; right: true }
-    margins { top: 6; right: 8 }          // sits just under the bar (bar's exclusive zone is respected)
-    implicitWidth: 440
-    implicitHeight: 720
+    // 0 = closed .. 1 = open; the window stays mapped until the slide-out ends
+    property real t: opened ? 1 : 0
+    Behavior on t { NumberAnimation { duration: Theme.t; easing.type: Easing.BezierSpline; easing.bezierCurve: Theme.glide } }
+
+    visible: t > 0
+    anchors { top: true; right: true; bottom: true }
+    margins { top: 6; right: 8; bottom: 8 }       // sits just under the bar (bar's exclusive zone is respected)
+    implicitWidth: card.width + 24                  // room for the slide
     exclusiveZone: 0
     color: "transparent"
+    mask: Region { item: card }                     // the empty part below the card stays click-through
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.namespace: "aurora-panel"
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
@@ -32,19 +39,27 @@ PanelWindow {
     }
 
     readonly property var tabs: [
-        { icon: Theme.iHome, name: "home" },
-        { icon: Theme.iVolHigh, name: "audio" },
-        { icon: Theme.iWifi, name: "net" },
-        { icon: Theme.iBt, name: "bt" },
-        { icon: Theme.iChip, name: "system" },
-        { icon: Theme.iBell, name: "notifs" }
+        { name: "home", label: "home" },
+        { name: "audio", label: "sound" },
+        { name: "net", label: "net" },
+        { name: "bt", label: "bt" },
+        { name: "system", label: "sys" },
+        { name: "notifs", label: "notif" }
     ]
 
+    SystemClock { id: clock; precision: SystemClock.Minutes }
+
     Rectangle {
-        anchors.fill: parent
-        color: Theme.bgA
-        border.width: 2
-        border.color: Theme.accent
+        id: card
+        anchors.right: parent.right
+        anchors.rightMargin: -24 * (1 - win.t)
+        width: 470
+        height: Math.min(parent.height, col.implicitHeight + 44)
+        opacity: win.t
+        radius: 36
+        color: Qt.rgba(Theme.s1.r, Theme.s1.g, Theme.s1.b, Theme.panelAlpha)
+        border.width: 1
+        border.color: Theme.s2
         focus: true
         Keys.onEscapePressed: win.closeRequested()
         // Tab / Shift+Tab cycle through the tabs (wraps around)
@@ -52,66 +67,62 @@ PanelWindow {
         Keys.onBacktabPressed: win.tabRequested((win.tab + win.tabs.length - 1) % win.tabs.length)
 
         ColumnLayout {
-            anchors.fill: parent
-            anchors.margins: 12
-            spacing: 10
+            id: col
+            x: 22
+            y: 22
+            width: parent.width - 44
+            height: parent.height - 44
+            spacing: 16
 
+            // ---- header: clock, date, settings, power ----
             RowLayout {
                 Layout.fillWidth: true
-                spacing: 2
-
-                Repeater {
-                    model: win.tabs
-                    delegate: Rectangle {
-                        id: tabBtn
-                        required property var modelData
-                        required property int index
-                        readonly property bool current: win.tab === index
-                        implicitWidth: lbl.implicitWidth + 22
-                        implicitHeight: 28
-                        color: current ? Theme.accent : (tm.containsMouse ? Theme.surfaceHi : "transparent")
-
-                        Text {
-                            id: lbl
-                            anchors.centerIn: parent
-                            text: tabBtn.current ? tabBtn.modelData.icon + "  " + tabBtn.modelData.name : tabBtn.modelData.icon
-                            color: tabBtn.current ? Theme.bg : Theme.fg
-                            font.family: Theme.font
-                            font.pixelSize: Theme.fontSize
-                            font.bold: true
-                        }
-                        Rectangle {   // unread badge on the notifs tab
-                            visible: tabBtn.modelData.name === "notifs" && Notifs.count > 0 && !tabBtn.current
-                            width: 6; height: 6
-                            anchors.top: parent.top
-                            anchors.right: parent.right
-                            anchors.margins: 3
-                            color: Theme.accent
-                        }
-                        MouseArea {
-                            id: tm
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: win.tabRequested(tabBtn.index)
-                        }
-                    }
+                Layout.leftMargin: 6
+                spacing: 14
+                Num {
+                    text: Theme.hh(clock.date) + ":" + Qt.formatDateTime(clock.date, "mm")
+                    font.pixelSize: 44
+                }
+                Lb {
+                    Layout.alignment: Qt.AlignVCenter
+                    text: Qt.locale("en_US").toString(clock.date, "ddd d MMM")
                 }
                 Item { Layout.fillWidth: true }
-                IconBtn { icon: Theme.iCog; implicitHeight: 28; onClicked: win.settingsRequested() }
-                IconBtn { icon: Theme.iClose; implicitHeight: 28; onClicked: win.closeRequested() }
+                IconBtn { implicitHeight: 44; iconSize: 18; icon: Theme.iCog; onClicked: win.settingsRequested() }
+                IconBtn { implicitHeight: 44; iconSize: 18; icon: Theme.iPower; onClicked: win.overlayRequested("power") }
             }
 
-            Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 1; color: Theme.line }
+            // ---- tabs ----
+            Row {
+                Layout.fillWidth: true
+                spacing: 2
+                Repeater {
+                    model: win.tabs
+                    delegate: Chip {
+                        required property var modelData
+                        required property int index
+                        text: modelData.label
+                        selected: win.tab === index
+                        dot: modelData.name === "notifs" && Notifs.count > 0 && win.tab !== index
+                        onClicked: win.tabRequested(index)
+                    }
+                }
+            }
 
             StackLayout {
+                id: stack
                 Layout.fillWidth: true
                 Layout.fillHeight: true
+                // as tall as the shown page; the card is capped at the screen height and the page scrolls
+                Layout.preferredHeight: children[win.tab] ? children[win.tab].implicitHeight : 0
                 currentIndex: win.tab
 
                 HomePage {
                     onCloseRequested: win.closeRequested()
                     onOverlayRequested: name => win.overlayRequested(name)
+                    onTabRequested: name => {
+                        for (var i = 0; i < win.tabs.length; i++) if (win.tabs[i].name === name) win.tabRequested(i)
+                    }
                 }
                 AudioPage {}
                 NetPage { active: win.opened && win.tab === 2 }

@@ -4,238 +4,253 @@ import Quickshell
 import Quickshell.Bluetooth
 import Quickshell.Services.Pipewire
 
-ColumnLayout {
+// Control panel > home: Wi-Fi / Bluetooth pills (chevron = their tab), round toggles, desktop actions, capture,
+// volume + brightness, power profile, the player, the latest notifications. Session actions: the header's power button.
+// After glyph-rice's quick settings (github.com/Nebelung-cloud/glyph-rice, GPL-3.0), quick/Quick.qml.
+Flickable {
     id: page
-    spacing: 10
     signal closeRequested()
     signal overlayRequested(string name)
+    signal tabRequested(string name)
 
-    property string armed: ""
-    Timer { id: disarm; interval: 3000; onTriggered: page.armed = "" }
+    clip: true
+    contentWidth: width
+    contentHeight: col.implicitHeight
+    implicitHeight: col.implicitHeight
+    boundsBehavior: Flickable.StopAtBounds
 
-    function act(name, fn, confirm) {
-        if (confirm && armed !== name) { armed = name; disarm.restart(); return }
-        armed = ""
-        fn()
-        closeRequested()
+    property bool shotOpen: false        // the capture options under the SHOT tile
+    onVisibleChanged: if (!visible) shotOpen = false
+
+    readonly property var sink: Pipewire.defaultAudioSink ? Pipewire.defaultAudioSink.audio : null
+    readonly property var source: Pipewire.defaultAudioSource ? Pipewire.defaultAudioSource.audio : null
+    readonly property var adapter: Bluetooth.defaultAdapter
+    function btDevice() {
+        var l = Bluetooth.devices.values
+        for (var i = 0; i < l.length; i++) if (l[i].connected) return l[i]
+        return null
     }
+    readonly property var btDev: btDevice()
 
     Timer {
         interval: 3000
         running: page.visible
         repeat: true
+        triggeredOnStart: true
         onTriggered: Bright.refresh()
     }
 
-    MediaCard { Layout.fillWidth: true }
+    ColumnLayout {
+        id: col
+        width: page.width
+        spacing: 16
 
-    SectionLabel { text: "levels" }
+        // ---- Wi-Fi / Bluetooth ----
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: 12
+            TogglePill {
+                Layout.fillWidth: true
+                Layout.preferredWidth: 1
+                on: Net.wifiEnabled
+                icon: Net.wifiEnabled ? Theme.wifiIcon(Net.connected !== "" ? Net.activeSignal : 0) : Theme.iWifiOff
+                name: "Wi-Fi"
+                alert: Net.portal
+                sub: {
+                    if (Net.portal) return "sign in · " + Net.portalNet
+                    if (!Net.wifiEnabled) return Net.wired ? "off · wired" : "off"
+                    if (Net.connected !== "") return Net.connected
+                    return Net.wired ? "wired · " + Net.wiredDevs[0].name : "not connected"
+                }
+                onClicked: Net.setWifi(!Net.wifiEnabled)
+                onMenu: page.tabRequested("net")
+            }
+            TogglePill {
+                Layout.fillWidth: true
+                Layout.preferredWidth: 1
+                on: page.adapter !== null && page.adapter.enabled
+                icon: !on ? Theme.iBtOff : (page.btDev ? Theme.iBtConn : Theme.iBt)
+                name: "Bluetooth"
+                sub: page.adapter === null ? "no adapter" : (!page.adapter.enabled ? "off"
+                     : (page.btDev ? (page.btDev.name || page.btDev.address) : "on"))
+                onClicked: if (page.adapter) page.adapter.enabled = !page.adapter.enabled
+                onMenu: page.tabRequested("bt")
+            }
+        }
 
-    SliderRow {
-        Layout.fillWidth: true
-        readonly property var audio: Pipewire.defaultAudioSink ? Pipewire.defaultAudioSink.audio : null
-        icon: Theme.volIcon(audio ? audio.volume : 0, audio ? audio.muted : true)
-        value: audio ? audio.volume : 0
-        muted: audio ? audio.muted : false
-        onMoved: v => { if (audio) audio.volume = v }
-        onIconClicked: if (audio) audio.muted = !audio.muted
-    }
-    SliderRow {
-        Layout.fillWidth: true
-        readonly property var audio: Pipewire.defaultAudioSource ? Pipewire.defaultAudioSource.audio : null
-        icon: audio && !audio.muted ? Theme.iMic : Theme.iMicOff
-        value: audio ? audio.volume : 0
-        muted: audio ? audio.muted : false
-        onMoved: v => { if (audio) audio.volume = v }
-        onIconClicked: if (audio) audio.muted = !audio.muted
-    }
-    SliderRow {
-        Layout.fillWidth: true
-        visible: Bright.available
-        icon: Theme.iBright
-        value: Bright.percent / 100
-        valueText: Bright.percent + "%"
-        onMoved: v => Bright.setPercent(Math.max(0.01, v) * 100)
-    }
+        // ---- toggles ----
+        Grid {
+            id: tiles
+            Layout.fillWidth: true
+            Layout.preferredWidth: 1
+            columns: 4
+            rowSpacing: 14
+            readonly property real cw: width / 4
+            Tile {
+                width: tiles.cw
+                icon: Theme.iBellOff
+                name: "dnd"
+                on: Notifs.dnd
+                onClicked: Notifs.dnd = !Notifs.dnd
+            }
+            Tile {
+                width: tiles.cw
+                icon: page.source && !page.source.muted ? Theme.iMic : Theme.iMicOff
+                name: "mic"
+                on: page.source !== null && !page.source.muted
+                onClicked: if (page.source) page.source.muted = !page.source.muted
+            }
+            Tile {
+                width: tiles.cw
+                icon: Theme.iCoffee
+                name: "caffeine"
+                on: Toggles.caffeine
+                onClicked: Toggles.caffeine = !Toggles.caffeine
+            }
+            Tile {
+                width: tiles.cw
+                icon: Theme.iPlane
+                name: "airplane"
+                on: Toggles.airplane
+                onClicked: Toggles.setAirplane(!Toggles.airplane)
+            }
+            Tile {
+                width: tiles.cw
+                visible: Toggles.hasNightLight
+                icon: Theme.iNight
+                name: "night"
+                on: Toggles.nightLight
+                onClicked: Toggles.setNightLight(!Toggles.nightLight)
+            }
+            Tile {   // click: record the focused monitor, right click: a region; while recording: stop
+                width: tiles.cw
+                visible: Rec.available
+                icon: Rec.busy ? Theme.iStop : Theme.iRec
+                name: Rec.running ? Theme.fmtClock(Rec.elapsed) : (Rec.selecting ? "select" : "rec")
+                live: Rec.busy
+                onClicked: { if (!Rec.busy) page.closeRequested(); Rec.toggle("screen") }
+                onMenu: { if (!Rec.busy) { page.closeRequested(); Rec.toggle("region") } }
+            }
+            Tile {
+                width: tiles.cw
+                visible: Toggles.hasPicker
+                icon: Theme.iPicker
+                name: "colour"
+                onClicked: { page.closeRequested(); Toggles.pickColour() }
+            }
+            Tile {
+                width: tiles.cw
+                icon: Theme.iShot
+                name: "shot"
+                on: page.shotOpen
+                onClicked: page.shotOpen = !page.shotOpen
+                onMenu: page.shotOpen = !page.shotOpen
+            }
+        }
 
-    SectionLabel { text: "quick toggles" }
+        // ---- capture (under SHOT): clipboard or ~/pix/ss, then the kind of shot ----
+        Rectangle {
+            visible: page.shotOpen
+            Layout.fillWidth: true
+            implicitHeight: cap.implicitHeight + 24
+            radius: 30
+            color: Theme.s2
+            ColumnLayout {
+                id: cap
+                x: 12
+                y: 12
+                width: parent.width - 24
+                spacing: 10
+                Segmented {
+                    Layout.fillWidth: true
+                    implicitHeight: 44
+                    color: Theme.s3
+                    options: [{ value: false, label: "copy" }, { value: true, label: "save" }]
+                    value: Shot.save
+                    onPicked: v => Shot.save = v
+                }
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 6
+                    Repeater {
+                        model: [{ mode: "region", label: "area" }, { mode: "window", label: "window" },
+                                { mode: "output", label: "screen" }, { mode: "ocr", label: "ocr" }]
+                        delegate: Chip {
+                            required property var modelData
+                            Layout.fillWidth: true
+                            text: modelData.label
+                            filled: true
+                            onClicked: { page.closeRequested(); Shot.take(modelData.mode) }
+                        }
+                    }
+                }
+            }
+        }
 
-    RowLayout {
-        Layout.fillWidth: true
-        spacing: 6
-        IconBtn {
+        // ---- desktop ----
+        RowLayout {
             Layout.fillWidth: true
-            icon: Net.wifiEnabled ? Theme.iWifi : Theme.iWifiOff
-            label: "wifi"
-            active: Net.wifiEnabled
-            onClicked: Net.setWifi(!Net.wifiEnabled)
+            spacing: 0
+            Tile { Layout.fillWidth: true; Layout.preferredWidth: 1; size: 44; icon: Theme.iImage; name: "wallpaper"; onClicked: page.overlayRequested("wall") }
+            Tile { Layout.fillWidth: true; Layout.preferredWidth: 1; size: 44; icon: Theme.iShuffle; name: "random"; onClicked: Wall.random() }
+            Tile { Layout.fillWidth: true; Layout.preferredWidth: 1; size: 44; icon: Theme.iDashboard; name: "overview"; onClicked: page.overlayRequested("overview") }
+            Tile { Layout.fillWidth: true; Layout.preferredWidth: 1; size: 44; visible: Clip.available; icon: Theme.iClipboard; name: "clipboard"; onClicked: page.overlayRequested("clip") }
         }
-        IconBtn {
-            Layout.fillWidth: true
-            readonly property var ad: Bluetooth.defaultAdapter
-            visible: ad !== null
-            icon: ad && ad.enabled ? Theme.iBt : Theme.iBtOff
-            label: "bt"
-            active: ad ? ad.enabled : false
-            onClicked: if (ad) ad.enabled = !ad.enabled
-        }
-        IconBtn {
-            Layout.fillWidth: true
-            icon: Notifs.dnd ? Theme.iBellOff : Theme.iBell
-            label: "dnd"
-            active: Notifs.dnd
-            onClicked: Notifs.dnd = !Notifs.dnd
-        }
-        IconBtn {
-            Layout.fillWidth: true
-            readonly property var audio: Pipewire.defaultAudioSource ? Pipewire.defaultAudioSource.audio : null
-            icon: audio && audio.muted ? Theme.iMicOff : Theme.iMic
-            label: "mic"
-            active: audio ? !audio.muted : false
-            onClicked: if (audio) audio.muted = !audio.muted
-        }
-    }
-    RowLayout {
-        Layout.fillWidth: true
-        spacing: 6
-        IconBtn {
-            Layout.fillWidth: true
-            icon: Theme.iCoffee
-            label: "caffeine"
-            active: Toggles.caffeine
-            onClicked: Toggles.caffeine = !Toggles.caffeine
-        }
-        IconBtn {
-            Layout.fillWidth: true
-            icon: Theme.iPlane
-            label: "airplane"
-            active: Toggles.airplane
-            onClicked: Toggles.setAirplane(!Toggles.airplane)
-        }
-        IconBtn {
-            Layout.fillWidth: true
-            visible: Toggles.hasPicker
-            icon: Theme.iPicker
-            label: "colour"
-            onClicked: { page.closeRequested(); Toggles.pickColour() }
-        }
-        IconBtn {   // click: record the focused monitor; while recording: stop
-            Layout.fillWidth: true
-            visible: Rec.available
-            icon: Rec.busy ? Theme.iStop : Theme.iRec
-            label: Rec.running ? Theme.fmtClock(Rec.elapsed) : "rec"
-            active: Rec.busy
-            onClicked: { if (!Rec.busy) page.closeRequested(); Rec.toggle("screen") }
-        }
-    }
 
-    SectionLabel { text: "desktop" }
+        // ---- levels (mic level is in the SOUND tab) ----
+        SliderRow {
+            Layout.fillWidth: true
+            icon: Theme.volIcon(page.sink ? page.sink.volume : 0, page.sink ? page.sink.muted : true)
+            value: page.sink ? page.sink.volume : 0
+            muted: page.sink ? page.sink.muted : false
+            onMoved: v => { if (page.sink) page.sink.volume = v }
+            onIconClicked: if (page.sink) page.sink.muted = !page.sink.muted
+        }
+        SliderRow {
+            Layout.fillWidth: true
+            visible: Bright.available
+            icon: Theme.iBright
+            value: Bright.percent / 100
+            valueText: Bright.percent + "%"
+            onMoved: v => Bright.setPercent(Math.max(0.01, v) * 100)
+        }
 
-    RowLayout {
-        Layout.fillWidth: true
-        spacing: 6
-        IconBtn {
+        // ---- power profile (only with power-profiles-daemon) ----
+        Segmented {
             Layout.fillWidth: true
-            icon: Theme.iImage
-            label: "wallpaper"
-            onClicked: page.overlayRequested("wall")
+            visible: Battery.hasProfiles
+            options: {
+                var o = [{ value: "saver", label: "saver", ticks: 1 }, { value: "balanced", label: "bal", ticks: 2 }]
+                if (Battery.hasPerf) o.push({ value: "performance", label: "perf", ticks: 4 })
+                if (Battery.hasBat) o.push({ value: "auto", label: "auto" })
+                return o
+            }
+            value: Battery.profile
+            onPicked: v => Battery.setProfile(v)
         }
-        IconBtn {
-            Layout.fillWidth: true
-            icon: Theme.iShuffle
-            label: "random"
-            onClicked: Wall.random()
-        }
-        IconBtn {
-            Layout.fillWidth: true
-            icon: Theme.iWindow
-            label: "overview"
-            onClicked: page.overlayRequested("overview")
-        }
-        IconBtn {
-            Layout.fillWidth: true
-            visible: Clip.available
-            icon: Theme.iClipboard
-            label: "clipboard"
-            onClicked: page.overlayRequested("clip")
-        }
-    }
 
-    SectionLabel { text: "capture" }
+        MediaCard { Layout.fillWidth: true }
 
-    RowLayout {
-        Layout.fillWidth: true
-        spacing: 6
-        IconBtn {   // where the shot goes: clipboard or ~/pix/ss
-            Layout.fillWidth: true
-            icon: Shot.save ? Theme.iSave : Theme.iClipboard
-            label: Shot.save ? "save" : "copy"
-            active: true
-            onClicked: Shot.save = !Shot.save
+        // ---- the latest notifications (all of them: NOTIF tab) ----
+        SectionLabel {
+            visible: Notifs.count > 0
+            text: "notifications"
+            count: String(Notifs.count)
+            action: "clear all"
+            onActionClicked: Notifs.clearAll()
         }
-        IconBtn {
-            Layout.fillWidth: true
-            icon: Theme.iCrop
-            label: "area"
-            onClicked: { page.closeRequested(); Shot.take("region") }
+        Repeater {
+            model: { Notifs.count; return Notifs.history().slice(0, 2) }
+            delegate: NotifCard {
+                required property var modelData
+                n: modelData
+            }
         }
-        IconBtn {
-            Layout.fillWidth: true
-            icon: Theme.iWindow
-            label: "window"
-            onClicked: { page.closeRequested(); Shot.take("window") }
-        }
-        IconBtn {
-            Layout.fillWidth: true
-            icon: Theme.iMonitor
-            label: "screen"
-            onClicked: { page.closeRequested(); Shot.take("output") }
-        }
-        IconBtn {
-            Layout.fillWidth: true
-            icon: Theme.iSearch
-            label: "ocr"
-            onClicked: { page.closeRequested(); Shot.take("ocr") }
-        }
-    }
-
-    Item { Layout.fillHeight: true }
-
-    SectionLabel { text: "session" }
-
-    RowLayout {
-        Layout.fillWidth: true
-        spacing: 6
-        IconBtn {
-            Layout.fillWidth: true
-            icon: Theme.iLock
-            onClicked: page.act("lock", function () { Quickshell.execDetached(["loginctl", "lock-session"]) }, false)
-        }
-        IconBtn {
-            Layout.fillWidth: true
-            icon: Theme.iSleep
-            onClicked: page.act("sleep", function () { Quickshell.execDetached(["systemctl", "suspend"]) }, false)
-        }
-        IconBtn {
-            Layout.fillWidth: true
-            icon: Theme.iLogout
-            label: page.armed === "logout" ? "sure?" : ""
-            active: page.armed === "logout"
-            onClicked: page.act("logout", function () { Hypr.logout() }, true)
-        }
-        IconBtn {
-            Layout.fillWidth: true
-            icon: Theme.iReboot
-            label: page.armed === "reboot" ? "sure?" : ""
-            active: page.armed === "reboot"
-            onClicked: page.act("reboot", function () { Quickshell.execDetached(["systemctl", "reboot"]) }, true)
-        }
-        IconBtn {
-            Layout.fillWidth: true
-            icon: Theme.iPower
-            label: page.armed === "off" ? "sure?" : ""
-            active: page.armed === "off"
-            onClicked: page.act("off", function () { Quickshell.execDetached(["systemctl", "poweroff"]) }, true)
+        Chip {
+            visible: Notifs.count > 2
+            Layout.alignment: Qt.AlignHCenter
+            text: "+ " + (Notifs.count - 2) + " more"
+            onClicked: page.tabRequested("notifs")
         }
     }
 }

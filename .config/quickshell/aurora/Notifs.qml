@@ -14,6 +14,8 @@ Singleton {
     property string soundFile: Quickshell.env("HOME") + "/.config/quickshell/aurora/sounds/Blow.aiff"
     property real soundVolume: Settings.notifVolume
     property var popups: []              // [{n, until}]
+    property var times: ({})             // notification id -> arrival (ms), for "3 MIN" labels
+    property double now: Date.now()      // ticks while there are notifications, so the labels age
     readonly property var model: server.trackedNotifications
     readonly property int count: server.trackedNotifications.values.length
 
@@ -27,6 +29,13 @@ Singleton {
         for (var i = 0; i < l.length; i++) all.push(l[i])
         for (var j = 0; j < all.length; j++) all[j].dismiss()
         popups = []
+    }
+    // "now" / "3 min" / "2 h" since it arrived; "" if it came before a restart
+    function ago(n) {
+        var t = times[n.id]
+        if (!t) return ""
+        var m = Math.floor((now - t) / 60000)
+        return m < 1 ? "now" : m < 60 ? m + " min" : Math.floor(m / 60) + " h"
     }
     function dropPopup(n) {
         popups = popups.filter(function (p) { return p.n !== n })
@@ -55,8 +64,17 @@ Singleton {
         imageSupported: true
         onNotification: n => {
             n.tracked = true
+            root.times[n.id] = Date.now()
+            root.now = Date.now()
             if (!root.dnd || n.urgency === NotificationUrgency.Critical) root.push(n)
         }
+    }
+
+    Timer {
+        interval: 30000
+        running: root.count > 0
+        repeat: true
+        onTriggered: root.now = Date.now()
     }
 
     Timer {

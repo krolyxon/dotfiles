@@ -87,4 +87,13 @@ The lists live in `packages/*.txt`: one package per line, `#` for comments, and 
 | Launcher / menus | aurora's runner (`aurora-run`, also a dmenu replacement for scripts) |
 | Files | lf, pcmanfm |
 | Music / video | mpd + ncmpcpp, mpv |
-| Font / icons | JetBrainsMono Nerd Font, Papirus-Dark |
+| Font / icons | Doto, Space Grotesk, Space Mono (shell UI, vendored in `.local/share/fonts/glyph`), JetBrainsMono Nerd Font, Papirus-Dark |
+
+## Credits
+- aurora's look follows Nothing OS via [glyph-rice](https://github.com/Nebelung-cloud/glyph-rice) by Nebelung-cloud
+  (GPL-3.0): the design language, the dot-matrix shaders (`.config/quickshell/aurora/shaders/`) and several components
+  are ported from it; ported files say so in their header. Nothing, Nothing OS and Glyph are trademarks of Nothing
+  Technology Ltd; this is a fan setup, not affiliated with Nothing.
+- Fonts in `.local/share/fonts/glyph/`: [Doto](https://github.com/oliverlalan/Doto),
+  [Space Grotesk](https://github.com/floriankarsten/space-grotesk) and [Space Mono](https://github.com/googlefonts/spacemono),
+  under the SIL Open Font License (`OFL.txt` next to them).

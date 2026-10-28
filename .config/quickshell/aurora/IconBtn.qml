@@ -1,38 +1,37 @@
 import QtQuick
 
+// Round icon button (icon only) or pill (icon and/or caps label). Off = dark fill, active = white with black content.
 Rectangle {
     id: b
     property string icon: ""
     property string label: ""
     property bool active: false
-    property int iconSize: 15
+    property int iconSize: 16
     signal clicked()
 
-    implicitWidth: Math.max(30, content.implicitWidth + 16)
-    implicitHeight: 30
-    color: active ? Theme.accent : (m.containsMouse ? Theme.surfaceHi : "transparent")
-    border.width: 1
-    border.color: (active || m.containsMouse) ? Theme.accent : Theme.line
+    implicitHeight: 36
+    implicitWidth: label === "" ? height : content.implicitWidth + 28
+    radius: height / 2
+    color: active ? Theme.fill : (m.containsMouse ? Theme.s3 : Theme.s2)
+    Behavior on color { enabled: Theme.motion; ColorAnimation { duration: Theme.t } }
 
     Row {
         id: content
         anchors.centerIn: parent
-        spacing: 6
-        Text {
+        spacing: 8
+        Icon {
             visible: b.icon !== ""
+            anchors.verticalCenter: parent.verticalCenter
             text: b.icon
-            color: b.active ? Theme.bg : Theme.fg
-            font.family: Theme.font
             font.pixelSize: b.iconSize
-            anchors.verticalCenter: parent.verticalCenter
+            color: b.active ? Theme.fillFg : Theme.fg
         }
-        Text {
+        Lb {
             visible: b.label !== ""
-            text: b.label
-            color: b.active ? Theme.bg : Theme.fg
-            font.family: Theme.font
-            font.pixelSize: Theme.fontSize - 1
             anchors.verticalCenter: parent.verticalCenter
+            text: b.label
+            px: 11
+            color: b.active ? Theme.fillFg : Theme.fg
         }
     }
 

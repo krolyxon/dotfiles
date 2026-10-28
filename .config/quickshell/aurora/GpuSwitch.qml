@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 
-// envycontrol mode buttons with the two-click arm (SysPage, settings app > Power)
+// envycontrol mode pills with the two-click arm (SysPage, settings app > Power)
 ColumnLayout {
     id: root
     // two-click arm before switching (needs a reboot to apply)
@@ -15,8 +15,8 @@ ColumnLayout {
     }
     visible: Gpu.mode !== ""
     Layout.fillWidth: true
-    spacing: 8
-    SectionLabel { text: "graphics  ·  envycontrol" }
+    spacing: 10
+    SectionLabel { text: "graphics · envycontrol" }
     RowLayout {
         Layout.fillWidth: true
         spacing: 6
@@ -25,6 +25,7 @@ ColumnLayout {
             delegate: IconBtn {
                 required property string modelData
                 Layout.fillWidth: true
+                implicitHeight: 44
                 icon: Theme.iGpu
                 label: root.armedGpu === modelData ? "sure?" : modelData
                 active: Gpu.mode === modelData
@@ -33,13 +34,13 @@ ColumnLayout {
             }
         }
     }
-    Text {
+    Lb {
         visible: Gpu.pending !== "" || Gpu.message !== "" || Gpu.busy
         Layout.fillWidth: true
+        Layout.leftMargin: 6
         wrapMode: Text.Wrap
-        color: Gpu.message !== "" ? Theme.err : Theme.accent
-        font.family: Theme.font
-        font.pixelSize: Theme.fontSize - 2
-        text: Gpu.busy ? "switching…" : (Gpu.message !== "" ? Gpu.message : "queued: " + Gpu.pending + "  ·  reboot to apply")
+        px: 10
+        color: Gpu.message !== "" ? Theme.err : Theme.live
+        text: Gpu.busy ? "switching…" : (Gpu.message !== "" ? Gpu.message : "queued: " + Gpu.pending + " · reboot to apply")
     }
 }

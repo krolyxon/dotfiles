@@ -3,61 +3,112 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-// matugen colours (~/.cache/matugen/aurora.json, written by Wall.apply/recolor), hot-reloaded on every run.
+// The design system: Nothing OS's shapes, dots and type (after glyph-rice) in Android Material You colours from matugen
+// (~/.cache/matugen/aurora.json, written by Wall.apply/recolor, hot-reloaded), plus fonts, motion and all icon glyphs.
 Singleton {
     id: root
 
+    // ---- fonts ----
+    readonly property string dot: "Doto"                  // numbers and short words (Num), never under 26px
+    readonly property string ui: "Space Grotesk"          // UI text: titles DemiBold, body Regular, greeting Light
+    readonly property string mono: "Space Mono"           // caps labels (Lb)
+    readonly property string nf: "JetBrainsMono Nerd Font"   // icons only (Icon)
+    property string font: nf                              // legacy: text not restyled yet (goes away in the cleanup)
+
     // ---- knobs (persisted in ~/.config/aurora/settings.json, edited in the settings app) ----
-    property string font: "JetBrainsMono Nerd Font"   // any Nerd Font mono
     readonly property int fontSize: Settings.fontSize
     readonly property int wsFontSize: Settings.wsFontSize   // workspace icons only; everything else uses fontSize
     readonly property real panelAlpha: Settings.panelAlpha
     readonly property int barHeight: Settings.barHeight
     readonly property real barAlpha: Settings.barAlpha
 
+    // ---- motion: ease-out-quart without overshoot (glyph's "glide"); Settings.motion off = instant ----
+    readonly property bool motion: Settings.motion
+    readonly property int t: motion ? 350 : 0
+    readonly property var glide: [0.25, 1, 0.5, 1, 1, 1]
+
     readonly property string matFile: Quickshell.env("HOME") + "/.cache/matugen/aurora.json"
 
-    // flat keys from ~/.config/matugen/templates/aurora.json; defaults = a dark teal scheme for a fresh install
+    // Material 3 roles from ~/.config/matugen/templates/aurora.json ("on_x" is spelled "xFg": JsonAdapter keys must not
+    // start with "on" + uppercase or be "error"). Defaults = a dark teal scheme for a fresh install.
     FileView {
         path: root.matFile
         watchChanges: true
         onFileChanged: reload()
         adapter: JsonAdapter {
             id: mat
-            property string bg: "#0e1514"
-            property string fg: "#dde4e2"
             property string primary: "#80d5cb"
             property string primaryFg: "#003733"
             property string primaryContainer: "#00504a"
+            property string primaryContainerFg: "#9cf2e7"
             property string secondary: "#b1ccc7"
+            property string secondaryFg: "#1c3532"
+            property string secondaryContainer: "#334b48"
+            property string secondaryContainerFg: "#cce8e3"
             property string tertiary: "#adcae6"
+            property string tertiaryFg: "#153349"
+            property string tertiaryContainer: "#2d4961"
+            property string tertiaryContainerFg: "#cce5ff"
+            property string surface: "#0e1514"
+            property string surfaceLowest: "#090f0f"
             property string surfaceLow: "#161d1c"
-            property string surface: "#1a2120"
+            property string surfaceContainer: "#1a2120"
             property string surfaceHigh: "#252b2a"
             property string surfaceHighest: "#2f3635"
+            property string surfaceFg: "#dde4e2"
+            property string surfaceVariantFg: "#bec9c6"
             property string outline: "#889391"
             property string outlineVariant: "#3f4947"
-            property string surfaceVariantFg: "#bec9c6"
-            property string err: "#ffb4ab"   // no "error"/"onX" names: JsonAdapter signal / QML handler syntax
+            property string err: "#ffb4ab"
+            property string errFg: "#690005"
         }
     }
 
     // ---- palette ------------------------------------------------------
-    readonly property color bg: mat.bg
-    readonly property color fg: mat.fg
-    readonly property color accent: mat.primary
-    readonly property color accentFg: mat.primaryFg
-    readonly property color accentDim: mat.primaryContainer
+    // Nothing's ladder of steps, filled with Material roles, so every wallpaper re-themes everything.
+    readonly property color bg: mat.surfaceLowest      // wallpaper backdrop, fullscreen overlays
+    readonly property color s1: mat.surfaceLow         // bar, panels, cards
+    readonly property color s2: mat.surfaceHigh        // tiles, rows, "off" fills, inputs
+    readonly property color s3: mat.surfaceHighest     // lines, unlit dots, hover
+    readonly property color mute: mat.outlineVariant   // inactive
+    readonly property color grey: mat.outline         // caps labels
+    readonly property color fg: mat.surfaceFg          // text
+    readonly property color fgDim: mat.surfaceVariantFg   // secondary text (artist, notification body)
+    // "on" states, Material You style: active tiles/pills, slider fills, selected chips/rows, lit dots and segments
+    readonly property color fill: mat.primary
+    readonly property color fillFg: mat.primaryFg
+    readonly property color container: mat.primaryContainer   // tonal emphasis
+    readonly property color containerFg: mat.primaryContainerFg
+    // live things (Nothing's one red thing): play button, recording, mic/cam/share, caret, selected dot, newest notification
+    readonly property color live: mat.tertiary
+    readonly property color liveFg: mat.tertiaryFg
+    readonly property color err: mat.err               // failures, critical, destructive confirms
+    readonly property color errFg: mat.errFg
+    readonly property color glow: fade(fill, 0.6)      // glow on lit segments, the only "shadow"
+    readonly property color scrim: fade(bg, 0.74)      // dim behind fullscreen overlays
+
+    function fade(c, a) { return Qt.rgba(c.r, c.g, c.b, a) }
+    function hex(c) { return c.toString().slice(1, 7).toUpperCase() }
+    // hours for the 12/24h setting: "09" or "9"
+    function hh(d) {
+        var h = d.getHours()
+        return Settings.clock24 ? (h < 10 ? "0" : "") + h : String(h % 12 || 12)
+    }
+
+    // legacy names for files not restyled yet (removed in the cleanup phase)
+    readonly property color accent: fill
+    readonly property color accentFg: fillFg
+    readonly property color accentDim: container
+    readonly property color ink: fillFg
     readonly property color secondary: mat.secondary
     readonly property color tertiary: mat.tertiary
-    readonly property color surface: mat.surface
-    readonly property color surfaceHi: mat.surfaceHigh
-    readonly property color line: mat.outlineVariant
-    readonly property color dim: mat.surfaceVariantFg
-    readonly property color err: mat.err
+    readonly property color surface: s2
+    readonly property color surfaceHi: s3
+    readonly property color line: mute
+    readonly property color dim: fgDim
+    readonly property color cursorC: fill
     readonly property color barBg: Qt.rgba(bg.r, bg.g, bg.b, barAlpha)
-    readonly property color cursorC: mat.primary
-    readonly property color bgA: Qt.rgba(bg.r, bg.g, bg.b, panelAlpha)
+    readonly property color bgA: Qt.rgba(s1.r, s1.g, s1.b, panelAlpha)
 
     // ---- hyprlock -----------------------------------------------------
     // hyprlock stays a separate process (crash safety); it sources ~/.config/aurora/hyprlock-colors.conf,
@@ -173,6 +224,16 @@ Singleton {
     readonly property string iShell: cp(0xF07B7)
     readonly property string iCalc: cp(0xF00EC)
     readonly property string iPalette: cp(0xF03D8)
+    readonly property string iChevron: cp(0xF0142)      // right
+    readonly property string iChevronLeft: cp(0xF0141)
+    readonly property string iChevronDown: cp(0xF0140)
+    readonly property string iChevronUp: cp(0xF0143)
+    readonly property string iNight: cp(0xF0594)        // weather-night (night light)
+    readonly property string iShot: cp(0xF0E51)         // monitor-screenshot
+    readonly property string iOcr: cp(0xF113D)          // text-recognition
+    readonly property string iBolt: cp(0xF140B)         // lightning-bolt (charging)
+    readonly property string iDots: cp(0xF01D8)         // dots-horizontal
+    readonly property string iDashboard: cp(0xF056E)    // view-dashboard (overview)
 
     // workspace icons: the exact Font Awesome glyphs from your waybar config.
     // 1 browser, 2 code, 3 book, 4 cog, 5 chat, 6 file, 7 folder, 8 terminal, 9 flask, 10 image

@@ -1,17 +1,34 @@
 import QtQuick
 import QtQuick.Layouts
 
+// Section heading: grey caps label, an optional count after a middle dot, an optional action on the right (CLEAR ALL).
 RowLayout {
     id: r
     property string text: ""
+    property string count: ""
+    property string action: ""
+    signal actionClicked()
+
     Layout.fillWidth: true
     spacing: 8
-    Text {
-        text: r.text.toUpperCase()
-        color: Theme.accent
-        font.family: Theme.font
-        font.pixelSize: Theme.fontSize - 2
-        font.letterSpacing: 1.5
+
+    Lb {
+        Layout.leftMargin: 6
+        text: r.text + (r.count !== "" ? " · " + r.count : "")
     }
-    Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 1; color: Theme.line }
+    Item { Layout.fillWidth: true }
+    Lb {
+        visible: r.action !== ""
+        Layout.rightMargin: 6
+        text: r.action
+        color: am.containsMouse ? Theme.fg : Theme.fill
+        MouseArea {
+            id: am
+            anchors.fill: parent
+            anchors.margins: -6
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onClicked: r.actionClicked()
+        }
+    }
 }

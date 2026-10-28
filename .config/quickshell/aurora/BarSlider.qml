@@ -1,5 +1,7 @@
 import QtQuick
 
+// Dotted slider: a row of LED dots, the lit part white up to a larger head dot, the rest unlit.
+// Click/drag sets, the wheel steps. muted = the lit dots go grey.
 Item {
     id: s
     property real value: 0
@@ -10,40 +12,30 @@ Item {
     signal moved(real v)
 
     readonly property real frac: to > from ? Math.max(0, Math.min(1, (value - from) / (to - from))) : 0
+    readonly property int n: Math.max(2, Math.floor((width - 8) / 9) + 1)
+    readonly property int head: Math.round(frac * (n - 1))
 
     implicitHeight: 20
 
-    Rectangle {
-        id: track
-        anchors.verticalCenter: parent.verticalCenter
-        width: parent.width
-        height: 6
-        color: Theme.surfaceHi
-
+    Repeater {
+        model: s.n
         Rectangle {
-            width: parent.width * s.frac
-            height: parent.height
-            opacity: s.muted ? 0.35 : 1
-            gradient: Gradient {
-                orientation: Gradient.Horizontal
-                GradientStop { position: 0; color: Theme.accentDim }
-                GradientStop { position: 1; color: Theme.accent }
-            }
+            required property int index
+            readonly property bool isHead: index === s.head
+            readonly property real d: isHead ? 9 : 4
+            x: 4 + index * (s.width - 8) / (s.n - 1) - d / 2
+            anchors.verticalCenter: parent.verticalCenter
+            width: d
+            height: d
+            radius: d / 2
+            color: index <= s.head ? (s.muted ? Theme.grey : Theme.fill) : Theme.s3
         }
-    }
-
-    Rectangle {
-        x: Math.max(0, Math.min(s.width - width, s.width * s.frac - width / 2))
-        anchors.verticalCenter: parent.verticalCenter
-        width: 4
-        height: 14
-        color: Theme.fg
-        opacity: s.muted ? 0.5 : 1
     }
 
     MouseArea {
         anchors.fill: parent
         cursorShape: Qt.PointingHandCursor
+        preventStealing: true
         function setFromX(mx) {
             var f = Math.max(0, Math.min(1, mx / width))
             s.moved(s.from + f * (s.to - s.from))

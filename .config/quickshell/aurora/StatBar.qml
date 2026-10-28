@@ -1,39 +1,36 @@
 import QtQuick
 import QtQuick.Layouts
 
+// caps label · segment bar · value. fill = the lit segments (white; the accent when it needs attention).
 RowLayout {
     id: r
     property string label: ""
     property real frac: 0
     property string valueText: ""
-    property color fill: Theme.accent
+    property color fill: Theme.fill
     Layout.fillWidth: true
-    spacing: 10
+    spacing: 12
 
-    Text {
-        text: r.label
-        Layout.preferredWidth: 72
+    Lb {
+        Layout.preferredWidth: 78
         elide: Text.ElideRight
-        color: Theme.dim
-        font.family: Theme.font
-        font.pixelSize: Theme.fontSize - 1
+        text: r.label
+        px: 10
     }
-    Rectangle {
+    Seg {
         Layout.fillWidth: true
+        Layout.preferredWidth: 100
         Layout.preferredHeight: 6
-        color: Theme.surfaceHi
-        Rectangle {
-            width: parent.width * Math.max(0, Math.min(1, r.frac))
-            height: parent.height
-            color: r.fill
-        }
+        n: 24
+        f: r.frac
+        on: r.fill
     }
-    Text {
-        text: r.valueText
-        Layout.preferredWidth: 96
+    Lb {
+        Layout.preferredWidth: 112
         horizontalAlignment: Text.AlignRight
+        elide: Text.ElideLeft
+        text: r.valueText
+        px: 10
         color: Theme.fg
-        font.family: Theme.font
-        font.pixelSize: Theme.fontSize - 1
     }
 }

@@ -2,10 +2,12 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell.Bluetooth
 
+// Control panel > bt (also the settings app's bluetooth section): radio, scan, devices.
+// Click a row = connect / disconnect, or pair a new device (then connect).
 ColumnLayout {
     id: page
     property bool active: false
-    spacing: 8
+    spacing: 10
 
     readonly property var adapter: Bluetooth.defaultAdapter
 
@@ -53,16 +55,15 @@ ColumnLayout {
 
     RowLayout {
         Layout.fillWidth: true
-        spacing: 6
-        Text {
+        Layout.leftMargin: 6
+        spacing: 8
+        Lb {
             Layout.fillWidth: true
             elide: Text.ElideRight
             text: !page.adapter ? "no bluetooth adapter"
-                  : (!page.adapter.enabled ? "bluetooth is off"
-                  : (page.adapter.discovering ? "scanning…" : (page.adapter.name || "adapter ready")))
-            color: page.adapter && page.adapter.enabled ? Theme.accent : Theme.dim
-            font.family: Theme.font
-            font.pixelSize: Theme.fontSize
+                  : (!page.adapter.enabled ? "bluetooth · off"
+                  : (page.adapter.discovering ? "bluetooth · searching" : "bluetooth · " + (page.adapter.name || "on")))
+            color: page.adapter && page.adapter.enabled ? Theme.fg : Theme.grey
         }
         IconBtn {
             visible: page.adapter !== null
@@ -82,12 +83,13 @@ ColumnLayout {
         }
     }
 
-    SectionLabel { text: "devices" }
+    SectionLabel { text: "devices"; count: page.adapter && page.adapter.enabled ? String(page.devices.length) : "" }
 
     Flickable {
         id: flick
         Layout.fillWidth: true
         Layout.fillHeight: true
+        Layout.preferredHeight: col.implicitHeight
         clip: true
         contentWidth: width
         contentHeight: col.implicitHeight
@@ -117,7 +119,7 @@ ColumnLayout {
                         if (dev.state === BluetoothDeviceState.Connecting) return "connecting…"
                         if (dev.pairing) return "pairing…"
                         if (dev.connected)
-                            return "connected" + (dev.batteryAvailable ? "  ·  " + Math.round(dev.battery * 100) + "%" : "")
+                            return "connected" + (dev.batteryAvailable ? " · " + Math.round(dev.battery * 100) + "%" : "")
                         return page.paired(dev) ? "paired" : "available"
                     }
                     onClicked: {
@@ -136,7 +138,7 @@ ColumnLayout {
                     IconBtn {
                         visible: page.paired(row.dev)
                         icon: Theme.iTrash
-                        height: 26
+                        implicitHeight: 32
                         onClicked: row.dev.forget()
                     }
                 }
