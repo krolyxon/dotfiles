@@ -3,5 +3,5 @@ gradient = 1
 
 gradient_color_1 = '{{colors.primary_container.default.hex}}'
 gradient_color_2 = '{{colors.primary.default.hex}}'
-gradient_color_3 = '{{colors.tertiary.default.hex}}'
-gradient_color_4 = '{{colors.secondary.default.hex}}'
+gradient_color_3 = '{{colors.secondary.default.hex}}'
+gradient_color_4 = '{{colors.tertiary.default.hex}}'

@@ -11,7 +11,8 @@ HOME = os.getenv("HOME")
 
 -- Theme (matugen, run by aurora on every wallpaper change; fallback until it has run once)
 local ok, c = pcall(dofile, HOME .. "/.cache/matugen/hyprland-colors.lua")
-colors = ok and c or { primary = "rgba(80d5cbff)", outline_variant = "rgba(3f4947ff)" }
+colors = ok and c or { primary = "rgba(80d5cbff)", surface = "rgba(0e1514ff)", surface_highest = "rgba(2f3635ff)",
+                       on_surface = "rgba(dde4e2ff)", outline_variant = "rgba(3f4947ff)" }
 
 -- -----------------------------------------------------
 -- Autostart
@@ -20,6 +21,7 @@ hl.on("hyprland.start", function()
     -- GTK3 on Wayland reads its theme + icons from gsettings, not settings.ini (colours: gtk-3.0/gtk.css, matugen)
     hl.exec_cmd("gsettings set org.gnome.desktop.interface gtk-theme adw-gtk3-dark")
     hl.exec_cmd("gsettings set org.gnome.desktop.interface icon-theme Papirus-Dark")
+    hl.exec_cmd("gsettings set org.gnome.desktop.interface font-name 'Space Grotesk 11'")   -- like aurora's UI text
     hl.exec_cmd("wl-paste --type text --watch cliphist store")
     hl.exec_cmd("wl-paste --type image --watch cliphist store")
     hl.exec_cmd("hyprpm reload -n")

@@ -18,8 +18,24 @@ hl.config({
         },
 
         ["col.inactive_border"] = {
-            colors = { colors.outline_variant, colors.outline_variant },
+            colors = { colors.surface_highest, colors.surface_highest },
             angle = 45,
+        },
+    },
+
+    -- groups: the same colours, the bar in Space Mono like aurora's labels
+    group = {
+        ["col.border_active"] = colors.primary,
+        ["col.border_inactive"] = colors.surface_highest,
+        ["col.border_locked_active"] = colors.primary,
+        ["col.border_locked_inactive"] = colors.outline_variant,
+        groupbar = {
+            font_family = "Space Mono",
+            text_color = colors.on_surface,
+            ["col.active"] = colors.surface_highest,
+            ["col.inactive"] = colors.surface,
+            ["col.locked_active"] = colors.surface_highest,
+            ["col.locked_inactive"] = colors.surface,
         },
     },
 
@@ -27,7 +43,7 @@ hl.config({
     -- Decoration
     --------------------------------------------------
     decoration = {
-        -- rounding = 8,
+        rounding = 14,   -- round corners like aurora's cards (Nothing look)
 
         blur = {
             enabled = true,
