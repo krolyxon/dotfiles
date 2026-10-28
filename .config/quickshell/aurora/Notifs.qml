@@ -8,6 +8,8 @@ import Quickshell.Services.Notifications
 Singleton {
     id: root
     property bool dnd: false
+    property bool hold: false            // the pointer is on the toasts: none expires
+    signal arrived(var n, bool critical)   // a toast was shown (the bar mark flashes)
 
     // sound played on every toast (silenced by do-not-disturb, except critical ones)
     property bool soundEnabled: Settings.notifSound
@@ -54,6 +56,7 @@ Singleton {
         var next = popups.concat([{ n: n, until: Date.now() + ms }])
         popups = next.slice(-4)
         n.closed.connect(function () { root.dropPopup(n) })
+        arrived(n, n.urgency === NotificationUrgency.Critical)
     }
 
     NotificationServer {
@@ -82,6 +85,10 @@ Singleton {
         running: root.popups.length > 0
         repeat: true
         onTriggered: {
+            if (root.hold) {             // hovered: push every deadline back instead
+                for (var i = 0; i < root.popups.length; i++) root.popups[i].until += 500
+                return
+            }
             var now = Date.now()
             var keep = root.popups.filter(function (p) { return p.until > now })
             if (keep.length !== root.popups.length) root.popups = keep

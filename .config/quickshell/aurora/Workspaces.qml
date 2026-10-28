@@ -1,13 +1,14 @@
 import QtQuick
 import Quickshell.Hyprland
 
-// Per-monitor workspaces, dwm / split-monitor-workspaces style.
-// Each monitor owns a block of 10 ids (monitor 1: 1-10, monitor 2: 11-20, ...).
-// The block is derived from the monitor's own active workspace, so it works with or
-// without the plugin. Icons repeat every 10, like your waybar format-icons.
+// This monitor's 10 workspaces as dots (split-monitor-workspaces: monitor 1 owns 1-10, monitor 2 11-20, ...; the block
+// comes from the monitor's own active workspace, so it works without the plugin too).
+// Active = a wide pill (primary on the focused monitor, grey on the others), occupied = grey dot, empty = dim dot,
+// urgent = the live colour. Click = go there, wheel = the next / previous occupied one.
+// After glyph-rice (github.com/Nebelung-cloud/glyph-rice, GPL-3.0), bar/Bar.qml.
 Row {
     id: ws
-    spacing: 0
+    spacing: 6
 
     property var monitor: null           // HyprlandMonitor of the bar this sits in
 
@@ -40,36 +41,31 @@ Row {
             readonly property bool active: ws.activeWs !== null && ws.activeWs.id === modelData
             readonly property bool occupied: obj !== null && obj.toplevels.values.length > 0
             readonly property bool urgent: obj !== null && obj.urgent
-            // active on the focused monitor = filled; active on another monitor = accent text + thick underline
-            readonly property bool lit: (active && ws.monFocused) || m.containsMouse
-            readonly property bool dimActive: active && !ws.monFocused && !m.containsMouse
 
-            width: 30
+            width: dot.width
             height: ws.height
 
             Rectangle {
-                anchors.fill: parent
-                color: b.lit ? Theme.accent : "transparent"
-            }
-            Rectangle {   // occupied marker (1px), or active-on-unfocused-monitor marker (2px)
-                visible: (b.occupied && !b.lit) || b.dimActive
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.bottom: parent.bottom
-                height: b.dimActive ? 2 : 1
-                color: b.dimActive ? Theme.accent : Theme.cursorC
-            }
-            Text {
-                anchors.centerIn: parent
-                text: Theme.wsIcon(b.modelData)
-                color: b.lit ? Theme.bg : (b.dimActive ? Theme.accent : (b.urgent ? Theme.err : Theme.fg))
-                opacity: (b.occupied || b.active || b.lit || b.urgent) ? 1 : 0.4
-                font.family: Theme.font
-                font.pixelSize: Theme.wsFontSize
+                id: dot
+                anchors.verticalCenter: parent.verticalCenter
+                width: b.active ? 26 : 8
+                height: 8
+                radius: 4
+                color: b.urgent && !b.active ? Theme.live
+                       : b.active ? (ws.monFocused ? Theme.fill : Theme.grey)
+                       : m.containsMouse ? Theme.fg
+                       : b.occupied ? Theme.grey : Theme.s3
+                Behavior on width {
+                    enabled: Theme.motion
+                    NumberAnimation { duration: Theme.t; easing.type: Easing.BezierSpline; easing.bezierCurve: Theme.glide }
+                }
+                Behavior on color { enabled: Theme.motion; ColorAnimation { duration: Theme.t } }
             }
             MouseArea {
                 id: m
                 anchors.fill: parent
+                anchors.leftMargin: -3
+                anchors.rightMargin: -3
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
                 onClicked: Hypr.workspace(b.modelData)

@@ -6,6 +6,12 @@ import Quickshell.Hyprland
 import Quickshell.Services.Pipewire
 import Quickshell.Services.UPower
 
+// The bar: a floating pill at the top of every monitor.
+// Left: the mark (a dotted ring: click = runner; its centre turns the live colour while something records or listens,
+// the ring lights up in a wave on a new notification), this monitor's workspaces as dots, the cat.
+// Centre: the active window (focused monitor only). Right: tray, recording, privacy, caffeine/airplane, headset,
+// volume, net + bt, battery, clock (click = calendar). Clicks open the same panel tabs as always.
+// After glyph-rice (github.com/Nebelung-cloud/glyph-rice, GPL-3.0), bar/Bar.qml.
 PanelWindow {
     id: bar
     required property var modelData
@@ -14,8 +20,9 @@ PanelWindow {
     signal toggleOverlay(string name, var scr)
 
     anchors { top: true; left: true; right: true }
-    implicitHeight: Theme.barHeight
-    color: Theme.barBg
+    implicitHeight: Theme.barHeight          // the pill + the gap above it; also the exclusive zone
+    color: "transparent"
+    mask: Region { item: pill }
     WlrLayershell.namespace: "aurora-bar"
 
     SystemClock { id: clock; precision: SystemClock.Minutes }
@@ -33,8 +40,7 @@ PanelWindow {
     readonly property bool hasBat: bat !== null && bat.isPresent
     readonly property real batPct: hasBat ? (bat.percentage > 1 ? bat.percentage / 100 : bat.percentage) : 0
     readonly property bool charging: hasBat && bat.state === UPowerDeviceState.Charging
-    readonly property bool plugged: hasBat && bat.state === UPowerDeviceState.FullyCharged
-    readonly property bool batLow: hasBat && batPct <= 0.15 && !charging
+    readonly property bool batLow: hasBat && batPct <= Settings.batLow / 100 && !charging
     readonly property var adapter: Bluetooth.defaultAdapter
 
     // which Hyprland monitor this bar belongs to, and whether it has focus
@@ -59,39 +65,88 @@ PanelWindow {
     readonly property var headset: findHeadset()
     readonly property bool btOn: adapter !== null && adapter.enabled
     readonly property bool btLink: btOn && btConnected()
+    // something records or listens: the mark's centre goes live
+    readonly property bool live: Rec.busy || Privacy.mic || Privacy.cam || Privacy.screen
 
-    Item {
-        anchors.fill: parent
+    // a new toast: the mark's ring lights up for 3s (error colour if critical)
+    property bool flash: false
+    property bool flashCrit: false
+    Timer { id: flashT; interval: 3000; onTriggered: bar.flash = false }
+    Connections {
+        target: Notifs
+        function onArrived(n, critical) { bar.flashCrit = critical; bar.flash = true; flashT.restart() }
+    }
+
+    Rectangle {
+        id: pill
+        x: Theme.barGap
+        y: Theme.barGap
+        width: parent.width - 2 * Theme.barGap
+        height: Theme.barSize
+        radius: height / 2
+        color: Qt.rgba(Theme.s1.r, Theme.s1.g, Theme.s1.b, Theme.barAlpha)
+        border.width: 1
+        border.color: Theme.s2
 
         // ---------------- left ----------------
         Row {
             anchors.left: parent.left
+            anchors.leftMargin: Math.round(Theme.barSize * 0.25)
             height: parent.height
-            spacing: 10
+            spacing: 14
+
+            Item {
+                id: mark
+                readonly property real size: Math.round(Theme.barSize * 0.55)
+                width: size
+                height: size
+                anchors.verticalCenter: parent.verticalCenter
+                Ring {
+                    anchors.fill: parent
+                    anchors.margins: 1.5
+                    n: 16
+                    dot: 2.6
+                    on: bar.flash ? (bar.flashCrit ? Theme.err : Theme.fill) : Theme.fg
+                    off: Theme.s3
+                }
+                Rectangle {
+                    anchors.centerIn: parent
+                    width: Math.round(mark.size * 0.32)
+                    height: width
+                    radius: width / 2
+                    color: bar.live ? Theme.live : Theme.fg
+                }
+                MouseArea {
+                    anchors.fill: parent
+                    anchors.margins: -5
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: bar.toggleOverlay("runner", bar.modelData)
+                }
+            }
             Workspaces { height: parent.height; monitor: bar.hmon }
             CatLoop { height: parent.height }
         }
 
         // ---------------- center ----------------
-        Text {
+        Lb {
             anchors.centerIn: parent
             width: Math.min(implicitWidth, parent.width * 0.32)
-            elide: Text.ElideRight
             horizontalAlignment: Text.AlignHCenter
-            readonly property string title: ToplevelManager.activeToplevel ? ToplevelManager.activeToplevel.title : ""
-            visible: bar.monFocused && title !== ""   // active window is global: show it on the focused monitor only
-            text: Theme.iArch + " " + title
-            color: Theme.fg
-            font.family: Theme.font
-            font.pixelSize: Theme.fontSize
-            font.bold: true
+            elide: Text.ElideRight
+            readonly property var active: ToplevelManager.activeToplevel
+            readonly property string app: active && active.appId ? String(active.appId).split(".").pop() : ""
+            visible: bar.monFocused && active !== null && active.title !== ""   // the active window is global: focused monitor only
+            text: active ? (app !== "" ? app + " · " + active.title : active.title) : ""
+            px: 11
+            color: Theme.fgDim
         }
 
         // ---------------- right ----------------
         Row {
             anchors.right: parent.right
+            anchors.rightMargin: 6
             height: parent.height
-            spacing: 10
+            spacing: 0
 
             Tray { show: bar.monFocused }
 
@@ -99,8 +154,7 @@ PanelWindow {
                 visible: Rec.busy
                 icon: Theme.iStop
                 text: Rec.running ? "rec " + Theme.fmtClock(Rec.elapsed) : "select area"
-                tint: Theme.err
-                underline: Theme.err
+                tint: Theme.live
                 onActivated: Rec.stop()
             }
 
@@ -109,23 +163,20 @@ PanelWindow {
                 visible: bar.monFocused && Privacy.mic
                 icon: bar.mic && bar.mic.muted ? Theme.iMicOff : Theme.iMic
                 text: Privacy.micApps.join(", ")
-                tint: bar.mic && bar.mic.muted ? Theme.dim : Theme.err
-                underline: Theme.err
+                tint: bar.mic && bar.mic.muted ? Theme.grey : Theme.live
                 onActivated: if (bar.mic) bar.mic.muted = !bar.mic.muted
             }
             BarPill {
                 visible: bar.monFocused && Privacy.cam
                 icon: Theme.iWebcam
                 text: Privacy.camApps.join(", ")
-                tint: Theme.err
-                underline: Theme.err
+                tint: Theme.live
             }
             BarPill {
                 visible: bar.monFocused && Privacy.screen
                 icon: Theme.iCast
                 text: Privacy.shareApps.join(", ")
-                tint: Theme.err
-                underline: Theme.err
+                tint: Theme.live
             }
 
             BarPill {
@@ -146,12 +197,15 @@ PanelWindow {
                 visible: bar.audio !== null
                 icon: Theme.volIcon(bar.audio ? bar.audio.volume : 0, bar.audio ? bar.audio.muted : true)
                 text: (bar.audio ? Math.round(bar.audio.volume * 100) : 0) + "%"
-                      + (bar.mic && bar.mic.muted ? "  " + Theme.iMicOff : "")
+                tint: bar.audio && bar.audio.muted ? Theme.grey : Theme.fg
+                icon2: bar.mic && bar.mic.muted ? Theme.iMicOff : ""
+                tint2: Theme.grey
                 onActivated: button => {
                     if (button === Qt.RightButton && bar.audio) bar.audio.muted = !bar.audio.muted
                     else if (button === Qt.MiddleButton && bar.mic) bar.mic.muted = !bar.mic.muted
                     else bar.togglePanel("audio", bar.modelData)
                 }
+                onActivated2: button => { if (bar.mic) bar.mic.muted = !bar.mic.muted }
                 onScrolled: dir => {
                     if (bar.audio) bar.audio.volume = Math.max(0, Math.min(1, bar.audio.volume + dir * 0.02))
                 }
@@ -161,31 +215,78 @@ PanelWindow {
             BarPill {
                 icon: Net.wired && !(Net.wifiEnabled && Net.connected !== "") ? Net.wiredIcon
                       : (Net.wifiEnabled ? Theme.wifiIcon(Net.connected !== "" ? Net.activeSignal : 0) : Theme.iWifiOff)
-                tint: Net.portal ? Theme.err : ((Net.wired || (Net.wifiEnabled && Net.connected !== "")) ? Theme.fg : Theme.dim)
+                tint: Net.portal ? Theme.live : ((Net.wired || (Net.wifiEnabled && Net.connected !== "")) ? Theme.fg : Theme.grey)
                 icon2: bar.adapter === null ? "" : (!bar.btOn ? Theme.iBtOff : (bar.btLink ? Theme.iBtConn : Theme.iBt))
-                tint2: bar.btLink ? Theme.fg : Theme.dim
+                tint2: bar.btLink ? Theme.fg : Theme.grey
                 onActivated: bar.togglePanel("net", bar.modelData)
                 onActivated2: bar.togglePanel("bt", bar.modelData)
             }
 
+            // battery: a capsule that fills up, the error colour when low, a bolt + breathing fill while charging
             BarPill {
+                id: batt
                 visible: bar.hasBat
-                icon: Theme.batIcon(bar.batPct, bar.charging, bar.plugged)
-                text: Math.round(bar.batPct * 100) + "%"
-                tint: bar.batLow ? Theme.err : Theme.fg
-                underline: bar.batLow ? Theme.err : Theme.accent
+                icon: bar.charging ? Theme.iBolt : ""
                 onActivated: bar.togglePanel("sys", bar.modelData)
+                // breathing at 20 steps a second: an Animation would redraw the bar on every vsync while charging
+                property real phase: 0
+                readonly property real pulse: bar.charging ? 0.675 + 0.325 * Math.cos(phase * Math.PI / 1.1) : 1
+                Timer {
+                    running: bar.charging && bar.visible
+                    interval: 50
+                    repeat: true
+                    onTriggered: batt.phase = (batt.phase + 0.05) % 2.2
+                    onRunningChanged: batt.phase = 0
+                }
+                Rectangle {
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: 26
+                    height: 13
+                    radius: height / 2
+                    color: "transparent"
+                    border.width: 1.5
+                    border.color: bar.batLow ? Theme.err : Theme.grey
+                    Rectangle {
+                        x: 3
+                        anchors.verticalCenter: parent.verticalCenter
+                        width: Math.max(3, (parent.width - 6) * bar.batPct)
+                        height: parent.height - 6
+                        radius: height / 2
+                        color: bar.batLow ? Theme.err : Theme.fill
+                        opacity: batt.pulse
+                    }
+                }
+                Lb {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: Math.round(bar.batPct * 100)
+                    px: 11
+                    color: bar.batLow ? Theme.err : Theme.fg
+                }
             }
 
+            // clock: Doto from bar size 40 up (Doto is unreadable smaller), Space Mono below that
             BarPill {
-                icon: Theme.iCal
-                text: Qt.formatDateTime(clock.date, "dd MMM yyyy")
                 onActivated: bar.toggleOverlay("cal", bar.modelData)
-            }
-            BarPill {
-                icon: Theme.iClock
-                text: Qt.formatDateTime(clock.date, "HH:mm")
-                onActivated: bar.toggleOverlay("cal", bar.modelData)
+                Num {
+                    visible: Theme.barSize >= 40
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: Theme.hh(clock.date) + ":" + Qt.formatDateTime(clock.date, "mm")
+                    font.pixelSize: 26
+                }
+                Text {
+                    visible: Theme.barSize < 40
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: Theme.hh(clock.date) + ":" + Qt.formatDateTime(clock.date, "mm")
+                    font.family: Theme.mono
+                    font.pixelSize: 14
+                    font.bold: true
+                    color: Theme.fg
+                }
+                Lb {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: Qt.locale("en_US").toString(clock.date, "ddd d")
+                    px: 10
+                }
             }
         }
     }

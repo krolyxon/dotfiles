@@ -1,3 +1,5 @@
+//@ pragma UseQApplication
+// ^ tray menus (SystemTray display()) are platform menus: they need a QApplication
 //@ pragma IconTheme Papirus-Dark
 // ^ same as gtk-3.0: notify-send -i names (drive-removable-media, network-wireless, ...) resolve through it
 import QtQuick

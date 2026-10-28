@@ -1,11 +1,13 @@
 import QtQuick
+import QtQuick.Effects
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Services.Pipewire
 
-// Volume / mic / brightness popup: bottom-centre, click-through, auto-hides.
-// Volume + mute changes are picked up natively from Pipewire (any source: keys, wpctl, panel).
-// Brightness is pushed in via show() from the `bright` IPC call.
+// Volume / mic / brightness on the right screen edge, like the Glyph strips on the phone: 20 segments fill bottom-up
+// (the lit ones glow), a capsule next to them shows the icon and the value. Click-through, fades out after
+// Settings.osdTimeout. Volume + mute come natively from Pipewire (keys, wpctl, panel); brightness is pushed in with
+// show() from the `bright` IPC call. After glyph-rice (github.com/Nebelung-cloud/glyph-rice, GPL-3.0), glyph/Glyph.qml.
 PanelWindow {
     id: win
     property bool suppressed: false      // hidden while the control panel is open
@@ -19,16 +21,18 @@ PanelWindow {
         win.icon = icon
         win.value = value
         win.muted = muted
-        win.valueText = valueText !== undefined ? valueText : Math.round(value * 100) + "%"
+        win.valueText = valueText !== undefined ? valueText : String(Math.round(value * 100))
         shown = true
         hide.restart()
     }
 
-    visible: shown && !suppressed
-    anchors.bottom: true
-    margins.bottom: 80
-    implicitWidth: 280
-    implicitHeight: 40
+    property real t: shown && !suppressed ? 1 : 0
+    Behavior on t { NumberAnimation { duration: Theme.t; easing.type: Easing.BezierSpline; easing.bezierCurve: Theme.glide } }
+
+    visible: t > 0
+    anchors.right: true                  // vertically centred on the right edge
+    implicitWidth: 150
+    implicitHeight: 520
     exclusiveZone: 0
     color: "transparent"
     mask: Region {}
@@ -64,46 +68,75 @@ PanelWindow {
         function onMutedChanged() {
             var a = win.source.audio
             if (!win.armed) return
-            win.show(a.muted ? Theme.iMicOff : Theme.iMic, a.volume, a.muted, a.muted ? "muted" : "on")
+            win.show(a.muted ? Theme.iMicOff : Theme.iMic, a.muted ? 0 : a.volume, a.muted, a.muted ? "off" : "on")
         }
     }
 
     // ---- ui ----
-    Rectangle {
+    Item {
         anchors.fill: parent
-        color: Theme.bgA
-        border.width: 1
-        border.color: Theme.accent
+        opacity: win.t
+        transform: Translate { x: 16 * (1 - win.t) }
 
-        Row {
-            anchors.fill: parent
-            anchors.leftMargin: 12
-            anchors.rightMargin: 12
-            spacing: 10
+        // the strip: unlit segments, then the lit ones on top with the glow (the glow would outline unlit ones too)
+        Seg {
+            id: strip
+            x: parent.width - 14
+            y: 10
+            width: 5
+            height: parent.height - 20
+            n: 20
+            vertical: true
+            f: 0
+        }
+        Seg {
+            x: strip.x
+            y: strip.y
+            width: strip.width
+            height: strip.height
+            n: 20
+            vertical: true
+            f: win.value
+            on: win.muted ? Theme.grey : Theme.fill
+            off: "transparent"
+            layer.enabled: true
+            layer.effect: MultiEffect {
+                shadowEnabled: true
+                shadowColor: Theme.glow
+                shadowBlur: 0.7
+                blurMax: 20
+                shadowHorizontalOffset: 0
+                shadowVerticalOffset: 0
+            }
+        }
 
-            Text {
-                anchors.verticalCenter: parent.verticalCenter
-                width: 20
-                text: win.icon
-                color: win.muted ? Theme.dim : Theme.fg
-                font.family: Theme.font
-                font.pixelSize: 16
-            }
-            BarSlider {
-                anchors.verticalCenter: parent.verticalCenter
-                width: parent.width - 20 - 44 - parent.spacing * 2
-                value: win.value
-                muted: win.muted
-            }
-            Text {
-                anchors.verticalCenter: parent.verticalCenter
-                width: 44
-                horizontalAlignment: Text.AlignRight
-                text: win.valueText
-                color: win.muted ? Theme.dim : Theme.fg
-                font.family: Theme.font
-                font.pixelSize: Theme.fontSize
-                font.bold: true
+        // the value next to it: icon over the number
+        Rectangle {
+            anchors.right: parent.right
+            anchors.rightMargin: 32
+            anchors.verticalCenter: parent.verticalCenter
+            width: Math.max(58, box.implicitWidth + 24)
+            height: box.implicitHeight + 36
+            radius: width / 2
+            color: Theme.s1
+            border.width: 1
+            border.color: Theme.s2
+            Column {
+                id: box
+                anchors.centerIn: parent
+                spacing: 12
+                Icon {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: win.icon
+                    font.pixelSize: 20
+                    color: win.muted ? Theme.grey : Theme.fg
+                }
+                Num {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: win.valueText
+                    font.pixelSize: 30
+                    color: win.muted ? Theme.grey : Theme.fg
+                }
             }
         }
     }

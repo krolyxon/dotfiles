@@ -18,7 +18,7 @@ Singleton {
         idleDim: 150, idleOff: 330, idleLock: 600, idleSuspend: 0, charTone: 0, portalAutoOpen: true,
         chargeMode: "off", batLow: 15, batCritical: 5, batCriticalAction: "none",
         privacyIndicators: true, powerAuto: false, powerAc: "balanced", powerBat: "saver",
-        motion: true, clock24: true, appIcons: "dots"
+        motion: true, clock24: true, appIcons: "dots", barSize: 40
     })
 
     property alias fontSize: a.fontSize
@@ -54,6 +54,7 @@ Singleton {
     property alias motion: a.motion
     property alias clock24: a.clock24
     property alias appIcons: a.appIcons
+    property alias barSize: a.barSize
 
     function reset() {
         for (var k in defaults) a[k] = defaults[k]
@@ -111,6 +112,7 @@ Singleton {
             property bool motion: true                 // shell animations (Theme.t)
             property bool clock24: true
             property string appIcons: "dots"           // dots | mono | colour: how app icons are drawn
+            property int barSize: 40                   // height of the bar pill (Doto clock from 40 up)
         }
     }
     // first run: create the file once the directory exists

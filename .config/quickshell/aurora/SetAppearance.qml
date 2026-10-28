@@ -91,7 +91,7 @@ Flickable {
         SectionLabel { text: "sizes" }
         Knob { label: "font size"; from: 9; to: 18; value: Settings.fontSize; onMoved: v => Settings.fontSize = v }
         Knob { label: "workspace icons"; from: 8; to: 18; value: Settings.wsFontSize; onMoved: v => Settings.wsFontSize = v }
-        Knob { label: "bar height"; from: 16; to: 36; value: Settings.barHeight; onMoved: v => Settings.barHeight = v }
+        Knob { label: "bar height"; from: 32; to: 56; value: Settings.barSize; onMoved: v => Settings.barSize = v }
 
         SectionLabel { text: "transparency" }
         Knob { label: "bar opacity"; from: 0.3; to: 1; decimals: 2; value: Settings.barAlpha; onMoved: v => Settings.barAlpha = v }

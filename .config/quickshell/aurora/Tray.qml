@@ -1,43 +1,40 @@
 import QtQuick
+import QtQuick.Effects
 import Quickshell
 import Quickshell.Services.SystemTray
 
+// Tray icons in the bar; monochrome unless Settings.appIcons is "colour" (dots are too coarse at this size).
 Item {
     id: tray
     property bool show: true
     visible: show && SystemTray.items.values.length > 0
-    implicitWidth: row.implicitWidth + 24
-    implicitHeight: parent ? parent.height : Theme.barHeight
+    implicitWidth: row.implicitWidth + 22
+    implicitHeight: parent ? parent.height : Theme.barSize
 
-    Rectangle {
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.bottom: parent.bottom
-        height: 1
-        color: Theme.dim
-    }
     Row {
         id: row
         anchors.centerIn: parent
-        spacing: 10
+        spacing: 12
         Repeater {
             model: SystemTray.items
             delegate: Item {
                 id: it
                 required property var modelData
-                width: 14
-                height: 14
+                width: 16
+                height: 16
                 anchors.verticalCenter: parent.verticalCenter
 
                 function openMenu() {
-                    var p = it.mapToItem(null, 0, it.height + 4)
+                    var p = it.mapToItem(null, 0, it.height + 10)
                     modelData.display(QsWindow.window, p.x, p.y)
                 }
                 Image {
                     anchors.fill: parent
                     source: it.modelData.icon
-                    sourceSize: Qt.size(28, 28)
+                    sourceSize: Qt.size(32, 32)
                     smooth: true
+                    layer.enabled: Settings.appIcons !== "colour"
+                    layer.effect: MultiEffect { saturation: -1; brightness: 0.1 }
                 }
                 MouseArea {
                     anchors.fill: parent

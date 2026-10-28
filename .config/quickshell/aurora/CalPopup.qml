@@ -4,19 +4,25 @@ import Quickshell
 import Quickshell.Wayland
 import Quickshell.Hyprland
 
-// Month calendar under the clock pills. Monday first, ISO week numbers, scroll / arrows change month.
+// Month calendar under the bar clock: Doto month, Monday first, ISO week numbers, today in a primary circle.
+// Scroll / arrows change the month, up / down the year, space = back to today, Esc closes.
+// After glyph-rice (github.com/Nebelung-cloud/glyph-rice, GPL-3.0), cal/Cal.qml.
 PanelWindow {
     id: win
     property bool opened: false
     signal closeRequested()
 
-    visible: opened
+    property real t: opened ? 1 : 0
+    Behavior on t { NumberAnimation { duration: Theme.t; easing.type: Easing.BezierSpline; easing.bezierCurve: Theme.glide } }
+
+    visible: t > 0
     anchors { top: true; right: true }
     margins { top: 6; right: 8 }
-    implicitWidth: 300
-    implicitHeight: col.implicitHeight + 24
+    implicitWidth: card.width
+    implicitHeight: card.height + 20      // room for the slide
     exclusiveZone: 0
     color: "transparent"
+    mask: Region { item: card }
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.namespace: "aurora-calendar"
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
@@ -27,7 +33,8 @@ PanelWindow {
         onCleared: win.closeRequested()
     }
 
-    SystemClock { id: clock; precision: SystemClock.Seconds }
+    SystemClock { id: clock; precision: SystemClock.Minutes }
+    readonly property var en: Qt.locale("en_US")
 
     property int year: 0
     property int month: 0                 // 0..11
@@ -62,10 +69,15 @@ PanelWindow {
     readonly property var now: clock.date
 
     Rectangle {
-        anchors.fill: parent
-        color: Theme.bgA
-        border.width: 2
-        border.color: Theme.accent
+        id: card
+        y: -16 * (1 - win.t)
+        opacity: win.t
+        width: 384
+        height: col.implicitHeight + 44
+        radius: 36
+        color: Qt.rgba(Theme.s1.r, Theme.s1.g, Theme.s1.b, Theme.panelAlpha)
+        border.width: 1
+        border.color: Theme.s2
         focus: true
         Keys.onEscapePressed: win.closeRequested()
         Keys.onLeftPressed: win.shift(-1)
@@ -81,75 +93,63 @@ PanelWindow {
 
         ColumnLayout {
             id: col
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.top: parent.top
-            anchors.margins: 12
-            spacing: 8
+            x: 22
+            y: 22
+            width: parent.width - 44
+            spacing: 14
 
-            // big clock
-            Text {
-                text: Qt.formatDateTime(win.now, "HH:mm:ss")
-                color: Theme.fg
-                font.family: Theme.font
-                font.pixelSize: 28
-                font.bold: true
+            Lb {
+                Layout.leftMargin: 6
+                px: 10
+                text: win.en.toString(win.now, "dddd · d MMMM yyyy") + " · week " + win.isoWeek(win.now)
             }
-            Text {
-                text: Qt.formatDateTime(win.now, "dddd, d MMMM yyyy") + "  ·  w" + win.isoWeek(win.now)
-                color: Theme.dim
-                font.family: Theme.font
-                font.pixelSize: Theme.fontSize - 1
-            }
-
-            Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 1; color: Theme.line }
 
             RowLayout {
                 Layout.fillWidth: true
-                IconBtn { icon: Theme.iPrev; implicitHeight: 24; onClicked: win.shift(-1) }
-                Text {
-                    Layout.fillWidth: true
-                    horizontalAlignment: Text.AlignHCenter
-                    text: Qt.formatDate(new Date(win.year, win.month, 1), "MMMM yyyy").toUpperCase()
-                    color: Theme.accent
-                    font.family: Theme.font
-                    font.pixelSize: Theme.fontSize
-                    font.bold: true
-                    font.letterSpacing: 1.5
+                Layout.leftMargin: 6
+                spacing: 12
+                Num {
+                    text: win.en.standaloneMonthName(win.month, Locale.ShortFormat)
+                    font.pixelSize: 44
                     MouseArea {
                         anchors.fill: parent
                         cursorShape: Qt.PointingHandCursor
                         onClicked: win.today()
                     }
                 }
-                IconBtn { icon: Theme.iNext; implicitHeight: 24; onClicked: win.shift(1) }
+                Lb {
+                    Layout.alignment: Qt.AlignVCenter
+                    text: win.year
+                }
+                Item { Layout.fillWidth: true }
+                IconBtn { implicitHeight: 40; icon: Theme.iChevronLeft; onClicked: win.shift(-1) }
+                IconBtn { implicitHeight: 40; icon: Theme.iChevron; onClicked: win.shift(1) }
             }
 
-            GridLayout {
+            Grid {
+                id: grid
                 Layout.fillWidth: true
+                Layout.preferredWidth: 1
                 columns: 8
-                columnSpacing: 0
-                rowSpacing: 0
+                readonly property real cw: width / 8
 
                 Repeater {
-                    model: ["wk", "mo", "tu", "we", "th", "fr", "sa", "su"]
-                    delegate: Text {
+                    model: ["wk", "m", "t", "w", "t", "f", "s", "s"]
+                    delegate: Lb {
                         required property var modelData
                         required property int index
-                        Layout.fillWidth: true
-                        Layout.preferredHeight: 24
+                        width: grid.cw
+                        height: 28
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
                         text: modelData
-                        color: index === 0 ? Theme.line : (index >= 6 ? Theme.accentDim : Theme.dim)
-                        font.family: Theme.font
-                        font.pixelSize: Theme.fontSize - 2
+                        px: 10
+                        color: index === 0 ? Theme.mute : Theme.grey
                     }
                 }
-
                 Repeater {
                     model: 48
-                    delegate: Rectangle {
+                    delegate: Item {
                         id: cell
                         required property int index
                         readonly property bool isWeek: index % 8 === 0
@@ -158,18 +158,25 @@ PanelWindow {
                         readonly property bool inMonth: d.getMonth() === win.month
                         readonly property bool isToday: !isWeek && d.toDateString() === win.now.toDateString()
                         readonly property bool weekend: (index % 8) >= 6
-                        Layout.fillWidth: true
-                        Layout.preferredHeight: 28
-                        color: isToday ? Theme.accent : "transparent"
+                        width: grid.cw
+                        height: 40
+                        Rectangle {
+                            visible: cell.isToday
+                            anchors.centerIn: parent
+                            width: 34
+                            height: 34
+                            radius: 17
+                            color: Theme.fill
+                        }
                         Text {
                             anchors.centerIn: parent
                             text: cell.isWeek ? win.isoWeek(cell.d) : cell.d.getDate()
-                            color: cell.isToday ? Theme.bg
-                                   : cell.isWeek ? Theme.line
-                                   : !cell.inMonth ? Theme.surfaceHi
-                                   : cell.weekend ? Theme.accent : Theme.fg
-                            font.family: Theme.font
-                            font.pixelSize: cell.isWeek ? Theme.fontSize - 2 : Theme.fontSize
+                            color: cell.isToday ? Theme.fillFg
+                                   : cell.isWeek ? Theme.mute
+                                   : !cell.inMonth ? Theme.mute
+                                   : cell.weekend ? Theme.grey : Theme.fg
+                            font.family: Theme.mono
+                            font.pixelSize: cell.isWeek ? 10 : 13
                             font.bold: cell.isToday
                         }
                     }
