@@ -2,30 +2,27 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Wayland
-import Quickshell.Hyprland
 
 // Glyph picker (SUPER+grave, `chars` IPC): emoji, nerd font glyphs, unicode symbols, kaomoji, fancy text.
 // Type to fuzzy search; arrows / Ctrl+HJKL move, Tab section, Ctrl+Left/Right group, Enter copies, Shift+Enter types it
 // into the focused window, Ctrl+Enter collects into a buffer, Alt+Enter copies the codepoint.
+// Looks like glyph's charms (github.com/Nebelung-cloud/glyph-rice, GPL-3.0, charms/Charms.qml): a card over the dimmed
+// screen, search pill, section chips, tiles (the selected one white... here primary), the selection large at the bottom.
 PanelWindow {
     id: win
     property bool opened: false
     signal closeRequested()
 
-    visible: opened
-    implicitWidth: 780
-    implicitHeight: 590
-    exclusiveZone: 0
+    property real t: opened ? 1 : 0
+    Behavior on t { NumberAnimation { duration: Theme.t; easing.type: Easing.BezierSpline; easing.bezierCurve: Theme.glide } }
+
+    visible: t > 0
+    anchors { top: true; bottom: true; left: true; right: true }
+    exclusionMode: ExclusionMode.Ignore
     color: "transparent"
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.namespace: "aurora-chars"
     WlrLayershell.keyboardFocus: opened ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
-
-    HyprlandFocusGrab {
-        windows: [win]
-        active: win.opened
-        onCleared: win.closeRequested()
-    }
 
     readonly property var sections: [
         { id: "all", label: "all", icon: Theme.iGrid, sets: ["emoji", "nerd", "sym"] },
@@ -147,56 +144,76 @@ PanelWindow {
 
     Rectangle {
         anchors.fill: parent
-        color: Theme.bgA
-        border.width: 2
-        border.color: Theme.accent
+        color: Theme.scrim
+        opacity: win.t
+        MouseArea { anchors.fill: parent; onClicked: win.closeRequested() }
+    }
+
+    Rectangle {
+        id: card
+        anchors.horizontalCenter: parent.horizontalCenter
+        y: Math.round((parent.height - height) / 2) - 30 + 24 * (1 - win.t)
+        width: Math.min(parent.width - 80, 960)
+        height: Math.min(parent.height - 160, 740)
+        opacity: win.t
+        radius: 44
+        color: Qt.rgba(Theme.s1.r, Theme.s1.g, Theme.s1.b, Theme.panelAlpha)
+        border.width: 1
+        border.color: Theme.s2
+        MouseArea { anchors.fill: parent }
 
         ColumnLayout {
             anchors.fill: parent
-            anchors.margins: 12
-            spacing: 8
+            anchors.margins: 30
+            spacing: 14
 
             // ---- search + tone + close ----
             RowLayout {
                 Layout.fillWidth: true
-                spacing: 6
+                spacing: 10
                 Rectangle {
                     Layout.fillWidth: true
-                    implicitHeight: 30
-                    color: Theme.surface
-                    border.width: 1
-                    border.color: filter.activeFocus ? Theme.accent : Theme.line
-                    Text {
-                        anchors.left: parent.left
-                        anchors.leftMargin: 10
+                    implicitHeight: 60
+                    radius: 30
+                    color: Theme.s2
+                    Icon {
+                        id: lens
+                        x: 22
                         anchors.verticalCenter: parent.verticalCenter
                         text: Theme.iSearch
-                        color: Theme.dim
-                        font.family: Theme.font
-                        font.pixelSize: Theme.fontSize
+                        color: Theme.grey
+                        font.pixelSize: 20
                     }
                     Text {
-                        anchors.left: parent.left
-                        anchors.leftMargin: 32
+                        anchors.left: filter.left
+                        anchors.right: count.left
                         anchors.verticalCenter: parent.verticalCenter
                         visible: filter.text === ""
-                        text: win.section.id === "fancy" ? "type some text" : "search " + win.section.label + "  (name, keyword, u+f0001, or paste a glyph)"
-                        color: Theme.dim
-                        font.family: Theme.font
-                        font.pixelSize: Theme.fontSize
+                        elide: Text.ElideRight
+                        text: win.section.id === "fancy" ? "Type some text" : "Search " + win.section.label + " (name, keyword, u+f0001, or paste a glyph)"
+                        color: Theme.mute
+                        font.family: Theme.ui
+                        font.pixelSize: 18
                     }
                     TextInput {
                         id: filter
-                        anchors.fill: parent
-                        anchors.leftMargin: 32
-                        anchors.rightMargin: 10
-                        verticalAlignment: TextInput.AlignVCenter
+                        anchors.left: lens.right
+                        anchors.leftMargin: 14
+                        anchors.right: count.left
+                        anchors.rightMargin: 12
+                        anchors.verticalCenter: parent.verticalCenter
                         color: Theme.fg
-                        selectionColor: Theme.accent
-                        selectedTextColor: Theme.bg
-                        font.family: Theme.font
-                        font.pixelSize: Theme.fontSize
+                        selectionColor: Theme.fill
+                        selectedTextColor: Theme.fillFg
+                        font.family: Theme.ui
+                        font.pixelSize: 18
                         clip: true
+                        cursorDelegate: Rectangle {
+                            width: 2
+                            color: Theme.live
+                            visible: filter.activeFocus
+                            Timer { running: filter.activeFocus; interval: 500; repeat: true; onTriggered: parent.opacity = 1 - parent.opacity }
+                        }
                         onTextChanged: {
                             // recent is the landing page: typing there searches everything (used ones rank first anyway)
                             if (text !== "" && win.section.id === "recent") win.sec = 0
@@ -235,32 +252,32 @@ PanelWindow {
                             event.accepted = true
                         }
                     }
-                }
-                Text {
-                    text: win.results.length
-                    color: Theme.dim
-                    font.family: Theme.font
-                    font.pixelSize: Theme.fontSize - 1
+                    Lb {
+                        id: count
+                        anchors.right: parent.right
+                        anchors.rightMargin: 22
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: win.results.length
+                    }
                 }
                 // skin tone: the raised hand in each tone, click to choose (persisted)
                 Row {
                     visible: Chars.loaded && (win.section.id === "emoji" || win.section.id === "all" || win.section.id === "recent")
-                    spacing: 0
+                    spacing: 2
                     Repeater {
                         model: 6
                         delegate: Rectangle {
                             required property int index
                             readonly property var hand: Chars.byChar["✋"]
-                            width: 26
-                            height: 30
-                            color: Settings.charTone === index ? Theme.surfaceHi : (tm.containsMouse ? Theme.surface : "transparent")
-                            border.width: Settings.charTone === index ? 1 : 0
-                            border.color: Theme.accent
+                            width: 40
+                            height: 40
+                            radius: 20
+                            color: Settings.charTone === index ? Theme.fill : (tm.containsMouse ? Theme.s3 : "transparent")
                             Text {
                                 anchors.centerIn: parent
                                 text: parent.hand ? Chars.glyph(parent.hand, parent.index) : ""
                                 font.family: "Noto Color Emoji"
-                                font.pixelSize: 15
+                                font.pixelSize: 17
                             }
                             MouseArea {
                                 id: tm
@@ -272,56 +289,21 @@ PanelWindow {
                         }
                     }
                 }
-                IconBtn { icon: Theme.iClose; onClicked: win.closeRequested() }
+                IconBtn { implicitHeight: 48; icon: Theme.iClose; onClicked: win.closeRequested() }
             }
 
             // ---- sections ----
-            RowLayout {
+            Row {
                 Layout.fillWidth: true
                 spacing: 2
                 Repeater {
                     model: win.sections
-                    delegate: Rectangle {
-                        id: tab
+                    delegate: Chip {
                         required property var modelData
                         required property int index
-                        readonly property bool active: win.sec === index
-                        Layout.fillWidth: true
-                        implicitHeight: 28
-                        color: active ? Theme.surfaceHi : (sm.containsMouse ? Theme.surface : "transparent")
-                        Row {
-                            anchors.centerIn: parent
-                            spacing: 6
-                            Text {
-                                anchors.verticalCenter: parent.verticalCenter
-                                text: tab.modelData.icon
-                                color: tab.active ? Theme.accent : Theme.dim
-                                font.family: Theme.font
-                                font.pixelSize: Theme.fontSize + 2
-                            }
-                            Text {
-                                anchors.verticalCenter: parent.verticalCenter
-                                text: tab.modelData.label.toUpperCase()
-                                color: tab.active ? Theme.fg : Theme.dim
-                                font.family: Theme.font
-                                font.pixelSize: Theme.fontSize - 2
-                                font.letterSpacing: 1.2
-                                font.bold: tab.active
-                            }
-                        }
-                        Rectangle {   // waybar-style underline
-                            anchors.bottom: parent.bottom
-                            width: parent.width
-                            height: tab.active ? 2 : 1
-                            color: tab.active ? Theme.accent : Theme.line
-                        }
-                        MouseArea {
-                            id: sm
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: { win.sec = tab.index; filter.forceActiveFocus() }
-                        }
+                        text: modelData.label
+                        selected: win.sec === index
+                        onClicked: { win.sec = index; filter.forceActiveFocus() }
                     }
                 }
             }
@@ -330,7 +312,7 @@ PanelWindow {
             ListView {
                 id: chips
                 Layout.fillWidth: true
-                implicitHeight: 22
+                implicitHeight: 32
                 visible: win.groups.length > 0
                 orientation: ListView.Horizontal
                 spacing: 4
@@ -339,31 +321,15 @@ PanelWindow {
                 model: win.groups.length ? ["all"].concat(win.groups) : []
                 currentIndex: win.grp + 1
                 onCurrentIndexChanged: positionViewAtIndex(currentIndex, ListView.Contain)
-                delegate: Rectangle {
-                    id: chip
+                delegate: Chip {
                     required property var modelData
                     required property int index
-                    readonly property bool active: win.grp === index - 1
-                    width: ct.implicitWidth + 16
-                    height: 22
-                    color: active ? Theme.accent : (cm.containsMouse ? Theme.surfaceHi : Theme.surface)
-                    border.width: 1
-                    border.color: active ? Theme.accent : Theme.line
-                    Text {
-                        id: ct
-                        anchors.centerIn: parent
-                        text: chip.modelData.toLowerCase()
-                        color: chip.active ? Theme.bg : Theme.fg
-                        font.family: Theme.font
-                        font.pixelSize: Theme.fontSize - 2
-                    }
-                    MouseArea {
-                        id: cm
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: { win.grp = chip.index - 1; filter.forceActiveFocus() }
-                    }
+                    height: 32
+                    px: 10
+                    filled: true
+                    text: modelData
+                    selected: win.grp === index - 1
+                    onClicked: { win.grp = index - 1; filter.forceActiveFocus() }
                 }
             }
 
@@ -376,9 +342,9 @@ PanelWindow {
                     id: grid
                     anchors.fill: parent
                     visible: !win.listMode
-                    readonly property int cols: Math.max(1, Math.floor(width / 50))
+                    readonly property int cols: Math.max(1, Math.floor(width / 58))
                     cellWidth: Math.floor(width / cols)
-                    cellHeight: 50
+                    cellHeight: 58
                     clip: true
                     model: win.listMode ? 0 : win.results.length
                     boundsBehavior: Flickable.StopAtBounds
@@ -390,15 +356,14 @@ PanelWindow {
                         required property int index
                         readonly property var it: win.results[index]
                         readonly property bool selected: grid.currentIndex === index
-                        width: grid.cellWidth - 2
-                        height: grid.cellHeight - 2
-                        color: selected ? Theme.surfaceHi : (gm.containsMouse ? Theme.surface : "transparent")
-                        border.width: selected ? 1 : 0
-                        border.color: Theme.accent
+                        width: grid.cellWidth - 4
+                        height: grid.cellHeight - 4
+                        radius: 18
+                        color: selected ? Theme.fill : (gm.containsMouse ? Theme.s2 : "transparent")
                         Text {
                             anchors.centerIn: parent
                             text: cell.it ? Chars.glyph(cell.it, win.tone) : ""
-                            color: Theme.fg
+                            color: cell.selected ? Theme.fillFg : Theme.fg
                             font.family: win.fontOf(cell.it)
                             font.pixelSize: 26
                         }
@@ -432,38 +397,30 @@ PanelWindow {
                         readonly property var it: win.results[index]
                         readonly property bool selected: list.currentIndex === index
                         width: list.width
-                        height: 34
-                        color: selected ? Theme.surfaceHi : (lm.containsMouse ? Theme.surface : "transparent")
-                        border.width: selected ? 1 : 0
-                        border.color: Theme.accent
-                        Rectangle {
-                            visible: row.selected
-                            width: 2
-                            height: parent.height
-                            color: Theme.accent
-                        }
+                        height: 52
+                        radius: 26
+                        color: selected ? Theme.fill : (lm.containsMouse ? Theme.s2 : "transparent")
                         Text {
                             anchors.left: parent.left
-                            anchors.leftMargin: 12
+                            anchors.leftMargin: 22
                             anchors.right: tag.left
                             anchors.rightMargin: 12
                             anchors.verticalCenter: parent.verticalCenter
                             text: row.it ? row.it.c : ""
                             elide: Text.ElideRight
                             maximumLineCount: 1
-                            color: Theme.fg
-                            font.family: Theme.font
-                            font.pixelSize: Theme.fontSize + 4
+                            color: row.selected ? Theme.fillFg : Theme.fg
+                            font.family: Theme.ui
+                            font.pixelSize: 18
                         }
-                        Text {
+                        Lb {
                             id: tag
                             anchors.right: parent.right
-                            anchors.rightMargin: 12
+                            anchors.rightMargin: 22
                             anchors.verticalCenter: parent.verticalCenter
+                            px: 10
                             text: row.it ? (win.section.id === "fancy" ? row.it.n : row.it.k) : ""
-                            color: row.selected ? Theme.accent : Theme.dim
-                            font.family: Theme.font
-                            font.pixelSize: Theme.fontSize - 1
+                            color: row.selected ? Theme.fillFg : Theme.grey
                         }
                         MouseArea {
                             id: lm
@@ -480,98 +437,90 @@ PanelWindow {
                     }
                 }
 
-                Text {
+                Lb {
                     anchors.centerIn: parent
                     visible: win.results.length === 0
-                    text: !Chars.loaded && win.section.id !== "fancy" ? "loading glyphs..."
+                    color: Theme.mute
+                    text: !Chars.loaded && win.section.id !== "fancy" ? "loading glyphs…"
                         : (win.section.id === "recent" && filter.text === "" ? "nothing used yet" : "no matches")
-                    color: Theme.dim
-                    font.family: Theme.font
-                    font.pixelSize: Theme.fontSize
                 }
             }
 
-            // ---- preview of the selected / hovered glyph ----
+            // ---- the selected / hovered glyph, large ----
             Rectangle {
                 Layout.fillWidth: true
-                implicitHeight: 62
-                color: Theme.surface
-                border.width: 1
-                border.color: Theme.line
+                implicitHeight: 92
+                radius: 30
+                color: Theme.s2
 
-                Rectangle {   // big glyph
+                Rectangle {
                     id: big
                     visible: !win.listMode
-                    anchors.left: parent.left
-                    anchors.top: parent.top
-                    anchors.bottom: parent.bottom
-                    width: visible ? height : 0
-                    color: "transparent"
-                    border.width: 1
-                    border.color: Theme.line
+                    x: 12
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: visible ? 68 : 0
+                    height: 68
+                    radius: 34
+                    color: Theme.s3
                     Text {
                         anchors.centerIn: parent
                         text: win.current ? Chars.glyph(win.current, win.tone) : ""
-                        color: Theme.accent
+                        color: Theme.fill
                         font.family: win.fontOf(win.current)
-                        font.pixelSize: 38
+                        font.pixelSize: 36
                     }
                 }
                 Column {
                     anchors.left: big.right
-                    anchors.leftMargin: 12
+                    anchors.leftMargin: 16
                     anchors.right: buf.left
                     anchors.rightMargin: 12
                     anchors.verticalCenter: parent.verticalCenter
-                    spacing: 3
+                    spacing: 4
                     Text {
                         width: parent.width
                         text: win.current ? win.current.n : ""
                         elide: Text.ElideRight
                         color: Theme.fg
-                        font.family: Theme.font
-                        font.pixelSize: Theme.fontSize + 1
-                        font.bold: true
+                        font.family: Theme.ui
+                        font.pixelSize: 16
+                        font.weight: Font.DemiBold
                     }
-                    Text {
+                    Lb {
                         width: parent.width
                         visible: win.current !== null && win.section.id !== "fancy"
+                        px: 10
+                        color: Theme.fill
                         text: {
                             var c = win.current
                             if (!c || c.s === undefined || !Chars.sets[c.s]) return ""
                             var st = Chars.sets[c.s]
-                            return (st.id === "kao" ? "" : Chars.hex(Chars.glyph(c, win.tone)) + "   ")
-                                + st.label.toLowerCase() + " > " + st.groups[c.g].toLowerCase()
+                            return (st.id === "kao" ? "" : Chars.hex(Chars.glyph(c, win.tone)) + " · ")
+                                + st.label + " · " + st.groups[c.g]
                         }
                         elide: Text.ElideRight
-                        color: Theme.accent
-                        font.family: Theme.font
-                        font.pixelSize: Theme.fontSize - 1
                     }
-                    Text {
+                    Lb {
                         width: parent.width
                         visible: text !== ""
+                        px: 10
                         text: win.current && win.current.k && win.section.id !== "kao" ? win.current.k : ""
                         elide: Text.ElideRight
-                        color: Theme.dim
-                        font.family: Theme.font
-                        font.pixelSize: Theme.fontSize - 2
                     }
                 }
                 Row {   // collected with ctrl+enter / right click
                     id: buf
                     anchors.right: parent.right
-                    anchors.rightMargin: 12
+                    anchors.rightMargin: 22
                     anchors.verticalCenter: parent.verticalCenter
-                    spacing: 8
+                    spacing: 10
                     visible: win.buffer !== ""
                     width: visible ? implicitWidth : 0
-                    Text {
+                    Icon {
                         anchors.verticalCenter: parent.verticalCenter
                         text: Theme.iBuffer
-                        color: Theme.accent
-                        font.family: Theme.font
-                        font.pixelSize: Theme.fontSize + 2
+                        color: Theme.live
+                        font.pixelSize: 18
                     }
                     Text {
                         anchors.verticalCenter: parent.verticalCenter
@@ -580,20 +529,22 @@ PanelWindow {
                         elide: Text.ElideLeft
                         color: Theme.fg
                         font.family: Theme.font
-                        font.pixelSize: Theme.fontSize + 4
+                        font.pixelSize: 20
                     }
                 }
             }
+        }
+    }
 
-            Text {
-                Layout.fillWidth: true
-                text: "enter copy   " + (Chars.hasWtype ? "shift+enter type   " : "") + "ctrl+enter collect   alt+enter code   "
-                    + "ctrl+hjkl move   tab section   ctrl+arrows group   esc close"
-                elide: Text.ElideRight
-                color: Theme.dim
-                font.family: Theme.font
-                font.pixelSize: Theme.fontSize - 2
-            }
+    Row {
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.top: card.bottom
+        anchors.topMargin: 26
+        opacity: win.t
+        spacing: 30
+        Repeater {
+            model: ["↵ copy"].concat(Chars.hasWtype ? ["shift ↵ type"] : []).concat(["ctrl ↵ collect", "alt ↵ code", "ctrl hjkl move", "tab section", "ctrl ←→ group", "esc close"])
+            Lb { required property string modelData; text: modelData }
         }
     }
 }

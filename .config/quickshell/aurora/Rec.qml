@@ -56,7 +56,7 @@ Singleton {
     }
     Process {
         id: selectProc
-        command: ["slurp"]
+        command: ["slurp"].concat(Theme.slurpArgs)
         // slurp prints nothing when cancelled (Esc, or stop() killing it)
         stdout: StdioCollector {
             onStreamFinished: {

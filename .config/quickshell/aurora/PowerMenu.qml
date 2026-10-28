@@ -1,33 +1,33 @@
 import QtQuick
-import QtQuick.Layouts
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Hyprland
 
-// Session / power actions (was the fuzzel `sysact` script). Type to fuzzy filter, Up/Down/Tab pick,
-// Enter runs, Esc closes. Destructive ones need a second Enter/click ("sure?").
+// Session / power actions (SUPER+Escape, the panel's power button). The screen goes nearly black, the actions are a
+// column of Doto words: the selected one large with the live dot, the rest dim; uptime in a ring of dots on the right.
+// Up/Down/Tab or hover pick, Enter/click runs, typing filters, Esc or a click on the background closes.
+// Destructive ones need a second Enter/click within 3s (the word turns the error colour).
+// After glyph-rice (github.com/Nebelung-cloud/glyph-rice, GPL-3.0), power/Power.qml.
 PanelWindow {
     id: win
     property bool opened: false
     signal closeRequested()
 
-    visible: opened
-    implicitWidth: 300
-    // fixed to the full list so the centred window doesn't jump while filtering
-    implicitHeight: 24 + 36 + actions.length * 32 + 22
-    exclusiveZone: 0
+    property real t: opened ? 1 : 0
+    Behavior on t { NumberAnimation { duration: Theme.t; easing.type: Easing.BezierSpline; easing.bezierCurve: Theme.glide } }
+
+    visible: t > 0
+    anchors { top: true; bottom: true; left: true; right: true }
+    exclusionMode: ExclusionMode.Ignore
     color: "transparent"
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.namespace: "aurora-power"
     WlrLayershell.keyboardFocus: opened ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
-    HyprlandFocusGrab {
-        windows: [win]
-        active: win.opened
-        onCleared: win.closeRequested()
-    }
-
     readonly property var actions: Session.actions
+    // short words for the big type (Session's labels stay for the runner)
+    readonly property var words: ({ leave: "log out", renew: "reload", display: "screen off", shutdown: "shut down" })
+    function word(a) { return words[a.id] || a.label }
 
     property int current: 0
     property string armed: ""
@@ -36,7 +36,7 @@ PanelWindow {
     onOpenedChanged: {
         if (!opened) return
         filter.text = ""
-        current = 0
+        current = Math.max(0, shown.indexOf(shown.filter(a => a.id === "shutdown")[0]))
         armed = ""
         filter.forceActiveFocus()
     }
@@ -44,10 +44,10 @@ PanelWindow {
     readonly property var shown: {
         var q = filter.text.toLowerCase().trim(), out = []
         for (var i = 0; i < actions.length; i++) {
-            var sc = Fuzzy.score(actions[i].label, q)
+            var sc = Math.max(Fuzzy.score(actions[i].label, q), Fuzzy.score(word(actions[i]), q))
             if (sc > 0) out.push({ a: actions[i], sc: sc, i: i })
         }
-        out.sort(function (x, y) { return y.sc - x.sc || x.i - y.i })
+        if (q !== "") out.sort(function (x, y) { return y.sc - x.sc || x.i - y.i })
         var res = []
         for (var j = 0; j < out.length; j++) res.push(out[j].a)
         return res
@@ -63,123 +63,132 @@ PanelWindow {
         Session.run(a.id)
     }
 
+    SystemClock { id: clock; precision: SystemClock.Minutes }
+
     Rectangle {
         anchors.fill: parent
-        color: Theme.bgA
-        border.width: 2
-        border.color: Theme.accent
+        color: Theme.fade(Theme.bg, 0.96)
+        opacity: win.t
+        MouseArea { anchors.fill: parent; onClicked: win.closeRequested() }
+    }
 
-        ColumnLayout {
-            id: col
-            anchors.fill: parent
-            anchors.margins: 12
-            spacing: 2
-
-            Rectangle {
-                Layout.fillWidth: true
-                Layout.bottomMargin: 6
-                implicitHeight: 30
-                color: Theme.surface
-                border.width: 1
-                border.color: filter.activeFocus ? Theme.accent : Theme.line
-                Text {
-                    anchors.left: parent.left
-                    anchors.leftMargin: 10
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: Theme.iPower
-                    color: Theme.dim
-                    font.family: Theme.font
-                    font.pixelSize: Theme.fontSize
-                }
-                TextInput {
-                    id: filter
-                    anchors.fill: parent
-                    anchors.leftMargin: 32
-                    anchors.rightMargin: 10
-                    verticalAlignment: TextInput.AlignVCenter
-                    color: Theme.fg
-                    selectionColor: Theme.accent
-                    selectedTextColor: Theme.bg
-                    font.family: Theme.font
-                    font.pixelSize: Theme.fontSize
-                    clip: true
-                    onTextChanged: { win.current = 0; win.armed = "" }
-                    Keys.onEscapePressed: win.closeRequested()
-                    Keys.onReturnPressed: win.trigger(win.current)
-                    Keys.onEnterPressed: win.trigger(win.current)
-                    Keys.onPressed: event => {
-                        var n = win.shown.length
-                        if (!n) return
-                        if (event.key === Qt.Key_Down || event.key === Qt.Key_Tab) {
-                            win.current = (win.current + 1) % n; win.armed = ""; event.accepted = true
-                        } else if (event.key === Qt.Key_Up || event.key === Qt.Key_Backtab) {
-                            win.current = (win.current + n - 1) % n; win.armed = ""; event.accepted = true
-                        }
-                    }
-                }
+    // typing filters; the field itself stays invisible, the filter shows as a label
+    TextInput {
+        id: filter
+        width: 0
+        height: 0
+        opacity: 0
+        onTextChanged: { win.current = 0; win.armed = "" }
+        Keys.onEscapePressed: win.closeRequested()
+        Keys.onReturnPressed: win.trigger(win.current)
+        Keys.onEnterPressed: win.trigger(win.current)
+        Keys.onPressed: event => {
+            var n = win.shown.length
+            if (!n) return
+            if (event.key === Qt.Key_Down || event.key === Qt.Key_Tab) {
+                win.current = (win.current + 1) % n; win.armed = ""; event.accepted = true
+            } else if (event.key === Qt.Key_Up || event.key === Qt.Key_Backtab) {
+                win.current = (win.current + n - 1) % n; win.armed = ""; event.accepted = true
             }
+        }
+    }
 
+    // the 1920 x 1080 canvas, scaled to the screen
+    Item {
+        id: stage
+        readonly property real s: Math.min(win.width / 1920, win.height / 1080)
+        width: win.width / s
+        height: win.height / s
+        scale: s
+        transformOrigin: Item.TopLeft
+        opacity: win.t
+
+        Lb {
+            x: 240
+            y: 90
+            visible: filter.text !== ""
+            px: 14
+            color: Theme.fg
+            text: "filter · " + filter.text + (win.shown.length ? "" : " · no match")
+        }
+
+        Column {
+            x: 240 - 30 * (1 - win.t)
+            anchors.verticalCenter: parent.verticalCenter
+            spacing: 20
             Repeater {
                 model: win.shown
-                delegate: Rectangle {
-                    id: row
+                Row {
+                    id: it
                     required property var modelData
                     required property int index
-                    readonly property bool selected: win.current === index
+                    readonly property bool on: win.current === index
                     readonly property bool isArmed: win.armed === modelData.id
-                    Layout.fillWidth: true
-                    implicitHeight: 30
-                    color: isArmed ? Theme.err : (selected ? Theme.surfaceHi : (rm.containsMouse ? Theme.surface : "transparent"))
-                    border.width: selected ? 1 : 0
-                    border.color: isArmed ? Theme.err : Theme.accent
-
-                    Rectangle {   // selection marker, like ClipWindow
-                        visible: row.selected
-                        width: 2
-                        height: parent.height
-                        color: row.isArmed ? Theme.bg : Theme.accent
-                    }
-                    Text {
-                        id: ico
-                        anchors.left: parent.left
-                        anchors.leftMargin: 12
+                    spacing: 30
+                    Rectangle {
                         anchors.verticalCenter: parent.verticalCenter
-                        width: 18
-                        text: row.modelData.icon
-                        color: row.isArmed ? Theme.bg : Theme.accent
-                        font.family: Theme.font
-                        font.pixelSize: Theme.fontSize + 2
+                        visible: it.on
+                        width: 30
+                        height: 30
+                        radius: 15
+                        color: it.isArmed ? Theme.err : Theme.live
                     }
-                    Text {
-                        anchors.left: ico.right
-                        anchors.leftMargin: 10
+                    Num {
+                        text: win.word(it.modelData).toUpperCase()
+                        font.pixelSize: it.on ? 128 : 56
+                        color: it.isArmed ? Theme.err : it.on ? Theme.fg : Theme.mute
+                        Behavior on font.pixelSize {
+                            enabled: Theme.motion
+                            NumberAnimation { duration: Theme.t; easing.type: Easing.BezierSpline; easing.bezierCurve: Theme.glide }
+                        }
+                        Behavior on color { enabled: Theme.motion; ColorAnimation { duration: Theme.t } }
+                    }
+                    Lb {
+                        visible: it.isArmed
                         anchors.verticalCenter: parent.verticalCenter
-                        text: row.isArmed ? row.modelData.label + "  sure?" : row.modelData.label
-                        color: row.isArmed ? Theme.bg : Theme.fg
-                        font.family: Theme.font
-                        font.pixelSize: Theme.fontSize
+                        px: 14
+                        color: Theme.err
+                        text: "↵ again to " + win.word(it.modelData)
                     }
-                    MouseArea {
-                        id: rm
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onEntered: if (win.current !== row.index) { win.current = row.index; win.armed = "" }
-                        onClicked: win.trigger(row.index)
-                    }
+                    HoverHandler { onHoveredChanged: if (hovered && win.current !== it.index) { win.current = it.index; win.armed = "" } }
+                    TapHandler { onTapped: win.trigger(it.index) }
                 }
             }
+        }
 
-            Item { Layout.fillHeight: true }
-
-            Text {
-                Layout.fillWidth: true
-                Layout.topMargin: 6
-                text: win.shown.length ? "type filter   enter run   esc close" : "no match"
-                color: win.shown.length ? Theme.dim : Theme.err
-                font.family: Theme.font
-                font.pixelSize: Theme.fontSize - 2
+        Item {
+            x: stage.width - 200 - 440
+            anchors.verticalCenter: parent.verticalCenter
+            width: 440
+            height: 440
+            Ring { anchors.fill: parent; n: 60; dot: 10; f: SysStats.uptime / (6 * 3600) }
+            Column {
+                anchors.centerIn: parent
+                Lb { anchors.horizontalCenter: parent.horizontalCenter; text: "uptime" }
+                Num {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    topPadding: lead + 10
+                    bottomPadding: lead + 10
+                    text: Math.floor(SysStats.uptime / 3600) + ":" + ("0" + Math.floor(SysStats.uptime / 60) % 60).slice(-2)
+                    font.pixelSize: 104
+                }
+                Lb {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    readonly property int n: Hyprland.toplevels.values.length
+                    text: n + (n === 1 ? " window open" : " windows open")
+                }
             }
+        }
+
+        Row {
+            x: 240
+            anchors.bottom: parent.bottom
+            anchors.bottomMargin: 70
+            spacing: 34
+            Lb { text: "↑↓ select" }
+            Lb { text: "↵ confirm" }
+            Lb { text: "type to filter" }
+            Lb { text: "esc cancel" }
         }
     }
 }

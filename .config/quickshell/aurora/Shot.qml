@@ -17,7 +17,7 @@ Singleton {
     function take(mode) {
         var script
         if (mode === "ocr") {
-            script = 'slurp | grim -g - - | tesseract stdin stdout -l "$2" | wl-copy'
+            script = 'slurp ' + Theme.slurpArgs.join(" ") + ' | grim -g - - | tesseract stdin stdout -l "$2" | wl-copy'
                    + ' && notify-send -a screenshot "OCR" "text copied to clipboard"'
         } else if (names[mode] === undefined) {
             return

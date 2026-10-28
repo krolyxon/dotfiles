@@ -90,6 +90,8 @@ Singleton {
 
     function fade(c, a) { return Qt.rgba(c.r, c.g, c.b, a) }
     function hex(c) { return c.toString().slice(1, 7).toUpperCase() }
+    // slurp in the theme: the screen dims, the selection gets a 1px primary outline (Rec, Shot's OCR)
+    readonly property var slurpArgs: ["-b", "#" + hex(bg) + "88", "-c", "#" + hex(fill) + "ff", "-s", "#00000000", "-w", "1"]
     // hours for the 12/24h setting: "09" or "9"
     function hh(d) {
         var h = d.getHours()
@@ -235,6 +237,9 @@ Singleton {
     readonly property string iBolt: cp(0xF140B)         // lightning-bolt (charging)
     readonly property string iDots: cp(0xF01D8)         // dots-horizontal
     readonly property string iDashboard: cp(0xF056E)    // view-dashboard (overview)
+    readonly property string iText: cp(0xF0262)         // format-align-left
+    readonly property string iLink: cp(0xF0339)         // link-variant
+    readonly property string iCode: cp(0xF0169)         // code-braces
 
     // workspace icons: the exact Font Awesome glyphs from your waybar config.
     // 1 browser, 2 code, 3 book, 4 cog, 5 chat, 6 file, 7 folder, 8 terminal, 9 flask, 10 image

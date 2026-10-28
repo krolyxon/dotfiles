@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Effects
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
@@ -9,6 +10,8 @@ import Quickshell.Hyprland
 // aurora commands and every executable on $PATH, ranked by match and launch count.
 // `=expr` calculator (Enter copies), `>cmd` runs a shell command. Ctrl+Enter runs in the terminal.
 // dmenu mode (`aurora-run -d`, `dmenu` IPC): plain list from the script's stdin, the choice goes back over a fifo.
+// Looks like glyph's launcher (github.com/Nebelung-cloud/glyph-rice, GPL-3.0, launcher/Launcher.qml): a card over the
+// dimmed screen, a search pill with the live caret, mode chips (all / run = `>` / calc = `=`), round icons in rows.
 PanelWindow {
     id: win
     property bool opened: false
@@ -16,7 +19,7 @@ PanelWindow {
     signal closeRequested()
     signal openRequested()             // a dmenu request is loaded and wants the window
 
-    readonly property int rowH: 36
+    readonly property int rowH: 60
     readonly property int rows: 10
     readonly property int maxShown: 60
     readonly property string home: Quickshell.env("HOME")
@@ -92,20 +95,16 @@ PanelWindow {
         filter.text = ""
     }
 
-    visible: opened
-    implicitWidth: dmenu ? 640 : 560
-    implicitHeight: 24 + 36 + rowsShown * rowH + 22
-    exclusiveZone: 0
+    property real t: opened ? 1 : 0
+    Behavior on t { NumberAnimation { duration: Theme.t; easing.type: Easing.BezierSpline; easing.bezierCurve: Theme.glide } }
+
+    visible: t > 0
+    anchors { top: true; bottom: true; left: true; right: true }
+    exclusionMode: ExclusionMode.Ignore
     color: "transparent"
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.namespace: "aurora-runner"
     WlrLayershell.keyboardFocus: opened ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
-
-    HyprlandFocusGrab {
-        windows: [win]
-        active: win.opened
-        onCleared: win.closeRequested()
-    }
 
     property int current: 0
     property string armed: ""
@@ -372,193 +371,255 @@ PanelWindow {
     }
 
     // ---- UI ----
+    readonly property string modeNow: filter.text.charAt(0) === ">" ? "run" : filter.text.charAt(0) === "=" ? "calc" : "all"
+    function setMode(m) {
+        var t = filter.text.replace(/^[>=]\s*/, "")
+        filter.text = m === "run" ? ">" + t : m === "calc" ? "=" + t : t
+        filter.forceActiveFocus()
+    }
+
     Rectangle {
         anchors.fill: parent
-        color: Theme.bgA
-        border.width: 2
-        border.color: Theme.accent
+        color: Theme.scrim
+        opacity: win.t
+        MouseArea { anchors.fill: parent; onClicked: win.closeRequested() }
+    }
 
-        ColumnLayout {
-            anchors.fill: parent
-            anchors.margins: 12
-            spacing: 2
+    Rectangle {
+        id: card
+        anchors.horizontalCenter: parent.horizontalCenter
+        y: Math.round(parent.height * 0.13) + 24 * (1 - win.t)
+        width: Math.min(parent.width - 80, win.dmenu ? 760 : 860)
+        height: 30 + 66 + (win.rowsShown > 0 ? 20 + win.rowsShown * win.rowH : 0) + 30
+        opacity: win.t
+        radius: 44
+        color: Qt.rgba(Theme.s1.r, Theme.s1.g, Theme.s1.b, Theme.panelAlpha)
+        border.width: 1
+        border.color: Theme.s2
+        MouseArea { anchors.fill: parent }
 
-            Rectangle {
-                Layout.fillWidth: true
-                Layout.bottomMargin: 6
-                implicitHeight: 30
-                color: Theme.surface
-                border.width: 1
-                border.color: filter.activeFocus ? Theme.accent : Theme.line
-                Text {
-                    id: promptText
-                    anchors.left: parent.left
-                    anchors.leftMargin: 10
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: win.dmenu && win.dmPrompt !== "" ? win.dmPrompt : (win.dmPassword ? Theme.iLock : Theme.iSearch)
-                    color: win.dmenu && win.dmPrompt !== "" ? Theme.accent : Theme.dim
-                    font.family: Theme.font
-                    font.pixelSize: Theme.fontSize
+        // ---- search pill ----
+        Rectangle {
+            id: search
+            x: 30
+            y: 30
+            width: parent.width - 60
+            height: 66
+            radius: 33
+            color: Theme.s2
+
+            Rectangle {   // the dmenu prompt as a chip, else the lens / lock
+                id: promptBox
+                x: 12
+                anchors.verticalCenter: parent.verticalCenter
+                visible: win.dmenu && win.dmPrompt !== ""
+                width: visible ? promptText.implicitWidth + 28 : 0
+                height: 42
+                radius: 21
+                color: Theme.fill
+                Lb { id: promptText; anchors.centerIn: parent; text: win.dmPrompt.replace(/[:>]\s*$/, ""); color: Theme.fillFg }
+            }
+            Icon {
+                id: lens
+                x: 24
+                anchors.verticalCenter: parent.verticalCenter
+                visible: !promptBox.visible
+                text: win.dmPassword ? Theme.iLock : Theme.iSearch
+                color: Theme.grey
+                font.pixelSize: 22
+            }
+            TextInput {
+                id: filter
+                anchors.left: promptBox.visible ? promptBox.right : lens.right
+                anchors.leftMargin: 16
+                anchors.right: chips.visible ? chips.left : parent.right
+                anchors.rightMargin: 16
+                anchors.verticalCenter: parent.verticalCenter
+                echoMode: win.dmPassword ? TextInput.Password : TextInput.Normal
+                passwordCharacter: "•"
+                color: Theme.fg
+                selectionColor: Theme.fill
+                selectedTextColor: Theme.fillFg
+                font.family: win.dmPassword ? Theme.mono : Theme.ui
+                font.pixelSize: 22
+                font.letterSpacing: win.dmPassword ? 3 : 0
+                clip: true
+                cursorDelegate: Rectangle {
+                    width: 2
+                    color: Theme.live
+                    visible: filter.activeFocus
+                    Timer { running: filter.activeFocus; interval: 500; repeat: true; onTriggered: parent.opacity = 1 - parent.opacity }
                 }
                 Text {
-                    anchors.left: filter.left
-                    anchors.verticalCenter: parent.verticalCenter
-                    visible: filter.text === "" && win.dmenu && win.dmPlaceholder !== ""
-                    text: win.dmPlaceholder
-                    color: Theme.dim
-                    font.family: Theme.font
-                    font.pixelSize: Theme.fontSize
+                    visible: filter.text === ""
+                    text: win.dmenu ? (win.dmPlaceholder !== "" ? win.dmPlaceholder : (win.dmPassword ? "Password" : "Type to filter"))
+                          : "Search apps, commands, =calc, >run"
+                    font.family: Theme.ui
+                    font.pixelSize: 22
+                    color: Theme.mute
                 }
-                TextInput {
-                    id: filter
-                    anchors.fill: parent
-                    anchors.leftMargin: Math.max(32, promptText.implicitWidth + 20)
-                    anchors.rightMargin: 10
-                    verticalAlignment: TextInput.AlignVCenter
-                    echoMode: win.dmPassword ? TextInput.Password : TextInput.Normal
-                    passwordCharacter: "*"
-                    color: Theme.fg
-                    selectionColor: Theme.accent
-                    selectedTextColor: Theme.bg
-                    font.family: Theme.font
-                    font.pixelSize: Theme.fontSize
-                    clip: true
-                    onTextChanged: { win.current = 0; win.armed = "" }
-                    Keys.onEscapePressed: win.closeRequested()
-                    Keys.onReturnPressed: event => win.trigger(win.current, event.modifiers & Qt.ControlModifier)
-                    Keys.onEnterPressed: event => win.trigger(win.current, event.modifiers & Qt.ControlModifier)
-                    Keys.onPressed: event => {
-                        var n = win.shown.length
-                        if (!n) return
-                        var step = 0
-                        if (event.key === Qt.Key_Down || event.key === Qt.Key_Tab) step = 1
-                        else if (event.key === Qt.Key_Up || event.key === Qt.Key_Backtab) step = -1
-                        else if (event.key === Qt.Key_PageDown) step = Math.max(2, win.rowsShown)
-                        else if (event.key === Qt.Key_PageUp) step = -Math.max(2, win.rowsShown)
-                        else if ((event.modifiers & Qt.ControlModifier) && (event.key === Qt.Key_N || event.key === Qt.Key_J)) step = 1
-                        else if ((event.modifiers & Qt.ControlModifier) && (event.key === Qt.Key_P || event.key === Qt.Key_K)) step = -1
-                        if (step === 0) return
-                        if (Math.abs(step) === 1) win.current = (win.current + step + n) % n
-                        else win.current = Math.max(0, Math.min(n - 1, win.current + step))
-                        win.armed = ""
-                        event.accepted = true
+                onTextChanged: { win.current = 0; win.armed = "" }
+                Keys.onEscapePressed: win.closeRequested()
+                Keys.onReturnPressed: event => win.trigger(win.current, event.modifiers & Qt.ControlModifier)
+                Keys.onEnterPressed: event => win.trigger(win.current, event.modifiers & Qt.ControlModifier)
+                Keys.onPressed: event => {
+                    var n = win.shown.length
+                    if (!n) return
+                    var step = 0
+                    if (event.key === Qt.Key_Down || event.key === Qt.Key_Tab) step = 1
+                    else if (event.key === Qt.Key_Up || event.key === Qt.Key_Backtab) step = -1
+                    else if (event.key === Qt.Key_PageDown) step = Math.max(2, win.rowsShown)
+                    else if (event.key === Qt.Key_PageUp) step = -Math.max(2, win.rowsShown)
+                    else if ((event.modifiers & Qt.ControlModifier) && (event.key === Qt.Key_N || event.key === Qt.Key_J)) step = 1
+                    else if ((event.modifiers & Qt.ControlModifier) && (event.key === Qt.Key_P || event.key === Qt.Key_K)) step = -1
+                    if (step === 0) return
+                    if (Math.abs(step) === 1) win.current = (win.current + step + n) % n
+                    else win.current = Math.max(0, Math.min(n - 1, win.current + step))
+                    win.armed = ""
+                    event.accepted = true
+                }
+            }
+            Row {
+                id: chips
+                visible: !win.dmenu
+                anchors.right: parent.right
+                anchors.rightMargin: 12
+                anchors.verticalCenter: parent.verticalCenter
+                spacing: 6
+                Repeater {
+                    model: ["all", "run", "calc"]
+                    Chip {
+                        required property string modelData
+                        text: modelData
+                        selected: win.modeNow === modelData
+                        onClicked: win.setMode(modelData)
                     }
                 }
             }
+        }
 
-            ListView {
-                id: list
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                visible: win.rowsShown > 0
-                clip: true
-                spacing: 0
-                boundsBehavior: Flickable.StopAtBounds
-                model: win.shown
-                currentIndex: win.current
-                highlightFollowsCurrentItem: false
-                onCurrentIndexChanged: positionViewAtIndex(currentIndex, ListView.Contain)
-                delegate: Rectangle {
-                    id: row
-                    required property var modelData
-                    required property int index
-                    readonly property bool selected: win.current === index
-                    readonly property bool isArmed: win.armed !== "" && win.armed === modelData.key
-                    width: list.width
-                    height: win.rowH
-                    color: isArmed ? Theme.err : (selected ? Theme.surfaceHi : (rm.containsMouse ? Theme.surface : "transparent"))
-                    border.width: selected ? 1 : 0
-                    border.color: isArmed ? Theme.err : Theme.accent
+        ListView {
+            id: list
+            x: 30
+            anchors.top: search.bottom
+            anchors.topMargin: 20
+            width: parent.width - 60
+            height: win.rowsShown * win.rowH
+            visible: win.rowsShown > 0
+            clip: true
+            spacing: 0
+            boundsBehavior: Flickable.StopAtBounds
+            model: win.shown
+            currentIndex: win.current
+            highlightFollowsCurrentItem: false
+            onCurrentIndexChanged: positionViewAtIndex(currentIndex, ListView.Contain)
+            delegate: Item {
+                id: row
+                required property var modelData
+                required property int index
+                readonly property bool selected: win.current === index
+                readonly property bool isArmed: win.armed !== "" && win.armed === modelData.key
+                readonly property bool isDm: modelData.kind === "dm"
+                readonly property color ink: isArmed ? Theme.errFg : selected ? Theme.fillFg : Theme.fg
+                width: list.width
+                height: win.rowH
 
-                    Rectangle {   // selection marker, like ClipWindow
-                        visible: row.selected
-                        width: 2
-                        height: parent.height
-                        color: row.isArmed ? Theme.bg : Theme.accent
+                Rectangle {
+                    anchors.fill: parent
+                    anchors.topMargin: 2
+                    anchors.bottomMargin: 2
+                    radius: height / 2
+                    color: row.isArmed ? Theme.err : row.selected ? Theme.fill : rm.containsMouse ? Theme.s2 : "transparent"
+                }
+                Rectangle {
+                    id: icoBox
+                    x: 7
+                    anchors.verticalCenter: parent.verticalCenter
+                    visible: !row.isDm
+                    width: visible ? 44 : 0
+                    height: 44
+                    radius: 22
+                    color: row.selected || row.isArmed ? Theme.fade(row.ink, 0.14) : Theme.s2
+                    Image {
+                        id: img
+                        anchors.centerIn: parent
+                        width: 26
+                        height: 26
+                        visible: row.modelData.icon !== "" && status === Image.Ready
+                        source: row.modelData.icon
+                        sourceSize: Qt.size(52, 52)
+                        asynchronous: true
+                        smooth: true
+                        layer.enabled: Settings.appIcons !== "colour"
+                        layer.effect: Settings.appIcons === "mono" ? monoFx : dotFx
+                        Component { id: dotFx; DotMask { step: 2 } }
+                        Component { id: monoFx; MultiEffect { saturation: -1 } }
                     }
-                    Item {
-                        id: icoBox
-                        anchors.left: parent.left
-                        anchors.leftMargin: row.modelData.kind === "dm" ? 2 : 10
-                        anchors.verticalCenter: parent.verticalCenter
-                        visible: row.modelData.kind !== "dm"
-                        width: visible ? 24 : 0
-                        height: 24
-                        Image {
-                            id: img
-                            anchors.fill: parent
-                            visible: row.modelData.icon !== "" && status === Image.Ready
-                            source: row.modelData.icon
-                            sourceSize.width: 48
-                            sourceSize.height: 48
-                            asynchronous: true
-                            smooth: true
-                        }
-                        Text {
-                            anchors.centerIn: parent
-                            visible: !img.visible
-                            text: row.modelData.glyph
-                            color: row.isArmed ? Theme.bg : Theme.accent
-                            font.family: Theme.font
-                            font.pixelSize: Theme.fontSize + 4
-                        }
+                    Icon {
+                        anchors.centerIn: parent
+                        visible: !img.visible
+                        text: row.modelData.glyph
+                        color: row.ink
+                        font.pixelSize: 19
                     }
+                }
+                Lb {
+                    id: tag
+                    anchors.right: parent.right
+                    anchors.rightMargin: 22
+                    anchors.verticalCenter: parent.verticalCenter
+                    px: 10
+                    text: row.isArmed ? "↵ again · sure?" : row.modelData.tag
+                    color: row.isArmed || row.selected ? row.ink : Theme.grey
+                }
+                Column {
+                    anchors.left: icoBox.right
+                    anchors.leftMargin: row.isDm ? 22 : 14
+                    anchors.right: tag.left
+                    anchors.rightMargin: 14
+                    anchors.verticalCenter: parent.verticalCenter
                     Text {
-                        id: tag
-                        anchors.right: parent.right
-                        anchors.rightMargin: 10
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: row.isArmed ? "sure?" : row.modelData.tag
-                        color: row.isArmed ? Theme.bg : Theme.dim
-                        font.family: Theme.font
-                        font.pixelSize: Theme.fontSize - 2
-                    }
-                    Text {
-                        id: nameText
-                        anchors.left: icoBox.right
-                        anchors.leftMargin: 10
-                        anchors.verticalCenter: parent.verticalCenter
-                        width: Math.min(implicitWidth, tag.x - x - 12)
+                        width: parent.width
                         elide: Text.ElideRight
                         text: row.modelData.name
-                        color: row.isArmed ? Theme.bg : Theme.fg
-                        font.family: Theme.font
-                        font.pixelSize: Theme.fontSize
-                        font.bold: row.modelData.kind === "calc"
+                        color: row.ink
+                        font.family: row.modelData.kind === "calc" ? Theme.mono : Theme.ui
+                        font.pixelSize: row.modelData.kind === "calc" ? 20 : 15
+                        font.weight: row.modelData.kind === "calc" ? Font.Bold : Font.DemiBold
                     }
-                    Text {
-                        anchors.left: nameText.right
-                        anchors.leftMargin: 10
-                        anchors.right: tag.left
-                        anchors.rightMargin: 12
-                        anchors.verticalCenter: parent.verticalCenter
+                    Lb {
+                        visible: row.modelData.sub !== ""
+                        width: parent.width
                         elide: Text.ElideRight
+                        px: 10
                         text: row.modelData.sub
-                        color: row.isArmed ? Theme.bg : Theme.dim
-                        font.family: Theme.font
-                        font.pixelSize: Theme.fontSize - 2
-                    }
-                    MouseArea {
-                        id: rm
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onEntered: if (win.current !== row.index) { win.current = row.index; win.armed = "" }
-                        onClicked: win.trigger(row.index, false)
+                        color: row.selected || row.isArmed ? row.ink : Theme.grey
+                        opacity: row.selected ? 0.75 : 1
                     }
                 }
+                MouseArea {
+                    id: rm
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onEntered: if (win.current !== row.index) { win.current = row.index; win.armed = "" }
+                    onClicked: win.trigger(row.index, false)
+                }
             }
+        }
+    }
 
-            Text {
-                Layout.fillWidth: true
-                Layout.topMargin: 6
-                text: !win.dmenu ? (win.shown.length ? "enter run   ctrl+enter terminal   =calc   >cmd   esc close" : "no match")
-                    : win.rowsShown === 0 ? "enter ok   esc cancel"
-                    : win.shown.length ? "enter select   ctrl+enter typed text   esc cancel" : "no match   enter typed text   esc cancel"
-                color: win.shown.length || win.dmenu ? Theme.dim : Theme.err
-                font.family: Theme.font
-                font.pixelSize: Theme.fontSize - 2
-            }
+    Row {
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.top: card.bottom
+        anchors.topMargin: 26
+        opacity: win.t
+        spacing: 34
+        Repeater {
+            model: !win.dmenu ? (win.shown.length ? ["↑↓ select", "↵ run", "ctrl ↵ terminal", "=calc", ">cmd", "esc close"] : ["no match", "esc close"])
+                 : win.rowsShown === 0 ? ["↵ ok", "esc cancel"]
+                 : win.shown.length ? ["↑↓ select", "↵ choose", "ctrl ↵ typed text", "esc cancel"] : ["no match", "↵ typed text", "esc cancel"]
+            Lb { required property string modelData; text: modelData }
         }
     }
 }

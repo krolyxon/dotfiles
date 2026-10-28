@@ -7,6 +7,8 @@ import Quickshell.Wayland
 // (Agents.bt: confirm a passkey, type a PIN/passkey, or show one to type on the device). Polkit wins
 // if both are pending. Overlay layer with exclusive keyboard on the focused monitor; Enter accepts,
 // Esc cancels. Typed text is cleared after every attempt, never logged.
+// Looks like glyph's lock surface (github.com/Nebelung-cloud/glyph-rice, GPL-3.0, lock/LockSurface.qml): a lock in a ring
+// of dots, the password in a pill as dots with the live caret; a wrong password shakes it.
 PanelWindow {
     id: win
     readonly property var flow: Agents.flow
@@ -21,8 +23,8 @@ PanelWindow {
     readonly property bool needsInput: mode === "polkit" || btInput
 
     visible: opened
-    implicitWidth: 420
-    implicitHeight: col.implicitHeight + 32
+    implicitWidth: 480
+    implicitHeight: col.implicitHeight + 60
     exclusiveZone: 0
     color: "transparent"
     WlrLayershell.layer: WlrLayer.Overlay
@@ -56,7 +58,7 @@ PanelWindow {
         target: win.flow
         function onIsResponseRequiredChanged() { if (win.flow.isResponseRequired) win.reset() }
         // polkit asks again right after a failure (isResponseRequired goes true with failed set)
-        function onAuthenticationFailed() { win.error = "wrong password, try again"; win.reset() }
+        function onAuthenticationFailed() { win.error = "wrong password, try again"; shake.restart(); win.reset() }
     }
 
     // keyboard for the button-only bluetooth prompts
@@ -67,77 +69,91 @@ PanelWindow {
         Keys.onEscapePressed: win.cancel()
     }
 
+    readonly property bool bad: win.error !== "" || (win.mode === "polkit" && win.flow && win.flow.supplementaryIsError)
+
     Rectangle {
         anchors.fill: parent
-        color: Theme.bgA
-        border.width: 2
-        border.color: win.error !== "" || (win.mode === "polkit" && win.flow && win.flow.supplementaryIsError) ? Theme.err : Theme.accent
+        radius: 36
+        color: Theme.s1
+        border.width: 1
+        border.color: win.bad ? Theme.err : Theme.s2
 
         ColumnLayout {
             id: col
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.top: parent.top
-            anchors.margins: 16
-            spacing: 10
+            anchors.margins: 30
+            spacing: 14
 
             RowLayout {
                 Layout.fillWidth: true
-                spacing: 10
-                Text {
-                    text: win.mode === "bt" ? Theme.iBt : Theme.iLock
-                    color: Theme.accent
-                    font.family: Theme.font
-                    font.pixelSize: Theme.fontSize + 8
+                spacing: 16
+                Item {   // the lock / bluetooth glyph in a ring of dots
+                    width: 64
+                    height: 64
+                    Ring { anchors.fill: parent; anchors.margins: 3; n: 24; dot: 3.5; on: win.bad ? Theme.err : Theme.fill }
+                    Icon {
+                        anchors.centerIn: parent
+                        text: win.mode === "bt" ? Theme.iBt : Theme.iLock
+                        font.pixelSize: 24
+                        color: win.bad ? Theme.err : Theme.fg
+                    }
                 }
-                SectionLabel {
+                Column {
                     Layout.fillWidth: true
-                    text: win.mode === "bt" ? "bluetooth pairing" : "authentication required"
+                    spacing: 4
+                    Lb { text: win.mode === "bt" ? "bluetooth pairing" : "authentication" }
+                    Text {
+                        width: parent.width
+                        text: win.mode === "bt" ? (win.bt ? win.bt.alias : "") : "Required"
+                        elide: Text.ElideRight
+                        color: Theme.fg
+                        font.family: Theme.ui
+                        font.pixelSize: 20
+                        font.weight: Font.DemiBold
+                    }
                 }
             }
             Text {
                 Layout.fillWidth: true
-                color: Theme.fg
+                color: Theme.fgDim
                 wrapMode: Text.Wrap
-                font.family: Theme.font
-                font.pixelSize: Theme.fontSize
+                font.family: Theme.ui
+                font.pixelSize: 15
                 text: {
                     if (win.mode === "polkit") return win.flow ? win.flow.message : ""
                     if (!win.bt) return ""
                     var a = win.bt.alias
                     switch (win.btMethod) {
-                    case "RequestConfirmation": return "pair with " + a + "? check that it shows the same code:"
-                    case "RequestPinCode": return "enter the PIN for " + a + " (often 0000 or 1234)"
-                    case "RequestPasskey": return "enter the 6-digit passkey shown on " + a
+                    case "RequestConfirmation": return "Pair with " + a + "? Check that it shows the same code:"
+                    case "RequestPinCode": return "Enter the PIN for " + a + " (often 0000 or 1234)"
+                    case "RequestPasskey": return "Enter the 6-digit passkey shown on " + a
                     case "DisplayPasskey":
-                    case "DisplayPinCode": return "type this code on " + a + ", then press Enter there:"
-                    case "RequestAuthorization": return "allow " + a + " to pair with this computer?"
-                    case "AuthorizeService": return "allow " + a + " to use a service?"
+                    case "DisplayPinCode": return "Type this code on " + a + ", then press Enter there:"
+                    case "RequestAuthorization": return "Allow " + a + " to pair with this computer?"
+                    case "AuthorizeService": return "Allow " + a + " to use a service?"
                     }
                     return a
                 }
             }
-            Text {
+            Lb {
                 Layout.fillWidth: true
                 visible: text !== ""
+                px: 10
+                color: Theme.mute
+                elide: Text.ElideMiddle
                 text: win.mode === "polkit" ? (win.flow ? win.flow.actionId : "")
                       : (win.btMethod === "AuthorizeService" ? win.bt.uuid : "")
-                color: Theme.dim
-                elide: Text.ElideMiddle
-                font.family: Theme.font
-                font.pixelSize: Theme.fontSize - 2
             }
 
             // bluetooth passkey / PIN to compare or type on the device
-            Text {
-                Layout.fillWidth: true
+            Num {
+                Layout.alignment: Qt.AlignHCenter
                 visible: win.mode === "bt" && win.btCode !== "" && !win.btInput
-                horizontalAlignment: Text.AlignHCenter
                 text: win.btCode
-                color: Theme.accent
-                font.family: Theme.font
-                font.pixelSize: Theme.fontSize * 3
-                font.bold: true
+                font.pixelSize: 64
+                color: Theme.fill
             }
 
             // more than one admin: pick who authenticates
@@ -147,81 +163,100 @@ PanelWindow {
                 spacing: 4
                 Repeater {
                     model: win.mode === "polkit" && win.flow ? win.flow.identities : []
-                    delegate: IconBtn {
+                    delegate: Chip {
                         required property var modelData
-                        implicitHeight: 24
-                        label: modelData.displayName || String(modelData)
-                        active: win.flow && win.flow.selectedIdentity === modelData
+                        text: modelData.displayName || String(modelData)
+                        selected: win.flow && win.flow.selectedIdentity === modelData
                         onClicked: win.flow.selectedIdentity = modelData
                     }
                 }
             }
 
-            Rectangle {
+            Item {
                 Layout.fillWidth: true
                 visible: win.needsInput
-                implicitHeight: 32
-                color: Theme.surface
-                border.width: 1
-                border.color: pass.activeFocus ? Theme.accent : Theme.line
-                Text {
-                    id: promptTxt
-                    anchors.left: parent.left
-                    anchors.leftMargin: 10
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: win.mode === "bt" ? (win.btMethod === "RequestPinCode" ? "PIN" : "passkey")
-                          : (win.flow && win.flow.inputPrompt !== "" ? win.flow.inputPrompt.replace(/:\s*$/, "") : "password")
-                    color: Theme.dim
-                    font.family: Theme.font
-                    font.pixelSize: Theme.fontSize
-                }
-                TextInput {
-                    id: pass
-                    anchors.fill: parent
-                    anchors.leftMargin: promptTxt.implicitWidth + 22
-                    anchors.rightMargin: 10
-                    verticalAlignment: TextInput.AlignVCenter
-                    echoMode: win.mode === "bt" || (win.flow && win.flow.responseVisible) ? TextInput.Normal : TextInput.Password
-                    passwordCharacter: "•"
-                    maximumLength: win.btMethod === "RequestPasskey" ? 6 : 256
-                    validator: RegularExpressionValidator {
-                        regularExpression: win.btMethod === "RequestPasskey" ? /[0-9]*/ : /.*/
+                implicitHeight: 56
+                Rectangle {
+                    id: field
+                    width: parent.width
+                    height: parent.height
+                    radius: height / 2
+                    color: Theme.s2
+                    border.width: 1
+                    border.color: win.bad ? Theme.err : pass.activeFocus ? Theme.fill : Theme.s3
+                    SequentialAnimation on x {
+                        id: shake
+                        running: false
+                        NumberAnimation { to: -12; duration: 50 }
+                        NumberAnimation { to: 12; duration: 70 }
+                        NumberAnimation { to: -8; duration: 70 }
+                        NumberAnimation { to: 6; duration: 60 }
+                        NumberAnimation { to: 0; duration: 50 }
                     }
-                    enabled: !win.waiting
-                    clip: true
-                    color: Theme.fg
-                    selectionColor: Theme.accent
-                    selectedTextColor: Theme.bg
-                    font.family: Theme.font
-                    font.pixelSize: Theme.fontSize
-                    Keys.onReturnPressed: win.accept()
-                    Keys.onEnterPressed: win.accept()
-                    Keys.onEscapePressed: win.cancel()
+                    Lb {
+                        id: promptTxt
+                        x: 22
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: win.mode === "bt" ? (win.btMethod === "RequestPinCode" ? "pin" : "passkey")
+                              : (win.flow && win.flow.inputPrompt !== "" ? win.flow.inputPrompt.replace(/:\s*$/, "") : "password")
+                    }
+                    TextInput {
+                        id: pass
+                        anchors.left: promptTxt.right
+                        anchors.leftMargin: 16
+                        anchors.right: parent.right
+                        anchors.rightMargin: 22
+                        anchors.verticalCenter: parent.verticalCenter
+                        echoMode: win.mode === "bt" || (win.flow && win.flow.responseVisible) ? TextInput.Normal : TextInput.Password
+                        passwordCharacter: "•"
+                        maximumLength: win.btMethod === "RequestPasskey" ? 6 : 256
+                        validator: RegularExpressionValidator {
+                            regularExpression: win.btMethod === "RequestPasskey" ? /[0-9]*/ : /.*/
+                        }
+                        enabled: !win.waiting
+                        clip: true
+                        color: Theme.fg
+                        selectionColor: Theme.fill
+                        selectedTextColor: Theme.fillFg
+                        font.family: Theme.mono
+                        font.pixelSize: 16
+                        font.letterSpacing: 3
+                        cursorDelegate: Rectangle {
+                            width: 2
+                            color: Theme.live
+                            visible: pass.activeFocus
+                            Timer { running: pass.activeFocus; interval: 500; repeat: true; onTriggered: parent.opacity = 1 - parent.opacity }
+                        }
+                        Keys.onReturnPressed: win.accept()
+                        Keys.onEnterPressed: win.accept()
+                        Keys.onEscapePressed: win.cancel()
+                    }
                 }
             }
-            Text {
+            Lb {
                 Layout.fillWidth: true
+                Layout.leftMargin: 6
                 visible: win.mode === "polkit" && text !== ""
-                text: win.waiting ? "checking…" : (win.error !== "" ? win.error : (win.flow ? win.flow.supplementaryMessage : ""))
-                color: !win.waiting && (win.error !== "" || (win.flow && win.flow.supplementaryIsError)) ? Theme.err : Theme.dim
+                px: 10
                 wrapMode: Text.Wrap
-                font.family: Theme.font
-                font.pixelSize: Theme.fontSize - 1
+                text: win.waiting ? "checking…" : (win.error !== "" ? win.error : (win.flow ? win.flow.supplementaryMessage : ""))
+                color: !win.waiting && win.bad ? Theme.err : Theme.grey
             }
 
             RowLayout {
                 Layout.fillWidth: true
-                spacing: 6
+                Layout.topMargin: 4
+                spacing: 8
                 Item { Layout.fillWidth: true }
                 IconBtn {
                     visible: !win.btDisplay
                     label: win.mode === "bt" ? "reject" : "cancel"
-                    implicitHeight: 26
+                    implicitHeight: 44
                     onClicked: win.cancel()
                 }
                 IconBtn {
                     label: win.btDisplay ? "close" : (win.mode === "bt" ? (win.btInput ? "pair" : "allow") : "authenticate")
-                    implicitHeight: 26
+                    implicitHeight: 44
                     active: true
                     onClicked: win.accept()
                 }

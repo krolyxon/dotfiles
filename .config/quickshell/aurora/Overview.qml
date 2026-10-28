@@ -73,7 +73,7 @@ PanelWindow {
 
     Rectangle {
         anchors.fill: parent
-        color: Theme.bgA
+        color: Theme.scrim
         MouseArea { anchors.fill: parent; onClicked: win.closeRequested() }
     }
 
@@ -87,42 +87,57 @@ PanelWindow {
             Layout.alignment: Qt.AlignHCenter
             spacing: 8
             Rectangle {
-                implicitWidth: 420
-                implicitHeight: 32
-                color: Theme.surface
-                border.width: 1
-                border.color: Theme.accent
-                Text {
-                    anchors.left: parent.left
-                    anchors.leftMargin: 10
+                implicitWidth: 520
+                implicitHeight: 56
+                radius: 28
+                color: Theme.s2
+                Icon {
+                    id: lens
+                    x: 20
                     anchors.verticalCenter: parent.verticalCenter
                     text: Theme.iSearch
-                    color: Theme.dim
-                    font.family: Theme.font
-                    font.pixelSize: Theme.fontSize
+                    color: Theme.grey
+                    font.pixelSize: 19
+                }
+                Text {
+                    anchors.left: filter.left
+                    anchors.verticalCenter: parent.verticalCenter
+                    visible: filter.text === ""
+                    text: "Filter windows"
+                    color: Theme.mute
+                    font: filter.font
                 }
                 TextInput {
                     id: filter
-                    anchors.fill: parent
-                    anchors.leftMargin: 32
-                    anchors.rightMargin: 10
-                    verticalAlignment: TextInput.AlignVCenter
+                    anchors.left: lens.right
+                    anchors.leftMargin: 14
+                    anchors.right: parent.right
+                    anchors.rightMargin: 20
+                    anchors.verticalCenter: parent.verticalCenter
                     color: Theme.fg
-                    selectionColor: Theme.accent
-                    selectedTextColor: Theme.bg
-                    font.family: Theme.font
-                    font.pixelSize: Theme.fontSize
+                    selectionColor: Theme.fill
+                    selectedTextColor: Theme.fillFg
+                    font.family: Theme.ui
+                    font.pixelSize: 18
                     clip: true
+                    cursorDelegate: Rectangle {
+                        width: 2
+                        color: Theme.live
+                        visible: filter.activeFocus
+                        Timer { running: filter.activeFocus; interval: 500; repeat: true; onTriggered: parent.opacity = 1 - parent.opacity }
+                    }
                     Keys.onEscapePressed: win.closeRequested()
                     Keys.onReturnPressed: { var t = win.firstMatch(); if (t) win.focus(t) }
                     Keys.onEnterPressed: { var t = win.firstMatch(); if (t) win.focus(t) }
                 }
             }
-            Text {
-                text: "click focus   drag move   enter first match   esc close"
-                color: Theme.dim
-                font.family: Theme.font
-                font.pixelSize: Theme.fontSize - 2
+            Row {
+                Layout.leftMargin: 18
+                spacing: 28
+                Repeater {
+                    model: ["click focus", "drag move", "↵ first match", "esc close"]
+                    Lb { required property string modelData; text: modelData }
+                }
             }
         }
 
@@ -135,7 +150,7 @@ PanelWindow {
             readonly property int gap: 16
             // largest box with the monitor's aspect ratio that fits 5 x 2
             readonly property real boxW: Math.min((width - gap * (cols - 1)) / cols,
-                                                  ((height - gap - 2 * 22) / 2) * win.monW / win.monH)
+                                                  ((height - gap - 2 * 40) / 2) * win.monW / win.monH)
             readonly property real boxH: boxW * win.monH / win.monW
             readonly property real sc: boxW / win.monW
 
@@ -149,27 +164,36 @@ PanelWindow {
                     readonly property bool current: win.activeWs !== null && win.activeWs.id === wsId
                     readonly property real originX: (grid.width - (grid.boxW * grid.cols + grid.gap * (grid.cols - 1))) / 2
                     x: originX + (index % grid.cols) * (grid.boxW + grid.gap)
-                    y: Math.floor(index / grid.cols) * (grid.boxH + grid.gap + 22)
+                    y: Math.floor(index / grid.cols) * (grid.boxH + grid.gap + 40)
                     width: grid.boxW
-                    height: grid.boxH + 22
+                    height: grid.boxH + 40
                     z: win.dragWs === wsId ? 10 : 0
 
-                    Text {
-                        text: Theme.wsIcon(box.wsId) + "  " + box.wsId
-                        color: box.current ? Theme.accent : Theme.dim
-                        font.family: Theme.font
-                        font.pixelSize: Theme.fontSize
-                        font.bold: box.current
+                    Row {
+                        x: 6
+                        spacing: 10
+                        Num {
+                            text: box.index + 1
+                            font.pixelSize: 28
+                            color: box.current ? Theme.fill : Theme.fg
+                        }
+                        Lb {
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: win.windowsOn(box.wsId).length ? win.windowsOn(box.wsId).length + " open" : "empty"
+                            color: box.current ? Theme.fill : Theme.grey
+                        }
                     }
 
                     Rectangle {
                         id: frame
-                        y: 20
+                        y: 34
                         width: grid.boxW
                         height: grid.boxH
-                        color: Theme.surface
+                        radius: 20
+                        clip: true
+                        color: Theme.s1
                         border.width: box.current ? 2 : 1
-                        border.color: box.current ? Theme.accent : (wm.containsMouse ? Theme.accentDim : Theme.line)
+                        border.color: box.current ? Theme.fill : (wm.containsMouse ? Theme.grey : Theme.s2)
 
                         MouseArea {
                             id: wm
@@ -194,9 +218,10 @@ PanelWindow {
                                 width: Math.max(12, size[0] * grid.sc)
                                 height: Math.max(12, size[1] * grid.sc)
                                 z: dm.drag.active ? 10 : (ipc.floating ? 2 : 1)
-                                color: Theme.surfaceHi
+                                color: Theme.s3
+                                radius: 6
                                 border.width: dm.containsMouse || dm.drag.active ? 2 : 1
-                                border.color: dm.containsMouse || dm.drag.active ? Theme.accent : Theme.line
+                                border.color: dm.containsMouse || dm.drag.active ? Theme.fill : Theme.s2
                                 opacity: hit ? 1 : 0.25
 
                                 ScreencopyView {

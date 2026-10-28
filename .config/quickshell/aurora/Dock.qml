@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Effects
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Hyprland
@@ -13,12 +14,12 @@ PanelWindow {
     visible: Settings.dock
 
     readonly property var hmon: Hyprland.monitorFor(modelData)
-    readonly property int size: 40
+    readonly property int size: 48
     property bool shown: false
 
     anchors.bottom: true
-    implicitWidth: Math.max(160, row.implicitWidth + 16)
-    implicitHeight: size + 16
+    implicitWidth: Math.max(160, row.implicitWidth + 28)
+    implicitHeight: size + 30
     exclusiveZone: 0
     color: "transparent"
     // hidden: only a 2px strip at the very bottom catches the mouse; shown: the whole dock
@@ -86,20 +87,22 @@ PanelWindow {
         onEntered: { hide.stop(); win.shown = true }
         onExited: hide.restart()
 
+        // a pill of round icons; running apps get dots under them (one per window, up to 3)
         Rectangle {
             id: panel
             width: parent.width
-            height: parent.height - 6
+            height: parent.height - 8
             y: win.shown ? 0 : parent.height
-            Behavior on y { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
-            color: Theme.bgA
+            Behavior on y { enabled: Theme.motion; NumberAnimation { duration: Theme.t; easing.type: Easing.BezierSpline; easing.bezierCurve: Theme.glide } }
+            radius: height / 2
+            color: Qt.rgba(Theme.s1.r, Theme.s1.g, Theme.s1.b, Theme.panelAlpha)
             border.width: 1
-            border.color: Theme.accent
+            border.color: Theme.s2
 
             Row {
                 id: row
                 anchors.centerIn: parent
-                spacing: 4
+                spacing: 8
 
                 Repeater {
                     model: win.apps
@@ -119,43 +122,53 @@ PanelWindow {
 
                         Rectangle {
                             anchors.fill: parent
-                            color: cell.focused ? Theme.accentDim : (cm.containsMouse ? Theme.surfaceHi : "transparent")
+                            anchors.margins: 2
+                            radius: width / 2
+                            color: cell.focused ? Theme.fill : (cm.containsMouse ? Theme.s3 : Theme.s2)
                         }
                         Image {
                             id: ico
                             anchors.centerIn: parent
-                            width: win.size - 12
+                            width: win.size - 20
                             height: width
                             sourceSize.width: 64
                             sourceSize.height: 64
                             asynchronous: true
                             source: Quickshell.iconPath(cell.modelData.entry ? cell.modelData.entry.icon : cell.modelData.id.toLowerCase(), true)
+                            layer.enabled: Settings.appIcons !== "colour"
+                            layer.effect: Settings.appIcons === "mono" ? monoFx : dotFx
+                            Component { id: dotFx; DotMask { step: 2.5 } }
+                            Component { id: monoFx; MultiEffect { saturation: -1 } }
                         }
                         Text {   // icon not in the theme: first letter of the app name
                             anchors.centerIn: parent
                             visible: ico.status !== Image.Ready
                             text: (cell.modelData.entry ? cell.modelData.entry.name : cell.modelData.id).charAt(0).toUpperCase()
-                            color: Theme.accent
-                            font.family: Theme.font
-                            font.pixelSize: 18
-                            font.bold: true
+                            color: cell.focused ? Theme.fillFg : Theme.fg
+                            font.family: Theme.dot
+                            font.pixelSize: 26
+                            font.weight: Font.Black
                         }
-                        Rectangle {   // running marker: accent underline, wider with more windows
+                        Row {   // running: a dot per window (up to 3) under the icon
                             visible: cell.running
-                            anchors.bottom: parent.bottom
+                            anchors.top: parent.bottom
+                            anchors.topMargin: 3
                             anchors.horizontalCenter: parent.horizontalCenter
-                            width: Math.min(parent.width - 8, 8 + (cell.modelData.wins.length - 1) * 8)
-                            height: 2
-                            color: Theme.accent
+                            spacing: 3
+                            Repeater {
+                                model: Math.min(3, cell.modelData.wins.length)
+                                Rectangle { width: 4; height: 4; radius: 2; color: cell.focused ? Theme.fill : Theme.grey }
+                            }
                         }
                         Rectangle {   // pinned marker: small dot top-right
-                            visible: cell.modelData.pinned
+                            visible: cell.modelData.pinned && !cell.running
                             anchors.top: parent.top
                             anchors.right: parent.right
-                            anchors.margins: 3
-                            width: 3
-                            height: 3
-                            color: Theme.dim
+                            anchors.margins: 2
+                            width: 5
+                            height: 5
+                            radius: 2.5
+                            color: Theme.mute
                         }
                         MouseArea {
                             id: cm
