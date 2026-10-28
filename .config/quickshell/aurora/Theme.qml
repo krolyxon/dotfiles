@@ -144,7 +144,6 @@ Singleton {
     readonly property string iSleep: cp(0xF04B2)
     readonly property string iReboot: cp(0xF0709)
     readonly property string iRefresh: cp(0xF0450)
-    readonly property string iHibernate: cp(0xF0717)
     readonly property string iHeadphones: cp(0xF02CB)
     readonly property string iSpeaker: cp(0xF04C3)
     readonly property string iMusic: cp(0xF075A)

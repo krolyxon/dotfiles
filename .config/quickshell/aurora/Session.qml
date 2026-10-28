@@ -8,7 +8,6 @@ Singleton {
         { id: "lock",      icon: Theme.iLock,      label: "lock",           confirm: false },
         { id: "leave",     icon: Theme.iLogout,    label: "leave Hyprland", confirm: true },
         { id: "renew",     icon: Theme.iRefresh,   label: "renew Hyprland", confirm: false },
-        { id: "hibernate", icon: Theme.iHibernate, label: "hibernate",      confirm: true },
         { id: "reboot",    icon: Theme.iReboot,    label: "reboot",         confirm: true },
         { id: "shutdown",  icon: Theme.iPower,     label: "shutdown",       confirm: true },
         { id: "sleep",     icon: Theme.iSleep,     label: "sleep",          confirm: false },
@@ -27,7 +26,6 @@ Singleton {
         case "lock":      Quickshell.execDetached(["loginctl", "lock-session"]); break
         case "leave":     Hypr.logout(); break
         case "renew":     Quickshell.execDetached(["hyprctl", "reload"]); break
-        case "hibernate": Quickshell.execDetached(["systemctl", "hibernate", "-i"]); break
         case "reboot":    Quickshell.execDetached(["systemctl", "reboot", "-i"]); break
         case "shutdown":  Quickshell.execDetached(["systemctl", "poweroff", "-i"]); break
         case "sleep":     Quickshell.execDetached(["systemctl", "suspend", "-i"]); break
