@@ -75,8 +75,7 @@ Flickable {
         Knob { label: "brightness"; from: 20; to: 100; value: Settings.wallBright; unit: "%"; onMoved: v => Settings.wallBright = v }
         Switch { label: "dot grid"; hint: "on the desktop when there is no wallpaper"; checked: Settings.dotGrid; onToggled: on => Settings.dotGrid = on }
 
-        SectionLabel { text: "home screen" }
-        Field { label: "name"; value: Settings.name; placeholder: "greeting name (empty = your user name)"; onSubmitted: v => Settings.name = v }
+        SectionLabel { text: "desktop" }
         Switch { label: "24-hour clock"; checked: Settings.clock24; onToggled: on => Settings.clock24 = on }
         Switch { label: "blinking colon"; checked: Settings.blink; onToggled: on => Settings.blink = on }
         Switch { label: "animations"; hint: "panels slide and fade, dots light up in waves"; checked: Settings.motion; onToggled: on => Settings.motion = on }

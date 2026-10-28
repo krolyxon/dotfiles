@@ -9,8 +9,8 @@ import Quickshell.Services.UPower
 // The bar: a strip docked at the top of every monitor.
 // Left: the mark (a dotted ring: click = runner; its centre turns the live colour while something records or listens,
 // the ring lights up in a wave on a new notification), this monitor's workspaces as dots, the cat.
-// Centre: the active window (focused monitor only). Right: tray, recording, privacy, caffeine/airplane, headset,
-// volume, net + bt, battery, clock (click = calendar). Clicks open the same panel tabs as always.
+// Centre: time · day (click = calendar). Right: tray, recording, privacy, caffeine/airplane, headset, volume,
+// net + bt, battery. Clicks open the same panel tabs as always.
 // After glyph-rice (github.com/Nebelung-cloud/glyph-rice, GPL-3.0), bar/Bar.qml.
 PanelWindow {
     id: bar
@@ -127,18 +127,12 @@ PanelWindow {
             CatLoop { height: parent.height }
         }
 
-        // ---------------- center ----------------
-        Lb {
+        // ---------------- center: time · day, one line (click = calendar) ----------------
+        BarPill {
             anchors.centerIn: parent
-            width: Math.min(implicitWidth, parent.width * 0.32)
-            horizontalAlignment: Text.AlignHCenter
-            elide: Text.ElideRight
-            readonly property var active: ToplevelManager.activeToplevel
-            readonly property string app: active && active.appId ? String(active.appId).split(".").pop() : ""
-            visible: bar.monFocused && active !== null && active.title !== ""   // the active window is global: focused monitor only
-            text: active ? (app !== "" ? app + " · " + active.title : active.title) : ""
-            px: 11
-            color: Theme.fgDim
+            height: parent.height
+            text: Theme.hh(clock.date) + ":" + Qt.formatDateTime(clock.date, "mm") + "  ·  " + Qt.locale("en_US").toString(clock.date, "ddd d")
+            onActivated: bar.toggleOverlay("cal", bar.modelData)
         }
 
         // ---------------- right ----------------
@@ -261,31 +255,6 @@ PanelWindow {
                     text: Math.round(bar.batPct * 100)
                     px: 11
                     color: bar.batLow ? Theme.err : Theme.fg
-                }
-            }
-
-            // clock: Doto from bar size 40 up (Doto is unreadable smaller), Space Mono below that
-            BarPill {
-                onActivated: bar.toggleOverlay("cal", bar.modelData)
-                Num {
-                    visible: Theme.barSize >= 40
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: Theme.hh(clock.date) + ":" + Qt.formatDateTime(clock.date, "mm")
-                    font.pixelSize: 26
-                }
-                Text {
-                    visible: Theme.barSize < 40
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: Theme.hh(clock.date) + ":" + Qt.formatDateTime(clock.date, "mm")
-                    font.family: Theme.mono
-                    font.pixelSize: 14
-                    font.bold: true
-                    color: Theme.fg
-                }
-                Lb {
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: Qt.locale("en_US").toString(clock.date, "ddd d")
-                    px: 10
                 }
             }
         }

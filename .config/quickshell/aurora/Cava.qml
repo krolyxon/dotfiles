@@ -9,8 +9,7 @@ import Quickshell.Services.Mpris
 Singleton {
     id: root
     readonly property int bars: Math.max(8, Settings.vizBars)
-    // the home screen's cava widget (round Glyph matrix)
-    readonly property bool wanted: Settings.desktopClock && Settings.desktopViz && Settings.homeWidgets.indexOf("cava") >= 0
+    readonly property bool wanted: Settings.desktopViz
     property bool available: false
     property var values: []                  // 0..1 per bar
 

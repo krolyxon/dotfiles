@@ -20,7 +20,7 @@ Singleton {
         privacyIndicators: true, powerAuto: false, powerAc: "balanced", powerBat: "saver",
         motion: true, clock24: true, appIcons: "dots", barSize: 40,
         wallLook: "dots", wallPitch: 10, wallBright: 85, dotGrid: true,
-        name: "", blink: true, homeWidgets: ["calendar", "cpu", "ram", "player", "cava", "system"]
+        blink: true
     })
 
     property alias fontSize: a.fontSize
@@ -61,9 +61,7 @@ Singleton {
     property alias wallPitch: a.wallPitch
     property alias wallBright: a.wallBright
     property alias dotGrid: a.dotGrid
-    property alias name: a.name
     property alias blink: a.blink
-    property alias homeWidgets: a.homeWidgets
 
     function reset() {
         for (var k in defaults) a[k] = defaults[k]
@@ -126,10 +124,7 @@ Singleton {
             property int wallPitch: 10                 // dot step, px
             property int wallBright: 85                // %, from the background to the full image
             property bool dotGrid: true                // dot grid on an empty desktop
-            property string name: ""                   // home screen greeting, empty = $USER
-            property bool blink: true                  // the home clock's colon blinks
-            // home screen bento, in order: calendar cpu ram disk battery gpu player cava cat system (Desktop.qml)
-            property list<string> homeWidgets: ["calendar", "cpu", "ram", "player", "cava", "system"]
+            property bool blink: true                  // the desktop clock's colon blinks
         }
     }
     // first run: create the file once the directory exists

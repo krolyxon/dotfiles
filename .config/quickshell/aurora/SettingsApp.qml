@@ -4,7 +4,7 @@ import Quickshell
 // The settings app: a normal Hyprland window (class org.quickshell, title "aurora settings"), opened maximized by a
 // window rule. glyph's prefs layout: the sections as a column of Doto words (the selected one large with the live dot),
 // the page on the right under a caption, key hints at the bottom. One Loader, so only the shown section runs.
-// Up/Down (outside text fields), Ctrl+Tab / Ctrl+Shift+Tab or Ctrl+J/K = sections, Esc closes.
+// Tab / Shift+Tab, Up/Down (outside text fields) or Ctrl+J/K = sections, Esc closes.
 // Opened with the `settings [section]` IPC. After glyph-rice (github.com/Nebelung-cloud/glyph-rice, GPL-3.0), prefs/Prefs.qml.
 FloatingWindow {
     id: win
@@ -50,8 +50,8 @@ FloatingWindow {
         Keys.onPressed: e => {
             var ctrl = e.modifiers & Qt.ControlModifier
             if (e.key === Qt.Key_Escape) { win.closeRequested(); e.accepted = true }
-            else if (ctrl && (e.key === Qt.Key_Tab || e.key === Qt.Key_J)) { win.cycle(1); e.accepted = true }
-            else if (ctrl && (e.key === Qt.Key_Backtab || e.key === Qt.Key_K)) { win.cycle(-1); e.accepted = true }
+            else if (e.key === Qt.Key_Tab || (ctrl && e.key === Qt.Key_J)) { win.cycle(1); e.accepted = true }
+            else if (e.key === Qt.Key_Backtab || (ctrl && e.key === Qt.Key_K)) { win.cycle(-1); e.accepted = true }
         }
         // a click outside the page drops the focus out of text fields (arrows switch sections again)
         MouseArea { anchors.fill: parent; onClicked: root.forceActiveFocus() }
@@ -142,7 +142,7 @@ FloatingWindow {
                 anchors.bottomMargin: 50
                 spacing: 34
                 Repeater {
-                    model: ["↑↓ section", "ctrl tab next", "esc close"]
+                    model: ["tab · ↑↓ section", "esc close"]
                     Lb { required property string modelData; text: modelData }
                 }
             }

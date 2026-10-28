@@ -4,7 +4,7 @@ import Quickshell
 import Quickshell.Wayland
 import Quickshell.Hyprland
 
-// Month calendar under the bar clock: Doto month, Monday first, ISO week numbers, today in a primary circle.
+// Month calendar under the bar clock (top centre): Doto month, Monday first, ISO week numbers, today in a primary circle.
 // Scroll / arrows change the month, up / down the year, space = back to today, Esc closes.
 // After glyph-rice (github.com/Nebelung-cloud/glyph-rice, GPL-3.0), cal/Cal.qml.
 PanelWindow {
@@ -16,8 +16,8 @@ PanelWindow {
     Behavior on t { NumberAnimation { duration: Theme.t; easing.type: Easing.BezierSpline; easing.bezierCurve: Theme.glide } }
 
     visible: t > 0
-    anchors { top: true; right: true }
-    margins { top: 6; right: 8 }
+    anchors.top: true
+    margins.top: 6
     implicitWidth: card.width
     implicitHeight: card.height + 20      // room for the slide
     exclusiveZone: 0
