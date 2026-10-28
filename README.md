@@ -6,8 +6,9 @@ My desktop: **Arch Linux + Hyprland** (Lua config) + **aurora**, a custom Quicks
 notifications, OSD, dock), themed live from the wallpaper with **matugen** and deployed with **GNU stow**.
 
 ## aurora
-One shell instead of waybar, dunst, wlogout, fuzzel and a pile of scripts. Everything below is themed from the
-current wallpaper.
+One shell instead of waybar, dunst, wlogout, fuzzel and a pile of scripts, in a Nothing OS style (Doto dot-matrix type,
+pills, LED dots; after [glyph-rice](https://github.com/Nebelung-cloud/glyph-rice)) with Material You colours: everything
+below is themed from the current wallpaper, which aurora draws itself as mono dots, colour dots or the plain photo.
 
 <table>
   <tr>
@@ -20,7 +21,7 @@ current wallpaper.
     <td><img src="assets/aurora-runner.webp" alt="runner"><br>
       <sub><b>Runner</b> (<kbd>Super</kbd>+<kbd>R</kbd>) · apps, scripts, calc, shell; also a dmenu for scripts</sub></td>
     <td><img src="assets/aurora-wallpicker.webp" alt="wallpaper picker"><br>
-      <sub><b>Wallpaper picker</b> · folders, search, re-themes everything through matugen</sub></td>
+      <sub><b>Wallpaper picker</b> · live full-screen preview, folders, search, vim keys, three looks; re-themes everything through matugen</sub></td>
   </tr>
   <tr>
     <td><img src="assets/aurora-chars.webp" alt="glyph picker"><br>
