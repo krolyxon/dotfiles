@@ -142,7 +142,7 @@ ColumnLayout {
     }
     Text {
         text: page.binds.length + " binds  ·  " + page.file.replace(Quickshell.env("HOME"), "~")
-        color: Theme.dim
+        color: Theme.fgDim
         font.family: Theme.ui
         font.pixelSize: 13
     }

@@ -74,7 +74,7 @@ Flickable {
                 Layout.leftMargin: 18
                 text: "per-device settings (hl.device) stay in source/input.lua"
                 elide: Text.ElideRight
-                color: Theme.dim
+                color: Theme.fgDim
                 font.family: Theme.ui
                 font.pixelSize: 13
             }

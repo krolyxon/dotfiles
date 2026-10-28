@@ -147,9 +147,9 @@ Flickable {
             Layout.fillWidth: true
             visible: flick.countdown > 0
             implicitHeight: 40
-            color: Theme.surface
+            color: Theme.s2
             border.width: 1
-            border.color: Theme.accent
+            border.color: Theme.fill
             RowLayout {
                 anchors.fill: parent
                 anchors.margins: 6
@@ -188,7 +188,7 @@ Flickable {
             Layout.fillWidth: true
             Layout.leftMargin: 18
             text: "applies whenever a monitor is plugged in. external only turns the laptop panel back on when the last external screen is unplugged."
-            color: Theme.dim
+            color: Theme.fgDim
             wrapMode: Text.WordWrap
             font.family: Theme.ui
             font.pixelSize: 14
@@ -211,7 +211,7 @@ Flickable {
                     text: mon.m.description + (mon.m.disabled ? "  ·  disabled"
                         : "  ·  " + mon.curMode + " @ " + mon.m.refreshRate.toFixed(2) + "Hz  ·  scale " + mon.m.scale
                           + "  ·  at " + mon.m.x + "," + mon.m.y)
-                    color: Theme.dim
+                    color: Theme.fgDim
                     elide: Text.ElideRight
                     font.family: Theme.ui
                     font.pixelSize: 14
@@ -281,7 +281,7 @@ Flickable {
         Text {
             visible: !Toggles.hasNightLight
             text: "night light: gammastep isn't running"
-            color: Theme.dim
+            color: Theme.fgDim
             font.family: Theme.ui
             font.pixelSize: 14
         }

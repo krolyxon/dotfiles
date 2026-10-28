@@ -84,7 +84,7 @@ Flickable {
                   ? "the firmware stops charging at ~80%, even when aurora isn't running. Conservation mode is "
                     + (Battery.capOn ? "on" : "off") + "."
                   : "charges to 100%"
-            color: Theme.dim
+            color: Theme.fgDim
             font.family: Theme.ui
             font.pixelSize: 13
         }
@@ -150,7 +150,7 @@ Flickable {
             Layout.fillWidth: true
             Layout.leftMargin: 18
             text: "saved to ~/.config/aurora/hypridle.conf, hypridle restarts on change"
-            color: Theme.dim
+            color: Theme.fgDim
             elide: Text.ElideLeft
             font.family: Theme.ui
             font.pixelSize: 13

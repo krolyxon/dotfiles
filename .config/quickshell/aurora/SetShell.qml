@@ -23,7 +23,7 @@ Flickable {
         Switch { label: "dock"; hint: "autohides at the bottom edge"; checked: Settings.dock; onToggled: on => Settings.dock = on }
         Text {
             text: "pinned apps (pin more from the dock's right-click)"
-            color: Theme.dim
+            color: Theme.fgDim
             font.family: Theme.ui
             font.pixelSize: 14
         }
@@ -70,7 +70,7 @@ Flickable {
                 Layout.leftMargin: 18
                 text: "~/.config/aurora/settings.json"
                 elide: Text.ElideLeft
-                color: Theme.dim
+                color: Theme.fgDim
                 font.family: Theme.ui
                 font.pixelSize: 13
             }

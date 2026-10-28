@@ -11,7 +11,7 @@ Singleton {
 
     // defaults live here; reset() puts them back
     readonly property var defaults: ({
-        fontSize: 12, wsFontSize: 11, barHeight: 22, barAlpha: 1.0, panelAlpha: 1.0, matuScheme: "scheme-content", matuContrast: 0.0,
+        barAlpha: 1.0, panelAlpha: 1.0, matuScheme: "scheme-content", matuContrast: 0.0,
         osdTimeout: 1500, desktopClock: true, desktopViz: true, vizBars: 64,
         dock: true, dockPinned: ["foot", "librewolf", "pcmanfm", "obsidian"], wallFolder: "dusky-dark",
         notifSound: true, notifVolume: 0.7,
@@ -23,9 +23,6 @@ Singleton {
         blink: true
     })
 
-    property alias fontSize: a.fontSize
-    property alias wsFontSize: a.wsFontSize
-    property alias barHeight: a.barHeight
     property alias barAlpha: a.barAlpha
     property alias panelAlpha: a.panelAlpha
     property alias matuScheme: a.matuScheme
@@ -86,9 +83,6 @@ Singleton {
         }
         adapter: JsonAdapter {
             id: a
-            property int fontSize: 12
-            property int wsFontSize: 11
-            property int barHeight: 22
             property real barAlpha: 1.0
             property real panelAlpha: 1.0               // control panel / popup opacity (settings > appearance)
             property string matuScheme: "scheme-content"   // matugen -t (Wall.qml), accent = its primary_container (= wallpaper colour)

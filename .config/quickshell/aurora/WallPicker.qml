@@ -112,7 +112,7 @@ PanelWindow {
         height: Math.round(parent.height * 0.46)
         opacity: win.t
         radius: 40
-        color: Qt.rgba(Theme.s1.r, Theme.s1.g, Theme.s1.b, Theme.panelAlpha)
+        color: Theme.fade(Theme.s1, Theme.panelAlpha)
         border.width: 1
         border.color: Theme.s2
         MouseArea { anchors.fill: parent }   // clicks on the card don't close

@@ -49,7 +49,7 @@ Flickable {
             spacing: 14
             Text {
                 text: Theme.iArch
-                color: Theme.accent
+                color: Theme.fill
                 font.family: Theme.ui
                 font.pixelSize: 56
             }
@@ -65,7 +65,7 @@ Flickable {
                 Text {
                     text: Quickshell.env("USER") + "@" + (flick.info.length > 2 ? flick.info[2][1] : "")
                         + "  ·  up " + Theme.fmtTime(SysStats.uptime)
-                    color: Theme.dim
+                    color: Theme.fgDim
                     font.family: Theme.ui
                     font.pixelSize: 15
                 }
@@ -82,7 +82,7 @@ Flickable {
                 Text {
                     Layout.preferredWidth: 150
                     text: modelData[0]
-                    color: Theme.accent
+                    color: Theme.fill
                     font.family: Theme.ui
                     font.pixelSize: 15
                 }

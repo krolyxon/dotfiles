@@ -79,7 +79,7 @@ PanelWindow {
     Rectangle {
         id: pill
         anchors.fill: parent
-        color: Qt.rgba(Theme.s1.r, Theme.s1.g, Theme.s1.b, Theme.barAlpha)
+        color: Theme.fade(Theme.s1, Theme.barAlpha)
         Rectangle {   // hairline along the bottom
             anchors.left: parent.left
             anchors.right: parent.right

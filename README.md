@@ -79,7 +79,7 @@ The lists live in `packages/*.txt`: one package per line, `#` for comments, and 
 ## What's inside
 | | |
 |---|---|
-| WM | Hyprland (Lua config), hypridle, hyprlock, hyprpaper |
+| WM | Hyprland (Lua config), hypridle, hyprlock; aurora draws the wallpaper (mono dots, colour dots or photo) |
 | Shell / bar | aurora (Quickshell) |
 | Theming | matugen: picking a wallpaper in aurora (or `setwall`) re-themes everything (GTK via adw-gtk3, Qt via qt6ct); accent = the wallpaper's own colour, near-black surfaces. The terminal (foot) too, with ANSI colours tinted toward the wallpaper |
 | Terminal / shell | foot, zsh |

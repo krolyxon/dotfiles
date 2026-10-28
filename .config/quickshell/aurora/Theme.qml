@@ -13,11 +13,8 @@ Singleton {
     readonly property string ui: "Space Grotesk"          // UI text: titles DemiBold, body Regular, greeting Light
     readonly property string mono: "Space Mono"           // caps labels (Lb)
     readonly property string nf: "JetBrainsMono Nerd Font"   // icons only (Icon)
-    property string font: nf                              // legacy: text not restyled yet (goes away in the cleanup)
 
     // ---- knobs (persisted in ~/.config/aurora/settings.json, edited in the settings app) ----
-    readonly property int fontSize: Settings.fontSize
-    readonly property int wsFontSize: Settings.wsFontSize   // workspace icons only; everything else uses fontSize
     readonly property real panelAlpha: Settings.panelAlpha
     readonly property int barSize: Math.max(32, Settings.barSize)   // the bar's height (docked at the top)
     readonly property int barHeight: barSize                        // what the bar reserves at the top
@@ -98,21 +95,6 @@ Singleton {
         return Settings.clock24 ? (h < 10 ? "0" : "") + h : String(h % 12 || 12)
     }
 
-    // legacy names for files not restyled yet (removed in the cleanup phase)
-    readonly property color accent: fill
-    readonly property color accentFg: fillFg
-    readonly property color accentDim: container
-    readonly property color ink: fillFg
-    readonly property color secondary: mat.secondary
-    readonly property color tertiary: mat.tertiary
-    readonly property color surface: s2
-    readonly property color surfaceHi: s3
-    readonly property color line: mute
-    readonly property color dim: fgDim
-    readonly property color cursorC: fill
-    readonly property color barBg: Qt.rgba(bg.r, bg.g, bg.b, barAlpha)
-    readonly property color bgA: Qt.rgba(s1.r, s1.g, s1.b, panelAlpha)
-
     // ---- hyprlock -----------------------------------------------------
     // hyprlock stays a separate process (crash safety); it sources ~/.config/aurora/hyprlock-colors.conf,
     // written here so the lock uses the resolved palette (incl. the settings-picked accent).
@@ -126,9 +108,7 @@ Singleton {
             "$bg = " + c(bg), "$fg = " + c(fg), "$fgDim = " + c(fgDim), "$s1 = " + c(s1), "$s2 = " + c(s2), "$s3 = " + c(s3),
             "$mute = " + c(mute), "$grey = " + c(grey), "$fill = " + c(fill), "$fillFg = " + c(fillFg), "$live = " + c(live),
             "$err = " + c(err), "$dot = " + dot + " Black", "$ui = " + ui, "$mono = " + mono,
-            // old names, for an older hyprlock.conf
-            "$accent = " + c(accent), "$accentDim = " + c(accentDim), "$surface = " + c(surface), "$surfaceHi = " + c(surfaceHi),
-            "$line = " + c(line), "$dim = " + c(dim), "$font = " + font, ""].join("\n")
+            ""].join("\n")
     }
     onLockConfChanged: lockTimer.restart()
     Timer { id: lockTimer; interval: 500; onTriggered: lockFv.setText(root.lockConf) }
@@ -243,17 +223,6 @@ Singleton {
     readonly property string iText: cp(0xF0262)         // format-align-left
     readonly property string iLink: cp(0xF0339)         // link-variant
     readonly property string iCode: cp(0xF0169)         // code-braces
-
-    // workspace icons: the exact Font Awesome glyphs from your waybar config.
-    // 1 browser, 2 code, 3 book, 4 cog, 5 chat, 6 file, 7 folder, 8 terminal, 9 flask, 10 image
-    // 11-20 repeat the same ten, like your waybar format-icons did
-    readonly property var wsIcons: [
-        String.fromCharCode(0xf269), String.fromCharCode(0xf121), String.fromCharCode(0xf02d),
-        String.fromCharCode(0xf085), String.fromCharCode(0xf086), String.fromCharCode(0xf1c9),
-        String.fromCharCode(0xf07c), String.fromCharCode(0xf120), String.fromCharCode(0xf0c3),
-        String.fromCharCode(0xf03e)
-    ]
-    function wsIcon(id) { return id >= 1 ? wsIcons[(id - 1) % 10] : String(id) }
 
     readonly property var batLevels: [0xF007A, 0xF007B, 0xF007C, 0xF007D, 0xF007E,
                                       0xF007F, 0xF0080, 0xF0081, 0xF0082, 0xF0079]

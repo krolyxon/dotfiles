@@ -23,7 +23,7 @@ Flickable {
             Layout.leftMargin: 18
             text: Wall.current !== "" ? Wall.current.replace(Wall.home, "~") : "-"
             elide: Text.ElideLeft
-            color: Theme.dim
+            color: Theme.fgDim
             font.family: Theme.ui
             font.pixelSize: 14
         }
@@ -92,7 +92,7 @@ Flickable {
             Layout.leftMargin: 18
             text: "matugen scheme from the wallpaper, accent = its primary"
             elide: Text.ElideRight
-            color: Theme.dim
+            color: Theme.fgDim
             font.family: Theme.ui
             font.pixelSize: 14
         }
@@ -113,8 +113,6 @@ Flickable {
         Knob { label: "contrast"; from: -1; to: 1; decimals: 2; value: Settings.matuContrast; onMoved: v => Settings.matuContrast = v }
 
         SectionLabel { text: "sizes" }
-        Knob { label: "font size"; from: 9; to: 18; value: Settings.fontSize; onMoved: v => Settings.fontSize = v }
-        Knob { label: "workspace icons"; from: 8; to: 18; value: Settings.wsFontSize; onMoved: v => Settings.wsFontSize = v }
         Knob { label: "bar height"; from: 32; to: 56; value: Settings.barSize; onMoved: v => Settings.barSize = v }
 
         SectionLabel { text: "transparency" }

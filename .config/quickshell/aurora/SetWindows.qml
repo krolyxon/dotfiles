@@ -102,7 +102,7 @@ Flickable {
                 Layout.leftMargin: 18
                 text: "saved to ~/.config/aurora/hypr.lua (loaded last by hyprland.lua)"
                 elide: Text.ElideLeft
-                color: Theme.dim
+                color: Theme.fgDim
                 font.family: Theme.ui
                 font.pixelSize: 13
             }

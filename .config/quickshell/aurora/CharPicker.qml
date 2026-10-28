@@ -139,7 +139,7 @@ PanelWindow {
         view.currentIndex = Math.max(0, Math.min(results.length - 1, view.currentIndex + d * step))
     }
     function fontOf(it) {
-        return it && it.s !== undefined && Chars.sets[it.s] && Chars.sets[it.s].id === "emoji" ? "Noto Color Emoji" : Theme.font
+        return it && it.s !== undefined && Chars.sets[it.s] && Chars.sets[it.s].id === "emoji" ? "Noto Color Emoji" : Theme.nf
     }
 
     Rectangle {
@@ -157,7 +157,7 @@ PanelWindow {
         height: Math.min(parent.height - 160, 740)
         opacity: win.t
         radius: 44
-        color: Qt.rgba(Theme.s1.r, Theme.s1.g, Theme.s1.b, Theme.panelAlpha)
+        color: Theme.fade(Theme.s1, Theme.panelAlpha)
         border.width: 1
         border.color: Theme.s2
         MouseArea { anchors.fill: parent }
@@ -528,7 +528,7 @@ PanelWindow {
                         text: win.buffer
                         elide: Text.ElideLeft
                         color: Theme.fg
-                        font.family: Theme.font
+                        font.family: Theme.nf
                         font.pixelSize: 20
                     }
                 }

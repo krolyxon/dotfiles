@@ -95,7 +95,7 @@ PanelWindow {
             y: win.shown ? 0 : parent.height
             Behavior on y { enabled: Theme.motion; NumberAnimation { duration: Theme.t; easing.type: Easing.BezierSpline; easing.bezierCurve: Theme.glide } }
             radius: height / 2
-            color: Qt.rgba(Theme.s1.r, Theme.s1.g, Theme.s1.b, Theme.panelAlpha)
+            color: Theme.fade(Theme.s1, Theme.panelAlpha)
             border.width: 1
             border.color: Theme.s2
 

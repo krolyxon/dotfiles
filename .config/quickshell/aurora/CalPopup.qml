@@ -75,7 +75,7 @@ PanelWindow {
         width: 384
         height: col.implicitHeight + 44
         radius: 36
-        color: Qt.rgba(Theme.s1.r, Theme.s1.g, Theme.s1.b, Theme.panelAlpha)
+        color: Theme.fade(Theme.s1, Theme.panelAlpha)
         border.width: 1
         border.color: Theme.s2
         focus: true
