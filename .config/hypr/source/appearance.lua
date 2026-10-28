@@ -55,27 +55,8 @@ hl.config({
         },
     },
 
-    --------------------------------------------------
-    -- Animations
-    --------------------------------------------------
     animations = {
-        enabled = false,
-
-        bezier = {
-            {
-                name = "myBezier",
-                points = { 0.05, 0.9, 0.1, 1.05 },
-            },
-        },
-
-        animation = {
-            { "windows", 1, 2, "myBezier" },
-            { "windowsOut", 1, 2, "default", "popin 80%" },
-            { "border", 1, 10, "default" },
-            { "borderangle", 1, 8, "default" },
-            { "fade", 1, 7, "default" },
-            { "workspaces", 1, 1, "default" },
-        },
+        enabled = true,
     },
 
     --------------------------------------------------
@@ -110,3 +91,26 @@ hl.config({
         on_focus_under_fullscreen = 1,
     },
 })
+
+--------------------------------------------------
+-- Animations (glyph-rice's set, retimed to aurora's motion: speed is in 100ms, aurora's panels take 350ms)
+--------------------------------------------------
+-- aurora's glide (Theme.glide): ease-out-quart without overshoot
+hl.curve("glide", { type = "bezier", points = { { 0.25, 1 }, { 0.5, 1 } } })
+hl.curve("emphasizedAccel", { type = "bezier", points = { { 0.3, 0 }, { 0.8, 0.15 } } })
+
+-- aurora's own layers animate themselves (no_anim in window_rules.lua); these only hit other layers (slurp, ...)
+hl.animation({ leaf = "layersIn", enabled = true, speed = 3, bezier = "glide", style = "slide" })
+hl.animation({ leaf = "layersOut", enabled = true, speed = 2, bezier = "emphasizedAccel", style = "slide" })
+hl.animation({ leaf = "fadeLayers", enabled = true, speed = 2.5, bezier = "glide" })
+
+hl.animation({ leaf = "windowsIn", enabled = true, speed = 3, bezier = "glide" })
+hl.animation({ leaf = "windowsOut", enabled = true, speed = 2, bezier = "emphasizedAccel" })
+hl.animation({ leaf = "windowsMove", enabled = true, speed = 3, bezier = "glide" })
+-- glyph slides vertically (slidevert) for its vertical swipe; ours swipes horizontally (input.lua)
+hl.animation({ leaf = "workspaces", enabled = true, speed = 3.5, bezier = "glide", style = "slide" })
+hl.animation({ leaf = "specialWorkspace", enabled = true, speed = 3, bezier = "glide", style = "slidefadevert 15%" })
+
+hl.animation({ leaf = "fade", enabled = true, speed = 2.5, bezier = "glide" })
+hl.animation({ leaf = "fadeDim", enabled = true, speed = 2.5, bezier = "glide" })
+hl.animation({ leaf = "border", enabled = true, speed = 3, bezier = "glide" })

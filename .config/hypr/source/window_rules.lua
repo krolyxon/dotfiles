@@ -48,3 +48,6 @@ hl.window_rule({
 
     maximize = true,
 })
+
+-- aurora's layers run their own open/close motion (Theme.t); a Hyprland slide on top would double it
+hl.layer_rule({ match = { namespace = "aurora-.*" }, no_anim = true })
