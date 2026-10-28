@@ -121,7 +121,7 @@ Singleton {
             property bool motion: true                 // shell animations (Theme.t)
             property bool clock24: true
             property string appIcons: "dots"           // dots | mono | colour: how app icons are drawn
-            property int barSize: 40                   // height of the bar pill (Doto clock from 40 up)
+            property int barSize: 40                   // height of the bar (Doto clock from 40 up)
             property string wallLook: "dots"           // dots | colour | photo: how aurora draws the wallpaper (WallView)
             property int wallPitch: 10                 // dot step, px
             property int wallBright: 85                // %, from the background to the full image

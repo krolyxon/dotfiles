@@ -19,9 +19,8 @@ Singleton {
     readonly property int fontSize: Settings.fontSize
     readonly property int wsFontSize: Settings.wsFontSize   // workspace icons only; everything else uses fontSize
     readonly property real panelAlpha: Settings.panelAlpha
-    readonly property int barSize: Math.max(32, Settings.barSize)   // the bar pill
-    readonly property int barGap: 6                                 // pill to the screen edge
-    readonly property int barHeight: barSize + barGap               // what the bar reserves at the top
+    readonly property int barSize: Math.max(32, Settings.barSize)   // the bar's height (docked at the top)
+    readonly property int barHeight: barSize                        // what the bar reserves at the top
     readonly property real barAlpha: Settings.barAlpha
 
     // ---- motion: ease-out-quart without overshoot (glyph's "glide"); Settings.motion off = instant ----

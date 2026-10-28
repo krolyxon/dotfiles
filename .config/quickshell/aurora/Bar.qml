@@ -6,7 +6,7 @@ import Quickshell.Hyprland
 import Quickshell.Services.Pipewire
 import Quickshell.Services.UPower
 
-// The bar: a floating pill at the top of every monitor.
+// The bar: a strip docked at the top of every monitor.
 // Left: the mark (a dotted ring: click = runner; its centre turns the live colour while something records or listens,
 // the ring lights up in a wave on a new notification), this monitor's workspaces as dots, the cat.
 // Centre: the active window (focused monitor only). Right: tray, recording, privacy, caffeine/airplane, headset,
@@ -20,9 +20,8 @@ PanelWindow {
     signal toggleOverlay(string name, var scr)
 
     anchors { top: true; left: true; right: true }
-    implicitHeight: Theme.barHeight          // the pill + the gap above it; also the exclusive zone
+    implicitHeight: Theme.barHeight
     color: "transparent"
-    mask: Region { item: pill }
     WlrLayershell.namespace: "aurora-bar"
 
     SystemClock { id: clock; precision: SystemClock.Minutes }
@@ -79,14 +78,15 @@ PanelWindow {
 
     Rectangle {
         id: pill
-        x: Theme.barGap
-        y: Theme.barGap
-        width: parent.width - 2 * Theme.barGap
-        height: Theme.barSize
-        radius: height / 2
+        anchors.fill: parent
         color: Qt.rgba(Theme.s1.r, Theme.s1.g, Theme.s1.b, Theme.barAlpha)
-        border.width: 1
-        border.color: Theme.s2
+        Rectangle {   // hairline along the bottom
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+            height: 1
+            color: Theme.s2
+        }
 
         // ---------------- left ----------------
         Row {
