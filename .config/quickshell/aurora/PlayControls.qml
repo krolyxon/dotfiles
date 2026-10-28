@@ -31,7 +31,7 @@ Row {
             font.pixelSize: root.play * 0.46
         }
         HoverHandler { cursorShape: Qt.PointingHandCursor }
-        TapHandler { onTapped: if (root.player && root.player.canTogglePlaying) root.player.togglePlaying() }
+        TapHandler { onTapped: Media.toggle(root.player) }
     }
     Icon {
         anchors.verticalCenter: parent.verticalCenter

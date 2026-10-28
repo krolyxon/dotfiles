@@ -1,7 +1,7 @@
 import QtQuick
 
 // Level slider (control panel): a pill whose filled part is white with the icon in it, the rest a row of dots,
-// the value in a chip on the right. Click/drag sets, the wheel steps, the icon end toggles mute (iconClicked).
+// the value in a chip on the right. Click/drag sets (the wheel scrolls past it), the icon end toggles mute (iconClicked).
 // Ported from glyph-rice (github.com/Nebelung-cloud/glyph-rice, GPL-3.0), quick/Quick.qml (Slider).
 Item {
     id: r
@@ -65,7 +65,7 @@ Item {
         function set(x) { v = Math.max(0, Math.min(1, x / width)); r.moved(v) }
         onPressed: e => set(e.x)
         onPositionChanged: e => { if (pressed) set(e.x) }
-        onWheel: w => r.moved(Math.max(0, Math.min(1, r.value + (w.angleDelta.y > 0 ? 0.02 : -0.02))))
+        // no onWheel on purpose: the wheel scrolls the page (it kept changing volume/brightness by accident)
     }
     // the icon end: mute
     MouseArea {

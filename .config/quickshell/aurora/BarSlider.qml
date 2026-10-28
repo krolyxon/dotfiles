@@ -1,7 +1,7 @@
 import QtQuick
 
 // Dotted slider: a row of LED dots, the lit part white up to a larger head dot, the rest unlit.
-// Click/drag sets, the wheel steps. muted = the lit dots go grey.
+// Click/drag sets, the wheel scrolls the page past it. muted = the lit dots go grey.
 Item {
     id: s
     property real value: 0
@@ -42,9 +42,6 @@ Item {
         }
         onPressed: m => setFromX(m.x)
         onPositionChanged: m => { if (pressed) setFromX(m.x) }
-        onWheel: w => {
-            var d = (w.angleDelta.y > 0 ? 1 : -1) * s.step * (s.to - s.from)
-            s.moved(Math.max(s.from, Math.min(s.to, s.value + d)))
-        }
+        // no onWheel: a MouseArea without one passes the wheel on, so scrolling the page never moves a slider
     }
 }
