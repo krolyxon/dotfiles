@@ -45,4 +45,9 @@ PanelWindow {
         anchors.fill: parent
         path: Wall.current
     }
+    // hyprlock's wallpaper + avatar pictures, from the first screen
+    Loader {
+        active: win.modelData === Quickshell.screens[0]
+        sourceComponent: LockArt { view: wall }
+    }
 }

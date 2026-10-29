@@ -1,0 +1,45 @@
+#!/bin/sh
+# hyprlock's live labels in aurora's look (~/.config/hypr/hyprlock.conf); prints Pango markup.
+# Colours and settings come from aurora's Theme.qml (~/.config/aurora/hyprlock-colors.conf) as arguments.
+#   lockinfo clock HOURFMT BLINK FONT   HH:MM in FONT (a Pango font_desc); the colon dims every other half second if BLINK=1
+#   lockinfo info                       weather from aurora's cache (if < 3h old) · what's playing
+#   lockinfo battery LOW ERR FG         battery glyph (FG, ERR at or below LOW% on battery) + percentage
+
+esc() { sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g'; }
+# aurora's Lb: Space Mono caps, tracking .14em (the label's font_size is 9pt = 12px)
+lb() { printf "<span letter_spacing='1290' text_transform='uppercase'>%s</span>" "$1"; }
+
+case "$1" in
+clock)
+	set -- $(date +"$2 %M %N") "$3" "$4"
+	colon=":"
+	[ "$4" = 1 ] && [ "${3%"${3#?}"}" -ge 5 ] && colon="<span alpha='20%'>:</span>"
+	printf "<span font_desc='%s'>%s%s%s</span>" "$5" "$1" "$colon" "$2"
+	;;
+info)
+	f="$HOME/.cache/aurora/weather.json"
+	w=$([ -r "$f" ] && jq -r 'select(now * 1000 - .fetched < 3 * 3600 * 1000) | .raw.current | .weather_code as $c
+		| "\(.temperature_2m | round)° " + (if $c <= 1 then "clear" elif $c == 2 then "partly cloudy"
+		elif $c == 3 then "overcast" elif $c < 50 then "fog" elif $c < 60 then "drizzle" elif $c < 70 then "rain"
+		elif $c < 80 then "snow" elif $c < 83 then "showers" elif $c < 90 then "snow showers" else "thunder" end)' "$f" 2>/dev/null)
+	m=$(playerctl metadata --format '{{title}}	{{artist}}' 2>/dev/null)
+	t=${m%%	*} a=${m#*	}
+	[ -n "$t" ] && m="$t${a:+ — $a}" || m=""
+	line=$(printf '%s\n%s\n' "$w" "$m" | sed '/^$/d' | esc | sed ':a;N;$!ba;s/\n/  ·  /')
+	[ -n "$line" ] && lb "$line"
+	;;
+battery)
+	b=$(ls -d /sys/class/power_supply/BAT* 2>/dev/null | head -n 1)
+	[ -n "$b" ] || exit 0
+	p=$(cat "$b/capacity") s=$(cat "$b/status")
+	# glyphs = Theme.qml's batIcon: charging, on AC, else 10 levels (Theme.batLevels)
+	case "$s" in
+	Charging) g=F0084 ;;
+	Discharging) g=$(echo "F007A F007B F007C F007D F007E F007F F0080 F0081 F0082 F0079" | cut -d' ' -f$((p >= 100 ? 10 : p / 10 + 1))) ;;
+	*) g=F06A5 ;;
+	esac
+	colour=$4
+	[ "$s" = Discharging ] && [ "$p" -le "$2" ] && colour=$3
+	printf "<span font_desc='JetBrainsMono Nerd Font 12.75' foreground='%s'>&#x%s;</span>  %s" "$colour" "$g" "$(lb "$p%")"
+	;;
+esac
