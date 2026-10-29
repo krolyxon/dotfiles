@@ -20,7 +20,7 @@ Singleton {
         privacyIndicators: true, powerAuto: false, powerAc: "balanced", powerBat: "saver",
         motion: true, clock24: true, appIcons: "dots", barSize: 40,
         wallLook: "dots", wallPitch: 10, wallBright: 85, dotGrid: true,
-        blink: true
+        blink: true, weatherLoc: ""
     })
 
     property alias barAlpha: a.barAlpha
@@ -59,6 +59,7 @@ Singleton {
     property alias wallBright: a.wallBright
     property alias dotGrid: a.dotGrid
     property alias blink: a.blink
+    property alias weatherLoc: a.weatherLoc
 
     function reset() {
         for (var k in defaults) a[k] = defaults[k]
@@ -119,6 +120,7 @@ Singleton {
             property int wallBright: 85                // %, from the background to the full image
             property bool dotGrid: true                // dot grid on an empty desktop
             property bool blink: true                  // the desktop clock's colon blinks
+            property string weatherLoc: ""             // Weather.qml: "" = by IP, "lat,lon" or a place name
         }
     }
     // first run: create the file once the directory exists

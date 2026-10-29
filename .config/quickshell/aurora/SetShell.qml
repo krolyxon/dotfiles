@@ -52,6 +52,24 @@ Flickable {
         SectionLabel { text: "bar" }
         Switch { label: "privacy indicators"; hint: "show in the bar when an app records the mic, uses the camera or shares the screen"; checked: Settings.privacyIndicators; onToggled: on => Settings.privacyIndicators = on }
 
+        SectionLabel { text: "weather" }
+        Field {
+            label: "location"
+            placeholder: "by IP · or a city · or lat,lon"
+            value: Settings.weatherLoc
+            onSubmitted: v => Settings.weatherLoc = v.trim()
+        }
+        Text {
+            Layout.fillWidth: true
+            Layout.leftMargin: 18
+            text: Weather.ok ? (Weather.place !== "" ? Weather.place + ": " : "") + Math.round(Weather.now.temp) + "°, " + Weather.name(Weather.now.code)
+                               + (Weather.error !== "" ? " (" + Weather.error + ")" : "")
+                  : Weather.busy ? "looking outside..." : Weather.error || "no weather yet"
+            color: Weather.error !== "" ? Theme.err : Theme.fgDim
+            font.family: Theme.ui
+            font.pixelSize: 13
+        }
+
         SectionLabel { text: "notifications" }
         Switch { label: "do not disturb"; hint: "hide popups and mute the sound (critical ones still show)"; checked: Notifs.dnd; onToggled: on => Notifs.dnd = on }
         Switch { label: "sound"; checked: Settings.notifSound; onToggled: on => Settings.notifSound = on }

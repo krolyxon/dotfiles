@@ -222,6 +222,20 @@ Singleton {
     readonly property string iText: cp(0xF0262)         // format-align-left
     readonly property string iLink: cp(0xF0339)         // link-variant
     readonly property string iCode: cp(0xF0169)         // code-braces
+    // weather (Weather.icon picks one per WMO code)
+    readonly property string iSunny: cp(0xF0599)
+    readonly property string iPartlyCloudy: cp(0xF0595)
+    readonly property string iNightCloudy: cp(0xF0F31)  // weather-night-partly-cloudy
+    readonly property string iCloudy: cp(0xF0590)
+    readonly property string iFog: cp(0xF0591)
+    readonly property string iRain: cp(0xF0597)
+    readonly property string iPouring: cp(0xF0596)
+    readonly property string iSnow: cp(0xF0598)
+    readonly property string iThunder: cp(0xF0593)
+    readonly property string iSunrise: cp(0xF059C)      // weather-sunset-up
+    readonly property string iSunset: cp(0xF059B)       // weather-sunset-down
+    readonly property string iArrowDown: cp(0xF0045)
+    readonly property string iArrowUp: cp(0xF005D)
 
     readonly property var batLevels: [0xF007A, 0xF007B, 0xF007C, 0xF007D, 0xF007E,
                                       0xF007F, 0xF0080, 0xF0081, 0xF0082, 0xF0079]
