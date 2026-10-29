@@ -19,8 +19,6 @@ Flickable {
     implicitHeight: col.implicitHeight
     boundsBehavior: Flickable.StopAtBounds
 
-    property bool shotOpen: false        // the capture options under the SHOT tile
-    onVisibleChanged: if (!visible) shotOpen = false
 
     readonly property var sink: Pipewire.defaultAudioSink ? Pipewire.defaultAudioSink.audio : null
     readonly property var source: Pipewire.defaultAudioSource ? Pipewire.defaultAudioSource.audio : null
@@ -138,52 +136,12 @@ Flickable {
                 name: "colour"
                 onClicked: { page.closeRequested(); Toggles.pickColour() }
             }
-            Tile {
+            Tile {   // click: the screenshot viewfinder (after the panel is gone), right click: ocr
                 width: tiles.cw
                 icon: Theme.iShot
                 name: "shot"
-                on: page.shotOpen
-                onClicked: page.shotOpen = !page.shotOpen
-                onMenu: page.shotOpen = !page.shotOpen
-            }
-        }
-
-        // ---- capture (under SHOT): clipboard or ~/pix/ss, then the kind of shot ----
-        Rectangle {
-            visible: page.shotOpen
-            Layout.fillWidth: true
-            implicitHeight: cap.implicitHeight + 24
-            radius: 30
-            color: Theme.s2
-            ColumnLayout {
-                id: cap
-                x: 12
-                y: 12
-                width: parent.width - 24
-                spacing: 10
-                Segmented {
-                    Layout.fillWidth: true
-                    implicitHeight: 44
-                    color: Theme.s3
-                    options: [{ value: false, label: "copy" }, { value: true, label: "save" }]
-                    value: Shot.save
-                    onPicked: v => Shot.save = v
-                }
-                RowLayout {
-                    Layout.fillWidth: true
-                    spacing: 6
-                    Repeater {
-                        model: [{ mode: "region", label: "area" }, { mode: "window", label: "window" },
-                                { mode: "output", label: "screen" }, { mode: "ocr", label: "ocr" }]
-                        delegate: Chip {
-                            required property var modelData
-                            Layout.fillWidth: true
-                            text: modelData.label
-                            filled: true
-                            onClicked: { page.closeRequested(); Shot.take(modelData.mode) }
-                        }
-                    }
-                }
+                onClicked: { page.closeRequested(); Shot.open("region", Theme.t + 60) }
+                onMenu: { page.closeRequested(); Shot.ocr(Theme.t + 60) }
             }
         }
 

@@ -32,6 +32,12 @@ Singleton {
         if (recProc.running) recProc.signal(2)    // SIGINT: wf-recorder finalises the file
     }
     function toggle(m) { if (busy) stop(); else start(m) }
+    // an area already picked (Shot's record mode): "x,y wxh", "" = the focused monitor
+    function begin(geometry) {
+        if (!available || busy) return
+        mode = geometry !== "" ? "region" : "screen"
+        record(geometry)
+    }
 
     function record(geometry) {
         file = dir + "/" + Qt.formatDateTime(new Date(), "yyyy-MM-dd_HH-mm-ss") + ".mp4"

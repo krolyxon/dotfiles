@@ -198,7 +198,7 @@ PanelWindow {
             { id: "bar",      glyph: Theme.iMonitor,   name: "toggle bar" },
             { id: "picker",   glyph: Theme.iPicker,    name: "colour picker" },
             { id: "shot",     glyph: Theme.iCrop,      name: "screenshot region" },
-            { id: "ocr",      glyph: Theme.iCrop,      name: "screenshot ocr" }
+            { id: "ocr",      glyph: Theme.iOcr,       name: "ocr (text from screen)" }
         ]
         if (Rec.available) c.push({ id: "rec", glyph: Theme.iRec, name: Rec.busy ? "stop recording" : "record screen" })
         var out = []
@@ -364,8 +364,8 @@ PanelWindow {
         case "dnd":      Notifs.dnd = !Notifs.dnd; break
         case "bar":      shell.barShown = !shell.barShown; break
         case "picker":   Toggles.pickColour(); break
-        case "shot":     Shot.take("region"); break
-        case "ocr":      Shot.take("ocr"); break
+        case "shot":     shell.shot("region"); break
+        case "ocr":      shell.shot("ocr"); break
         case "rec":      Rec.toggle("screen"); break
         }
     }

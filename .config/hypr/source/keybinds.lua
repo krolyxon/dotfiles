@@ -42,8 +42,10 @@ hl.bind(mainMod .. " + I", hl.dsp.exec_cmd("qs -c aurora ipc call shell settings
 
 -- Applications
 hl.bind(mainMod .. " + W", hl.dsp.exec_cmd(browser))
-hl.bind("PRINT", hl.dsp.exec_cmd("hypr_screenshot.sh"))
-hl.bind(mainMod .. " + SHIFT + P", hl.dsp.exec_cmd("hypr_screenshot.sh"))
+hl.bind("PRINT", hl.dsp.exec_cmd("qs -c aurora ipc call shell shot region"), { description = "screenshot" })
+hl.bind(mainMod .. " + SHIFT + P", hl.dsp.exec_cmd("qs -c aurora ipc call shell shot region"), { description = "screenshot" })
+hl.bind("SHIFT + PRINT", hl.dsp.exec_cmd("ocr"), { description = "ocr a region" })
+hl.bind(mainMod .. " + SHIFT + O", hl.dsp.exec_cmd("ocr"), { description = "ocr a region" })
 
 -- Music Controls
 hl.bind(mainMod .. " + m", hl.dsp.exec_cmd(terminal .. " -e zsh -i -c \"rmptui\""))

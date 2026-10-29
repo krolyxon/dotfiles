@@ -6,7 +6,6 @@ hypridle
 hyprlock
 hyprpicker
 hyprpolkitagent
-hyprshot
 xdg-desktop-portal-hyprland
 xdg-desktop-portal-gtk
 qt6-wayland
@@ -26,6 +25,7 @@ cava
 wf-recorder
 grim
 slurp
+libvips
 wl-clipboard
 cliphist
 playerctl

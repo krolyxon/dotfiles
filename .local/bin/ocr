@@ -1,0 +1,25 @@
+#!/bin/sh
+# OCR a screen region: slurp -> grim -> tesseract -> clipboard, with a notification showing what was read.
+# usage: ocr [lang]   (tesseract language, default eng; e.g. `ocr eng+hin`)
+# slurp takes aurora's matugen colours when they're there.
+
+lang="${1:-eng}"
+c="${XDG_CACHE_HOME:-$HOME/.cache}/matugen/aurora.json"
+
+if command -v jq >/dev/null && [ -r "$c" ]; then
+    bg=$(jq -r '.surfaceLowest // empty' "$c")
+    fg=$(jq -r '.primary // empty' "$c")
+fi
+if [ -n "$bg" ] && [ -n "$fg" ]; then
+    g=$(slurp -b "${bg}88" -c "${fg}ff" -s "#00000000" -w 1) || exit 0
+else
+    g=$(slurp) || exit 0
+fi
+
+text=$(grim -g "$g" - | tesseract stdin stdout -l "$lang" 2>/dev/null | sed -e 's/[[:space:]]*$//' -e '/./,$!d')
+if [ -z "$text" ]; then
+    notify-send -a ocr "OCR" "no text found"
+    exit 1
+fi
+printf '%s' "$text" | wl-copy
+notify-send -a ocr "OCR · copied" "$(printf '%s' "$text" | head -c 200)"

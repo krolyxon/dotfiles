@@ -62,6 +62,17 @@ ShellRoot {
         overlayScreen = scr ? scr : focusedScreen()
         overlay = name
     }
+    // screenshots: whatever aurora shows must slide away before grim freezes the screen
+    function shot(mode) {
+        if (mode === "edit") { Shot.edit(); return }   // the last shot in the editor
+        // also when one closed a moment ago (the runner closes itself before running "screenshot")
+        var gone = Math.max(closedAt, overlayClosedAt)
+        var wait = opened || overlay !== "" ? Theme.t + 60 : Math.max(0, Theme.t + 60 - (Date.now() - gone))
+        close()
+        closeOverlay()
+        if (mode === "ocr") Shot.ocr(wait)
+        else Shot.open(mode, wait)
+    }
     // section "" = toggle the window on its last section; a name opens (or switches) to it
     function settings(section) {
         if (section === "" || section === undefined) { settingsOpen = !settingsOpen; return }
@@ -159,6 +170,9 @@ ShellRoot {
     // polkit password prompt (Agents), on the focused monitor
     AuthPrompt { screen: root.focusedScr }
 
+    ShotAim {}
+    ShotEditor {}
+
     PowerMenu {
         screen: root.overlayScreen
         opened: root.overlay === "power"
@@ -209,8 +223,8 @@ ShellRoot {
         // `qs ipc call shell show x` is swallowed by the qs CLI (it has its own `show`), so use this
         function tab(name: string): void { root.openTab(name) }
         function dnd(): void { Notifs.dnd = !Notifs.dnd }
-        function shot(mode: string): void { root.close(); Shot.take(mode) }   // region | window | output | ocr
-        function shotsave(): void { Shot.save = !Shot.save }
+        // screenshot viewfinder in that mode (region | window | screen | record), ocr (the `ocr` script), edit (the last shot)
+        function shot(mode: string): void { root.shot(mode) }
         function overview(): void { root.toggleOverlay("overview") }
         function cal(): void { root.toggleOverlay("cal") }
         function clip(): void { root.toggleOverlay("clip") }
