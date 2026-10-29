@@ -4,8 +4,8 @@ import Quickshell
 import Quickshell.Io
 
 // Wallpapers: folder listing, cached thumbnails, and applying them. aurora owns the wallpaper and draws it itself
-// (Back.qml / WallView.qml, look = Settings.wallLook): apply() records the path in hyprpaper.conf (only as the record,
-// hyprpaper isn't run any more) and runs matugen (all colours, terminal included; Theme then recolours itself). recolor() re-runs just matugen when the scheme/contrast setting changes.
+// (Back.qml / WallView.qml, look = Settings.wallLook): apply() records the path in ~/.local/state/aurora/wallpaper
+// and runs matugen (all colours, terminal included; Theme then recolours itself). recolor() re-runs just matugen when the scheme/contrast setting changes.
 // ~/.local/bin/setwall is only a CLI front-end for the IPC calls (wallrandom / wall / wallset).
 Singleton {
     id: root
@@ -13,7 +13,7 @@ Singleton {
     readonly property string home: Quickshell.env("HOME")
     property string rootDir: home + "/pix/wallpapers"
     property string folder: Settings.wallFolder      // default dusky-dark
-    readonly property string conf: home + "/.config/hypr/hyprpaper.conf"
+    readonly property string record: home + "/.local/state/aurora/wallpaper"   // the current wallpaper's path
     readonly property string thumbDir: home + "/.cache/aurora/thumbs"
 
     property var folders: []                         // subfolder names; "" = everything under rootDir
@@ -41,16 +41,13 @@ Singleton {
                             "-regextype", "posix-extended", "-iregex", ".*\\.(png|jpe?g|webp)"]
         listProc.running = true
     }
-    // hyprpaper.conf is the record of the current wallpaper (kept in hyprpaper's format, so it still works if
-    // hyprpaper is ever started again)
     readonly property string applyJob:
-        'p="$1"; c="$2"; ' +
-        'printf "splash = false\\nwallpaper {\\n    monitor =\\n    path = %s\\n}\\n" "$p" > "$c"; ' +
+        'p="$1"; c="$2"; mkdir -p "${c%/*}"; printf "%s\\n" "$p" > "$c"; ' +
         'matugen image "$p" -m dark -t "$3" --contrast="$4" --prefer saturation -q'
     function apply(path) {
         if (!path) return
         current = path
-        Quickshell.execDetached(["sh", "-c", applyJob, "sh", path, conf, Settings.matuScheme, String(Settings.matuContrast)])
+        Quickshell.execDetached(["sh", "-c", applyJob, "sh", path, record, Settings.matuScheme, String(Settings.matuContrast)])
     }
 
     // matugen only. --prefer: v4 otherwise asks on stdin when the image has several source colours.
@@ -149,15 +146,15 @@ Singleton {
         }
     }
 
-    // current wallpaper, from its record in hyprpaper.conf. None yet (fresh install): pick a random one.
+    // current wallpaper, from its record. None yet (fresh install): pick a random one.
     FileView {
-        path: root.conf
+        path: root.record
         watchChanges: true
         onFileChanged: reload()
         onLoadFailed: root.random()
         onLoaded: {
-            var m = text().match(/^\s*path\s*=\s*(.+)$/m)
-            if (m) root.current = m[1].trim()
+            var p = text().trim()
+            if (p) root.current = p
             if (!root.checkedColours) { root.checkedColours = true; root.recolor(true) }
         }
     }

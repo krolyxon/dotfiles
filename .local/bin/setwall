@@ -1,6 +1,6 @@
 #!/bin/sh
 # Set the wallpaper through aurora. aurora owns the wallpaper: it draws it itself (mono dots, colour dots or photo,
-# see its settings), records it in hyprpaper.conf and runs matugen (colours). This is just the CLI front-end for its IPC.
+# see its settings), records it in ~/.local/state/aurora/wallpaper and runs matugen (colours). This is just the CLI front-end for its IPC.
 #
 #   setwall              random wallpaper from the folder selected in aurora's picker
 #   setwall -m           open (toggle) aurora's wallpaper picker
