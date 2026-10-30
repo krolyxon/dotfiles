@@ -5,19 +5,18 @@
    (no text-transform, transform, filter, -gtk-icon-size, --variables): GTK3 prints a warning per app otherwise. User css
    beats the theme at any specificity, so whatever is set here is set for every state (add :disabled etc. explicitly). */
 
-/* ---- type: labels in Space Mono with aurora's Lb tracking (caps only on GTK4: GTK3 has no text-transform).
+/* ---- type: labels in the UI font (JetBrains Mono) with aurora's Lb tracking (caps only on GTK4: GTK3 has no text-transform).
    No letter-spacing on labels that ellipsize (headerbar title, statusbar, path bar): GTK measures them without it and
    cuts the last characters off. ---- */
 .heading, .caption-heading, treeview.view header button {
-    font-family: "Space Mono";
     font-weight: normal;
     font-size: 12px;
     letter-spacing: 1.7px;
     color: @aurora_grey;
 }
-headerbar .title { font-family: "Space Mono"; font-weight: normal; font-size: 13px; }
-headerbar .subtitle { font-family: "Space Mono"; font-size: 11px; color: @aurora_grey; }
-statusbar { font-family: "Space Mono"; font-size: 11px; color: @aurora_grey; padding: 6px 12px; }
+headerbar .title { font-weight: normal; font-size: 13px; }
+headerbar .subtitle { font-size: 11px; color: @aurora_grey; }
+statusbar { font-size: 11px; color: @aurora_grey; padding: 6px 12px; }
 
 /* ---- pills; joined groups keep straight inner corners ---- */
 button, entry, spinbutton:not(.vertical) { border-radius: 999px; }

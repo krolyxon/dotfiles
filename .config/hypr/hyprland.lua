@@ -21,7 +21,7 @@ hl.on("hyprland.start", function()
     -- GTK3 on Wayland reads its theme + icons from gsettings, not settings.ini (colours: gtk-3.0/gtk.css, matugen)
     hl.exec_cmd("gsettings set org.gnome.desktop.interface gtk-theme adw-gtk3-dark")
     hl.exec_cmd("gsettings set org.gnome.desktop.interface icon-theme Papirus-Dark")
-    hl.exec_cmd("gsettings set org.gnome.desktop.interface font-name 'Space Grotesk 11'")   -- like aurora's UI text
+    hl.exec_cmd("gsettings set org.gnome.desktop.interface font-name 'JetBrainsMonoNL Nerd Font Mono 11'")   -- Space fonts are aurora's only
     hl.exec_cmd("wl-paste --type text --watch cliphist store")
     hl.exec_cmd("wl-paste --type image --watch cliphist store")
     hl.exec_cmd("hyprpm reload -n")
