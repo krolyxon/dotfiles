@@ -16,8 +16,15 @@ Singleton {
 
     // ---- knobs (persisted in ~/.config/aurora/settings.json, edited in the settings app) ----
     readonly property real panelAlpha: Settings.panelAlpha
-    readonly property int barSize: Math.max(32, Settings.barSize)   // the bar's height (docked at the top)
-    readonly property int barHeight: barSize                        // what the bar reserves at the top
+    readonly property bool barVertical: Settings.barLayout === "vertical"   // docked at the left edge instead of the top
+    readonly property int barSize: barVertical ? Math.max(48, Settings.barWidth) : Math.max(32, Settings.barSize)   // its thickness
+    readonly property bool barFloat: Settings.barFloat               // a floating pill instead of a strip along the edge
+    readonly property int barGap: barFloat ? 14 : 0                  // the pill's distance from the screen edges (glyph-rice)
+    // ... and from the windows: glyph's 14 too, there it is Hyprland's gaps_out; here only the part gaps_out doesn't cover
+    readonly property int barInner: barFloat ? Math.max(0, barGap - (HyprConf.values["general:gaps_out"] || 0)) : 0
+    readonly property int barSpan: barSize + barGap + barInner       // the bar window, across the bar
+    readonly property int barTop: barVertical ? 0 : barSpan          // what the bar reserves at the top
+    readonly property int barLeft: barVertical ? barSpan : 0         // ... and at the left
     readonly property real barAlpha: Settings.barAlpha
 
     // ---- motion: ease-out-quart without overshoot (glyph's "glide"); Settings.motion off = instant ----

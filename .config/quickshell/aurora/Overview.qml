@@ -80,7 +80,8 @@ PanelWindow {
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: 40
-        anchors.topMargin: Theme.barHeight + 24
+        anchors.topMargin: Math.max(40, Theme.barTop + 24)
+        anchors.leftMargin: Math.max(40, Theme.barLeft + 24)
         spacing: 16
 
         RowLayout {

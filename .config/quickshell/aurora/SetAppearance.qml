@@ -119,8 +119,23 @@ Flickable {
         }
         Knob { label: "contrast"; keywords: "colours colors"; from: -1; to: 1; decimals: 2; value: Settings.matuContrast; onMoved: v => Settings.matuContrast = v }
 
-        SectionLabel { text: "sizes" }
-        Knob { label: "bar height"; keywords: "top bar size"; from: 32; to: 56; value: Settings.barSize; onMoved: v => Settings.barSize = v }
+        SectionLabel { text: "bar"; keywords: "status bar sizes" }
+        Choice {
+            label: "bar layout"
+            keywords: "vertical horizontal orientation side left top position"
+            options: [{ value: "horizontal", label: "horizontal" }, { value: "vertical", label: "vertical" }]
+            value: Settings.barLayout
+            onPicked: v => Settings.barLayout = v
+        }
+        Choice {
+            label: "bar shape"
+            keywords: "floating pill attached edge strip rounded"
+            options: [{ value: false, label: "attached" }, { value: true, label: "floating pill" }]
+            value: Settings.barFloat
+            onPicked: v => Settings.barFloat = v
+        }
+        Knob { visible: !Theme.barVertical; label: "bar height"; keywords: "top bar size"; from: 32; to: 56; value: Settings.barSize; onMoved: v => Settings.barSize = v }
+        Knob { visible: Theme.barVertical; label: "bar width"; keywords: "vertical side bar size"; from: 48; to: 80; value: Settings.barWidth; onMoved: v => Settings.barWidth = v }
 
         SectionLabel { text: "transparency"; keywords: "transparent opacity alpha translucent" }
         Knob { label: "bar opacity"; keywords: "transparent"; from: 0.3; to: 1; decimals: 2; value: Settings.barAlpha; onMoved: v => Settings.barAlpha = v }

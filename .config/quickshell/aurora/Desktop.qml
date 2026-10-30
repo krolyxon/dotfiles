@@ -33,8 +33,8 @@ PanelWindow {
 
     Column {
         visible: win.showClock
-        x: 56
-        y: Theme.barHeight + 48
+        x: Theme.barLeft + 56
+        y: Theme.barTop + 48
         spacing: 2
 
         Row {
@@ -87,9 +87,10 @@ PanelWindow {
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 18
         anchors.horizontalCenter: parent.horizontalCenter
+        anchors.horizontalCenterOffset: Theme.barLeft / 2   // not under a vertical bar
         readonly property int rows: 14
         readonly property real d: 6
-        readonly property real gap: Math.max(2, (win.width - 72) / Cava.bars - d)
+        readonly property real gap: Math.max(2, (win.width - Theme.barLeft - 72) / Cava.bars - d)
         spacing: gap
         Repeater {
             model: Cava.bars

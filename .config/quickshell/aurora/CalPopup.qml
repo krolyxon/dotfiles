@@ -18,10 +18,14 @@ PanelWindow {
     Behavior on t { NumberAnimation { duration: Theme.t; easing.type: Easing.BezierSpline; easing.bezierCurve: Theme.glide } }
 
     visible: t > 0
-    anchors.top: true
+    // under the clock: top centre, or next to it (left edge, centred) when the bar is vertical
+    readonly property bool side: Theme.barVertical
+    anchors.top: !side
+    anchors.left: side
     margins.top: 6
-    implicitWidth: card.width
-    implicitHeight: card.height + 20      // room for the slide
+    margins.left: 8
+    implicitWidth: card.width + (side ? 20 : 0)     // room for the slide
+    implicitHeight: card.height + (side ? 0 : 20)
     exclusiveZone: 0
     color: "transparent"
     mask: Region { item: card }
@@ -88,7 +92,8 @@ PanelWindow {
 
     Rectangle {
         id: card
-        y: -16 * (1 - win.t)
+        x: win.side ? -16 * (1 - win.t) : 0
+        y: win.side ? 0 : -16 * (1 - win.t)
         opacity: win.t
         width: row.width + 52
         height: row.height + 48

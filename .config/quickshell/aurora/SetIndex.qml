@@ -18,7 +18,7 @@ Singleton {
         { id: "bluetooth",  word: "bluetooth", caption: "bluetooth · devices, pairing", files: ["BtPage.qml"], keywords: "bt" },
         { id: "sound",      word: "sound",     caption: "sound · levels, devices, apps", files: ["AudioPage.qml"],
           keywords: "audio volume speakers microphone" },
-        { id: "appearance", word: "look",      caption: "look · wallpaper, home screen, colours, sizes", files: ["SetAppearance.qml"],
+        { id: "appearance", word: "look",      caption: "look · wallpaper, home screen, colours, bar", files: ["SetAppearance.qml"],
           keywords: "appearance theme style" },
         { id: "shell",      word: "shell",     caption: "shell · home screen, dock, osd, notifications", files: ["SetShell.qml"],
           keywords: "aurora" },

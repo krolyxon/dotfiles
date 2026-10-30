@@ -18,7 +18,7 @@ Singleton {
         idleDim: 150, idleOff: 330, idleLock: 600, idleSuspend: 0, charTone: 0, portalAutoOpen: true,
         chargeMode: "off", batLow: 15, batCritical: 5, batCriticalAction: "none",
         privacyIndicators: true, powerAuto: false, powerAc: "balanced", powerBat: "saver",
-        motion: true, clock24: true, appIcons: "dots", barSize: 40,
+        motion: true, clock24: true, appIcons: "dots", barSize: 40, barLayout: "horizontal", barWidth: 56, barFloat: false,
         wallLook: "dots", wallPitch: 10, wallBright: 85, dotGrid: true,
         blink: true, weatherLoc: ""
     })
@@ -54,6 +54,9 @@ Singleton {
     property alias clock24: a.clock24
     property alias appIcons: a.appIcons
     property alias barSize: a.barSize
+    property alias barLayout: a.barLayout
+    property alias barWidth: a.barWidth
+    property alias barFloat: a.barFloat
     property alias wallLook: a.wallLook
     property alias wallPitch: a.wallPitch
     property alias wallBright: a.wallBright
@@ -115,6 +118,9 @@ Singleton {
             property bool clock24: true
             property string appIcons: "dots"           // dots | mono | colour: how app icons are drawn
             property int barSize: 40                   // height of the bar (Doto clock from 40 up)
+            property string barLayout: "horizontal"    // horizontal (top edge) | vertical (left edge)
+            property int barWidth: 56                  // width of the vertical bar
+            property bool barFloat: false              // a rounded pill held off the screen edges (glyph-rice) instead of a strip
             property string wallLook: "dots"           // dots | colour | photo: how aurora draws the wallpaper (WallView)
             property int wallPitch: 10                 // dot step, px
             property int wallBright: 85                // %, from the background to the full image

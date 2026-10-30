@@ -22,7 +22,7 @@ PanelWindow {
 
     visible: t > 0
     anchors { top: true; right: true; bottom: true }
-    margins { top: 6; right: 8; bottom: 8 }       // sits just under the bar (bar's exclusive zone is respected)
+    margins { top: Theme.barTop ? 6 : 8; right: 8; bottom: 8 }   // sits just under the bar (bar's exclusive zone is respected)
     implicitWidth: card.width + 24                  // room for the slide
     exclusiveZone: 0
     color: "transparent"

@@ -15,7 +15,7 @@ PanelWindow {
 
     visible: stack.count > 0 && !suppressed
     anchors.top: true
-    margins.top: 6
+    margins.top: Theme.barTop ? 6 : 8
     implicitWidth: cardW
     implicitHeight: 4 * 160 + 20         // fixed; only the cards take input (mask)
     exclusiveZone: 0
