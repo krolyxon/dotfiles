@@ -1,2 +1,13 @@
-/* Colours from matugen (~/.config/matugen/templates/gtk.css), on top of the adw-gtk3 theme / libadwaita. */
+/* matugen's colours (~/.config/matugen/templates/gtk.css), then aurora's Nothing look (gtk-3.0/nothing.css, shared
+   with GTK3), on top of libadwaita / adw-gtk3's GTK4 theme. GTK4-only rules below. */
 @import url("file:///home/k/.cache/matugen/gtk.css");
+@import url("../gtk-3.0/nothing.css");
+
+/* adw-gtk3's GTK4 theme (libadwaita-tweaks.css) pins --accent-bg-color to blue, so plain GTK4 apps (pavucontrol,
+   zathura) ignored the matugen accent; bind the variables to the named colours like libadwaita itself does. */
+:root {
+    --accent-bg-color: @accent_bg_color;
+    --accent-fg-color: @accent_fg_color;
+    --window-bg-color: @window_bg_color;
+    --headerbar-bg-color: @headerbar_bg_color;
+}

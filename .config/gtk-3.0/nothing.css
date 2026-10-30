@@ -1,0 +1,15 @@
+/* aurora's Nothing OS look for GTK3 and GTK4 (after glyph-rice's gtk.css, github.com/Nebelung-cloud/glyph-rice, GPL-3.0),
+   on top of adw-gtk3 / libadwaita. Imported by gtk-3.0/gtk.css and gtk-4.0/gtk.css after matugen's colours
+   (~/.cache/matugen/gtk.css: libadwaita names + aurora_bg/s1/s2/s3/fill/live/... like Theme.qml).
+   Static on purpose: edits show in newly started apps, no matugen run. Only properties BOTH versions parse
+   (no text-transform, transform, filter, -gtk-icon-size): GTK3 prints a warning per app otherwise. User css beats the
+   theme at any specificity, so whatever is set here is set for every state. */
+
+/* ---- pills; joined groups keep straight inner corners ---- */
+button, entry { border-radius: 999px; }
+entry { padding-left: 14px; padding-right: 14px; }
+.linked:not(.vertical) > button:not(:first-child), .linked:not(.vertical) > entry:not(:first-child) { border-top-left-radius: 0; border-bottom-left-radius: 0; }
+.linked:not(.vertical) > button:not(:last-child), .linked:not(.vertical) > entry:not(:last-child) { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.linked.vertical > button, .linked.vertical > entry { border-radius: 12px; }
+popover > contents, popover.background { border-radius: 24px; }
+scrollbar slider { border-radius: 999px; }

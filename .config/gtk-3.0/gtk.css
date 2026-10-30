@@ -1,2 +1,4 @@
-/* Colours from matugen (~/.config/matugen/templates/gtk.css), on top of the adw-gtk3 theme / libadwaita. */
+/* matugen's colours (~/.config/matugen/templates/gtk.css), then aurora's Nothing look (nothing.css, shared with GTK4),
+   on top of the adw-gtk3 theme. GTK3-only rules below. */
 @import url("file:///home/k/.cache/matugen/gtk.css");
+@import url("nothing.css");
