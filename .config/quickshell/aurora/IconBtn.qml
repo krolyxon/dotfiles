@@ -5,6 +5,7 @@ Rectangle {
     id: b
     property string icon: ""
     property string label: ""
+    property string keywords: ""    // settings search: a button is indexed only with keywords (SetIndex reads the source)
     property bool active: false
     property int iconSize: 16
     signal clicked()

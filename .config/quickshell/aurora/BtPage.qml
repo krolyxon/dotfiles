@@ -83,7 +83,7 @@ ColumnLayout {
         }
     }
 
-    SectionLabel { text: "devices"; count: page.adapter && page.adapter.enabled ? String(page.devices.length) : "" }
+    SectionLabel { text: "devices"; keywords: "pair pairing connect forget headphones headset earbuds speaker controller"; count: page.adapter && page.adapter.enabled ? String(page.devices.length) : "" }
 
     Flickable {
         id: flick

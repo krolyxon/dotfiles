@@ -25,6 +25,7 @@ Flickable {
     component Timeout: RowLayout {
         id: t
         property string label: ""
+        property string keywords: ""
         property string key: ""
         property int value: 0
         property int max: 1800
@@ -68,10 +69,11 @@ Flickable {
 
         BatteryInfo {}
 
-        SectionLabel { text: "battery care"; Layout.topMargin: 6; visible: Battery.hasBat }
+        SectionLabel { text: "battery care"; keywords: "battery health"; Layout.topMargin: 6; visible: Battery.hasBat }
         Choice {
             visible: Battery.supported
             label: "charge limit"
+            keywords: "conservation 80% battery health longevity"
             options: [{ value: "off", label: "off" }, { value: "conservation", label: "conservation" }]
             value: Settings.chargeMode === "off" ? "off" : "conservation"
             onPicked: v => Settings.chargeMode = v
@@ -91,6 +93,7 @@ Flickable {
         Knob {
             visible: Battery.hasBat
             label: "warn at"
+            keywords: "low battery warning"
             from: 5; to: 40; unit: "%"
             value: Settings.batLow
             onMoved: v => Settings.batLow = v
@@ -98,6 +101,7 @@ Flickable {
         Knob {
             visible: Battery.hasBat
             label: "critical at"
+            keywords: "critical battery"
             from: 2; to: 15; unit: "%"
             value: Settings.batCritical
             onMoved: v => Settings.batCritical = v
@@ -105,6 +109,7 @@ Flickable {
         Choice {
             visible: Battery.hasBat
             label: "when critical"
+            keywords: "low battery action"
             options: [{ value: "none", label: "warn" }, { value: "suspend", label: "suspend" },
                       { value: "poweroff", label: "power off" }]
             value: Settings.batCriticalAction
@@ -115,6 +120,7 @@ Flickable {
             Layout.topMargin: 6
             visible: Battery.hasProfiles
             label: "power profile"
+            keywords: "performance balanced saver power-profiles-daemon"
             options: flick.profiles.concat(Battery.hasBat ? [{ value: "auto", label: "auto" }] : [])
             value: Battery.profile
             onPicked: v => Battery.setProfile(v)
@@ -122,6 +128,7 @@ Flickable {
         Choice {
             visible: Battery.hasProfiles && Settings.powerAuto
             label: "on AC"
+            keywords: "plugged in charger power profile"
             options: flick.profiles
             value: Settings.powerAc
             onPicked: v => Settings.powerAc = v
@@ -129,19 +136,21 @@ Flickable {
         Choice {
             visible: Battery.hasProfiles && Settings.powerAuto
             label: "on battery"
+            keywords: "unplugged power profile"
             options: flick.profiles
             value: Settings.powerBat
             onPicked: v => Settings.powerBat = v
         }
         GpuSwitch { Layout.topMargin: 6 }
 
-        SectionLabel { text: "when idle"; Layout.topMargin: 6 }
-        Timeout { label: "dim the screen"; key: "idleDim"; value: Idle.dim }
-        Timeout { label: "screen off"; key: "idleOff"; value: Idle.screenOff }
-        Timeout { label: "lock"; key: "idleLock"; value: Idle.lock }
-        Timeout { label: "suspend"; key: "idleSuspend"; value: Idle.suspend; max: 3600 }
+        SectionLabel { text: "when idle"; keywords: "idle timeout sleep hypridle"; Layout.topMargin: 6 }
+        Timeout { label: "dim the screen"; keywords: "idle dim timeout"; key: "idleDim"; value: Idle.dim }
+        Timeout { label: "screen off"; keywords: "dpms display off idle timeout"; key: "idleOff"; value: Idle.screenOff }
+        Timeout { label: "lock"; keywords: "lock screen hyprlock idle timeout"; key: "idleLock"; value: Idle.lock }
+        Timeout { label: "suspend"; keywords: "sleep idle timeout"; key: "idleSuspend"; value: Idle.suspend; max: 3600 }
         Switch {
             label: "caffeine"
+            keywords: "stay awake keep awake inhibit idle"
             hint: "keep the screen awake until turned off (not saved)"
             checked: Toggles.caffeine
             onToggled: on => Toggles.caffeine = on

@@ -16,7 +16,7 @@ ColumnLayout {
     visible: Gpu.mode !== ""
     Layout.fillWidth: true
     spacing: 10
-    SectionLabel { text: "graphics · envycontrol" }
+    SectionLabel { text: "graphics · envycontrol"; keywords: "gpu graphics mode nvidia hybrid integrated dgpu prime" }
     RowLayout {
         Layout.fillWidth: true
         spacing: 6

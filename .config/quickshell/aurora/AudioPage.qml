@@ -44,7 +44,7 @@ Flickable {
         width: flick.width
         spacing: 6
 
-        SectionLabel { text: "levels" }
+        SectionLabel { text: "levels"; keywords: "volume mute microphone mic" }
         SliderRow {
             Layout.fillWidth: true
             Layout.topMargin: 4
@@ -64,7 +64,7 @@ Flickable {
             onIconClicked: if (flick.inp) flick.inp.muted = !flick.inp.muted
         }
 
-        SectionLabel { text: "output"; count: String(flick.sinks.length); Layout.topMargin: 14 }
+        SectionLabel { text: "output"; keywords: "speakers headphones hdmi default device sink"; count: String(flick.sinks.length); Layout.topMargin: 14 }
         Repeater {
             model: flick.sinks
             delegate: ListRow {
@@ -78,7 +78,7 @@ Flickable {
             }
         }
 
-        SectionLabel { text: "input"; count: String(flick.sources.length); Layout.topMargin: 14 }
+        SectionLabel { text: "input"; keywords: "microphone mic default device source"; count: String(flick.sources.length); Layout.topMargin: 14 }
         Repeater {
             model: flick.sources
             delegate: ListRow {
@@ -92,7 +92,7 @@ Flickable {
             }
         }
 
-        SectionLabel { text: "apps"; count: String(flick.streams.length); Layout.topMargin: 14 }
+        SectionLabel { text: "apps"; keywords: "mixer per-app app volume streams"; count: String(flick.streams.length); Layout.topMargin: 14 }
         Lb {
             visible: flick.streams.length === 0
             Layout.leftMargin: 6

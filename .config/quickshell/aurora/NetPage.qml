@@ -17,7 +17,7 @@ ColumnLayout {
         visible: Net.wiredDevs.length > 0
         Layout.fillWidth: true
         spacing: 4
-        SectionLabel { text: "wired" }
+        SectionLabel { text: "wired"; keywords: "ethernet lan cable usb tethering phone" }
         Repeater {
             model: Net.wiredDevs
             delegate: ListRow {

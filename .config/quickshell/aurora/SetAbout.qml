@@ -72,7 +72,7 @@ Flickable {
             }
         }
 
-        SectionLabel { text: "system"; Layout.topMargin: 6 }
+        SectionLabel { text: "system"; keywords: "kernel cpu gpu host hostname distro packages version uptime"; Layout.topMargin: 6 }
         Repeater {
             model: flick.info
             delegate: RowLayout {
@@ -98,7 +98,7 @@ Flickable {
             }
         }
 
-        SectionLabel { text: "memory & storage"; Layout.topMargin: 6 }
+        SectionLabel { text: "memory & storage"; keywords: "ram disk space drives usage"; Layout.topMargin: 6 }
         StatBar {
             label: "memory"
             frac: SysStats.memTotal > 0 ? SysStats.memUsed / SysStats.memTotal : 0
@@ -115,7 +115,7 @@ Flickable {
             }
         }
 
-        SectionLabel { text: "credits"; Layout.topMargin: 6 }
+        SectionLabel { text: "credits"; keywords: "license glyph-rice fonts"; Layout.topMargin: 6 }
         Text {
             Layout.fillWidth: true
             Layout.leftMargin: 18

@@ -26,7 +26,7 @@ ColumnLayout {
     Layout.fillWidth: true
     spacing: 12
 
-    SectionLabel { text: "battery" }
+    SectionLabel { text: "battery"; keywords: "charge level percentage health time left" }
     RowLayout {
         Layout.leftMargin: 6
         spacing: 14

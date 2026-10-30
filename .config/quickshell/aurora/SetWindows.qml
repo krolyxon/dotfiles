@@ -29,29 +29,30 @@ Flickable {
             font.pixelSize: 14
         }
 
-        SectionLabel { text: "gaps & borders" }
-        Knob { label: "inner gaps"; unit: "px"; from: 0; to: 30; value: flick.v("general:gaps_in", 0); onMoved: x => HyprConf.set("general:gaps_in", x) }
-        Knob { label: "outer gaps"; unit: "px"; from: 0; to: 40; value: flick.v("general:gaps_out", 0); onMoved: x => HyprConf.set("general:gaps_out", x) }
-        Knob { label: "border"; unit: "px"; from: 0; to: 8; value: flick.v("general:border_size", 0); onMoved: x => HyprConf.set("general:border_size", x) }
-        Knob { label: "rounding"; unit: "px"; from: 0; to: 20; value: flick.v("decoration:rounding", 0); onMoved: x => HyprConf.set("decoration:rounding", x) }
+        SectionLabel { text: "gaps & borders"; keywords: "spacing margins" }
+        Knob { label: "inner gaps"; keywords: "spacing padding gaps_in"; unit: "px"; from: 0; to: 30; value: flick.v("general:gaps_in", 0); onMoved: x => HyprConf.set("general:gaps_in", x) }
+        Knob { label: "outer gaps"; keywords: "spacing margin gaps_out"; unit: "px"; from: 0; to: 40; value: flick.v("general:gaps_out", 0); onMoved: x => HyprConf.set("general:gaps_out", x) }
+        Knob { label: "border"; keywords: "border size thickness outline"; unit: "px"; from: 0; to: 8; value: flick.v("general:border_size", 0); onMoved: x => HyprConf.set("general:border_size", x) }
+        Knob { label: "rounding"; keywords: "corners radius rounded"; unit: "px"; from: 0; to: 20; value: flick.v("decoration:rounding", 0); onMoved: x => HyprConf.set("decoration:rounding", x) }
         Switch { label: "resize on border"; hint: "drag window edges to resize"; checked: flick.v("general:resize_on_border", false); onToggled: on => HyprConf.set("general:resize_on_border", on) }
 
-        SectionLabel { text: "opacity" }
-        Knob { label: "focused"; from: 0.3; to: 1; decimals: 2; value: flick.v("decoration:active_opacity", 1); onMoved: x => HyprConf.set("decoration:active_opacity", x) }
-        Knob { label: "unfocused"; from: 0.3; to: 1; decimals: 2; value: flick.v("decoration:inactive_opacity", 1); onMoved: x => HyprConf.set("decoration:inactive_opacity", x) }
-        Switch { label: "dim unfocused"; checked: flick.v("decoration:dim_inactive", false); onToggled: on => HyprConf.set("decoration:dim_inactive", on) }
+        SectionLabel { text: "opacity"; keywords: "transparency transparent alpha" }
+        Knob { label: "focused"; keywords: "active window opacity"; from: 0.3; to: 1; decimals: 2; value: flick.v("decoration:active_opacity", 1); onMoved: x => HyprConf.set("decoration:active_opacity", x) }
+        Knob { label: "unfocused"; keywords: "inactive window opacity"; from: 0.3; to: 1; decimals: 2; value: flick.v("decoration:inactive_opacity", 1); onMoved: x => HyprConf.set("decoration:inactive_opacity", x) }
+        Switch { label: "dim unfocused"; keywords: "inactive windows darken"; checked: flick.v("decoration:dim_inactive", false); onToggled: on => HyprConf.set("decoration:dim_inactive", on) }
 
         SectionLabel { text: "effects" }
-        Switch { label: "blur"; hint: "behind transparent windows and layers"; checked: flick.v("decoration:blur:enabled", false); onToggled: on => HyprConf.set("decoration:blur:enabled", on) }
+        Switch { label: "blur"; keywords: "frosted glass"; hint: "behind transparent windows and layers"; checked: flick.v("decoration:blur:enabled", false); onToggled: on => HyprConf.set("decoration:blur:enabled", on) }
         Knob { label: "blur size"; from: 1; to: 15; value: flick.v("decoration:blur:size", 1); onMoved: x => HyprConf.set("decoration:blur:size", x) }
         Knob { label: "blur passes"; from: 1; to: 6; value: flick.v("decoration:blur:passes", 1); onMoved: x => HyprConf.set("decoration:blur:passes", x) }
         Switch { label: "blur x-ray"; hint: "floating windows blur the wallpaper, not what's under them"; checked: flick.v("decoration:blur:xray", false); onToggled: on => HyprConf.set("decoration:blur:xray", on) }
-        Switch { label: "shadows"; checked: flick.v("decoration:shadow:enabled", false); onToggled: on => HyprConf.set("decoration:shadow:enabled", on) }
-        Switch { label: "animations"; checked: flick.v("animations:enabled", false); onToggled: on => HyprConf.set("animations:enabled", on) }
+        Switch { label: "shadows"; keywords: "drop shadow"; checked: flick.v("decoration:shadow:enabled", false); onToggled: on => HyprConf.set("decoration:shadow:enabled", on) }
+        Switch { label: "animations"; keywords: "window motion transitions"; checked: flick.v("animations:enabled", false); onToggled: on => HyprConf.set("animations:enabled", on) }
 
         SectionLabel { text: "layout" }
         Choice {
             label: "tiling layout"
+            keywords: "tiling mode"
             options: [{ value: "master", label: "master" }, { value: "dwindle", label: "dwindle" }]
             value: flick.v("general:layout", "")
             onPicked: x => HyprConf.set("general:layout", x)
@@ -60,15 +61,17 @@ Flickable {
             Layout.fillWidth: true
             visible: flick.v("general:layout", "") === "master"
             spacing: 8
-            Knob { label: "master width"; from: 0.1; to: 0.9; decimals: 2; value: flick.v("master:mfact", 0.55); onMoved: x => HyprConf.set("master:mfact", x) }
+            Knob { label: "master width"; keywords: "mfact ratio split size"; from: 0.1; to: 0.9; decimals: 2; value: flick.v("master:mfact", 0.55); onMoved: x => HyprConf.set("master:mfact", x) }
             Choice {
                 label: "new window"
+                keywords: "placement"
                 options: [{ value: "master", label: "master" }, { value: "slave", label: "stack" }, { value: "inherit", label: "inherit" }]
                 value: flick.v("master:new_status", "")
                 onPicked: x => HyprConf.set("master:new_status", x)
             }
             Choice {
                 label: "master side"
+                keywords: "orientation"
                 options: [{ value: "left", label: "left" }, { value: "right", label: "right" }, { value: "top", label: "top" },
                           { value: "bottom", label: "bottom" }, { value: "center", label: "center" }]
                 value: flick.v("master:orientation", "")
@@ -109,6 +112,7 @@ Flickable {
             IconBtn {
                 icon: Theme.iRefresh
                 label: "reset to config"
+                keywords: "reset defaults restore hyprland"
                 onClicked: HyprConf.resetAll(["general:", "decoration:", "animations:", "master:", "dwindle:", "misc:"])
             }
         }

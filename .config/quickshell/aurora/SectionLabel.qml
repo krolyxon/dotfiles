@@ -5,6 +5,7 @@ import QtQuick.Layouts
 RowLayout {
     id: r
     property string text: ""
+    property string keywords: ""    // synonyms for the settings search (SetIndex reads them from the source)
     property string count: ""
     property string action: ""
     signal actionClicked()

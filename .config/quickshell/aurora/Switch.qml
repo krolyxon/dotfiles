@@ -8,6 +8,7 @@ Rectangle {
     id: s
     property string label: ""
     property string hint: ""
+    property string keywords: ""    // synonyms for the settings search (SetIndex reads them from the source)
     property bool checked: false
     signal toggled(bool on)
 

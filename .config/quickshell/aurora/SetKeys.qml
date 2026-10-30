@@ -91,6 +91,7 @@ ColumnLayout {
         id: search
         label: Theme.iSearch + "  filter"
         placeholder: "key, command or group"
+        value: page.query                 // the settings search sets it
         onEdited: v => page.query = v
     }
 

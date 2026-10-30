@@ -176,9 +176,10 @@ Flickable {
             font.pixelSize: 14
         }
 
-        SectionLabel { text: "layout" }
+        SectionLabel { text: "layout"; keywords: "monitors screens" }
         Choice {
             label: "screens"
+            keywords: "monitors extend external laptop mirror"
             options: [{ value: "extend", label: "extend" }, { value: "laptop", label: "laptop only" },
                       { value: "external", label: "external only" }]
             value: flick.layout
@@ -243,6 +244,7 @@ Flickable {
                 Choice {
                     visible: !mon.m.disabled
                     label: "scale"
+                    keywords: "hidpi dpi zoom size"
                     options: [{ value: 1, label: "100%" }, { value: 1.25, label: "125%" }, { value: 1.5, label: "150%" },
                               { value: 1.75, label: "175%" }, { value: 2, label: "200%" }]
                     value: Math.round(mon.m.scale * 100) / 100
@@ -251,6 +253,7 @@ Flickable {
                 Field {
                     visible: !mon.m.disabled
                     label: "position"
+                    keywords: "arrange placement monitor"
                     placeholder: "1920x0"
                     value: mon.m.x + "x" + mon.m.y
                     onSubmitted: x => {
@@ -261,10 +264,11 @@ Flickable {
             }
         }
 
-        SectionLabel { text: "brightness & colour" }
+        SectionLabel { text: "brightness & colour"; keywords: "backlight color" }
         Knob {
             visible: Bright.available
             label: "laptop panel"
+            keywords: "brightness backlight screen"
             unit: "%"
             from: 1
             to: 100
@@ -274,6 +278,7 @@ Flickable {
         Switch {
             visible: Toggles.hasNightLight
             label: "night light"
+            keywords: "blue light warm redshift gammastep"
             hint: "gammastep's warm colours (its schedule comes from ~/.config/gammastep)"
             checked: Toggles.nightLight
             onToggled: on => Toggles.setNightLight(on)

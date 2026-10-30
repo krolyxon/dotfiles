@@ -5,6 +5,7 @@ import QtQuick.Layouts
 RowLayout {
     id: c
     property string label: ""
+    property string keywords: ""    // synonyms for the settings search (SetIndex reads them from the source)
     property var options: []
     property var value
     signal picked(var v)
