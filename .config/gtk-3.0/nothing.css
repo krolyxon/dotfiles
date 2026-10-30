@@ -2,14 +2,126 @@
    on top of adw-gtk3 / libadwaita. Imported by gtk-3.0/gtk.css and gtk-4.0/gtk.css after matugen's colours
    (~/.cache/matugen/gtk.css: libadwaita names + aurora_bg/s1/s2/s3/fill/live/... like Theme.qml).
    Static on purpose: edits show in newly started apps, no matugen run. Only properties BOTH versions parse
-   (no text-transform, transform, filter, -gtk-icon-size): GTK3 prints a warning per app otherwise. User css beats the
-   theme at any specificity, so whatever is set here is set for every state. */
+   (no text-transform, transform, filter, -gtk-icon-size, --variables): GTK3 prints a warning per app otherwise. User css
+   beats the theme at any specificity, so whatever is set here is set for every state (add :disabled etc. explicitly). */
+
+/* ---- type: labels in Space Mono with aurora's Lb tracking (caps only on GTK4: GTK3 has no text-transform).
+   No letter-spacing on labels that ellipsize (headerbar title, statusbar, path bar): GTK measures them without it and
+   cuts the last characters off. ---- */
+.heading, .caption-heading, treeview.view header button {
+    font-family: "Space Mono";
+    font-weight: normal;
+    font-size: 12px;
+    letter-spacing: 1.7px;
+    color: @aurora_grey;
+}
+headerbar .title { font-family: "Space Mono"; font-weight: normal; font-size: 13px; }
+headerbar .subtitle { font-family: "Space Mono"; font-size: 11px; color: @aurora_grey; }
+statusbar { font-family: "Space Mono"; font-size: 11px; color: @aurora_grey; padding: 6px 12px; }
 
 /* ---- pills; joined groups keep straight inner corners ---- */
-button, entry { border-radius: 999px; }
+button, entry, spinbutton:not(.vertical) { border-radius: 999px; }
 entry { padding-left: 14px; padding-right: 14px; }
+spinbutton:not(.vertical) > entry, spinbutton:not(.vertical) > text { padding-left: 14px; }
 .linked:not(.vertical) > button:not(:first-child), .linked:not(.vertical) > entry:not(:first-child) { border-top-left-radius: 0; border-bottom-left-radius: 0; }
 .linked:not(.vertical) > button:not(:last-child), .linked:not(.vertical) > entry:not(:last-child) { border-top-right-radius: 0; border-bottom-right-radius: 0; }
 .linked.vertical > button, .linked.vertical > entry { border-radius: 12px; }
-popover > contents, popover.background { border-radius: 24px; }
 scrollbar slider { border-radius: 999px; }
+
+/* "on" = primary with on_primary on it (aurora's fill/fillFg): checked toggles, selected rows, text selection */
+button:checked, button:checked:hover { background-color: @aurora_fill; color: @aurora_fill_fg; box-shadow: none; }
+row:selected, row:selected:hover, treeview.view:selected, iconview:selected, flowboxchild:selected, selection {
+    background-color: @aurora_fill;
+    color: @aurora_fill_fg;
+}
+/* the one live thing: the caret (and a running spinner) */
+entry, textview, spinbutton { caret-color: @aurora_live; }
+spinner { color: @aurora_live; }
+
+/* ---- surfaces: rounded cards, outlines instead of shadows ---- */
+popover > contents, popover.background { border-radius: 24px; box-shadow: none; border: 1px solid @aurora_s3; }
+tooltip, tooltip.background { border-radius: 12px; background-color: @aurora_s2; color: @aurora_fg; border: none; box-shadow: none; }
+headerbar { box-shadow: none; border-bottom: none; }
+/* no gradients: the scroll edge shading (pcmanfm's view kept a grey gradient along its bottom and right edge) */
+scrolledwindow undershoot, scrolledwindow overshoot { background: none; box-shadow: none; border: none; }
+
+/* notebook: tabs as pills on the window, the page an s1 card */
+notebook, notebook > header { border: none; box-shadow: none; background: none; }
+notebook > header { padding: 4px 0 8px; }
+notebook > header tab { border-radius: 999px; padding: 4px 16px; min-height: 22px; box-shadow: none; outline-offset: -2px; }
+notebook > header tab:hover:not(:checked) { background-color: @aurora_s3; }
+notebook > header tab:checked { background-color: @aurora_fill; color: @aurora_fill_fg; }
+notebook > header tab:checked button { color: @aurora_fill_fg; }
+
+/* switch: off = s3 track with a grey knob, on = primary track with an on_primary knob */
+switch { background-color: @aurora_s3; border: none; box-shadow: none; }
+switch:checked { background-color: @aurora_fill; }
+switch slider { background-color: @aurora_grey; border: none; box-shadow: none; }
+switch:checked slider { background-color: @aurora_fill_fg; }
+switch:disabled { background-color: @aurora_s2; }
+switch:disabled slider { background-color: @aurora_mute; }
+
+/* ---- LED dots (aurora's BarSlider / Seg): 4px dots on a 9px pitch, unlit = s3, lit = primary ----
+   The trough carries the unlit row, the filled part (highlight, progress, block.filled) the lit row from the same
+   left edge, so both rows line up. */
+scale.horizontal trough, progressbar.horizontal trough, levelbar.horizontal.continuous trough {
+    min-height: 9px;
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    background-color: transparent;
+    background-image: radial-gradient(circle, @aurora_s3 2px, transparent 2.6px);
+    background-size: 9px 9px;
+    background-repeat: repeat-x;
+    background-position: left center;
+}
+scale.horizontal highlight, progressbar.horizontal progress, levelbar.horizontal.continuous block.filled {
+    min-height: 9px;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    background-color: transparent;
+    background-image: radial-gradient(circle, @aurora_fill 2px, transparent 2.6px);
+    background-size: 9px 9px;
+    background-repeat: repeat-x;
+    background-position: left center;
+}
+levelbar.horizontal.continuous block.empty { background: none; border: none; box-shadow: none; }
+scale.horizontal highlight:disabled, scale.horizontal:disabled highlight {
+    background-image: radial-gradient(circle, @aurora_mute 2px, transparent 2.6px);
+}
+/* the knob: a bigger head dot */
+scale slider, scale slider:hover, scale slider:active {
+    min-width: 13px;
+    min-height: 13px;
+    margin: -2px;
+    border: none;
+    border-radius: 999px;
+    box-shadow: none;
+    background-color: @aurora_fill;
+}
+scale slider:disabled { background-color: @aurora_mute; }
+/* a level bar's warning colours stay dots */
+levelbar.horizontal.continuous block.filled.low {
+    background-image: radial-gradient(circle, @aurora_live 2px, transparent 2.6px);
+}
+levelbar.discrete block { min-width: 9px; min-height: 9px; margin: 0 2px; border: none; border-radius: 999px; box-shadow: none; }
+levelbar.discrete block.empty { background-color: @aurora_s3; }
+levelbar.discrete block.filled { background-color: @aurora_fill; }
+
+/* dotted lines instead of rules, like aurora's section dividers */
+separator.horizontal:not(.spacer) {
+    min-height: 2px;
+    background-color: transparent;
+    background-image: radial-gradient(circle, @aurora_s3 1px, transparent 1.4px);
+    background-size: 6px 2px;
+    background-repeat: repeat-x;
+}
+separator.vertical:not(.spacer) {
+    min-width: 2px;
+    background-color: transparent;
+    background-image: radial-gradient(circle, @aurora_s3 1px, transparent 1.4px);
+    background-size: 2px 6px;
+    background-repeat: repeat-y;
+}

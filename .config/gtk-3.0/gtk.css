@@ -2,3 +2,25 @@
    on top of the adw-gtk3 theme. GTK3-only rules below. */
 @import url("file:///home/k/.cache/matugen/gtk.css");
 @import url("nothing.css");
+
+/* adw-gtk3 writes white on suggested-action (it expects a dark accent); Material's primary is light: on_primary */
+button.suggested-action { color: @accent_fg_color; }
+button.suggested-action.flat { color: @accent_color; }
+button.suggested-action:disabled { color: alpha(@window_fg_color, 0.5); }
+
+/* menus (pcmanfm's, librewolf's context menus): round s1 card, items as inset pills, hover s3 */
+menu, .menu, .context-menu { border-radius: 18px; padding: 6px; border: 1px solid @aurora_s3; background-color: @aurora_s1; }
+menu menuitem, .menu menuitem, .context-menu menuitem { border-radius: 999px; padding: 5px 12px; }
+menu menuitem:hover, .menu menuitem:hover, .context-menu menuitem:hover { background-color: @aurora_s3; color: @aurora_fg; }
+menu separator, .menu separator, .context-menu separator {
+    min-height: 2px;
+    background-color: transparent;
+    background-image: radial-gradient(circle, @aurora_s3 1px, transparent 1.4px);
+    background-size: 6px 2px;
+    background-repeat: repeat-x;
+}
+
+/* file chooser (xdg-desktop-portal-gtk, librewolf) and pcmanfm: places as pills, the path bar in Space Mono */
+placessidebar row, .sidebar row { border-radius: 999px; }
+.path-bar button { font-family: "Space Mono"; font-size: 12px; }
+frame > border { border-radius: 16px; }

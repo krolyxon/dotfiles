@@ -11,3 +11,16 @@
     --window-bg-color: @window_bg_color;
     --headerbar-bg-color: @headerbar_bg_color;
 }
+
+/* caps for nothing.css's Space Mono labels (GTK3 has no text-transform) */
+.heading, .caption-heading, headerbar .title, columnview > header > button { text-transform: uppercase; }
+columnview > header > button { font-family: "Space Mono"; font-weight: normal; font-size: 12px; letter-spacing: 1.7px; color: @aurora_grey; }
+
+/* popover menus: items as inset pills, hover s3 */
+popover.menu modelbutton { border-radius: 999px; padding-left: 12px; padding-right: 12px; }
+popover.menu modelbutton:hover, popover.menu modelbutton:selected { background-color: @aurora_s3; color: @aurora_fg; }
+
+/* libadwaita's cards and boxed lists as aurora's cards */
+.boxed-list, .boxed-list-separate > row, .card { border-radius: 20px; }
+.boxed-list > row:first-child { border-top-left-radius: 20px; border-top-right-radius: 20px; }
+.boxed-list > row:last-child { border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; }
